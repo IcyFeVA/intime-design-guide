@@ -1,0 +1,243 @@
+.root {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: var(--nav-width);
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--nav-text);
+  background: var(--nav-bg);
+  border-inline-end: 1px solid var(--nav-border);
+  transition: width var(--nav-transition);
+}
+
+.root[data-collapsed] {
+  width: var(--nav-width-collapsed);
+}
+
+.root[data-floating] {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 3;
+  box-shadow: var(--nav-overlay-shadow);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--nav-padding);
+  min-height: 64px;
+}
+
+.root[data-collapsed] .header {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.search {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchInput {
+  height: var(--nav-item-height);
+  color: var(--nav-text);
+  background: var(--nav-field-bg);
+  border-color: var(--nav-border);
+  border-radius: var(--nav-radius);
+}
+
+.iconButton {
+  color: var(--nav-text);
+  border-radius: var(--nav-radius);
+}
+
+.iconButton:hover,
+.iconButton[data-pressed] {
+  background: var(--nav-hover-bg);
+}
+
+.iconButton[data-pressed] {
+  color: var(--nav-accent);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  padding: 4px var(--nav-padding) var(--nav-padding);
+}
+
+.root[data-collapsed] .body {
+  padding-inline: 8px;
+}
+
+.switchers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.switcher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: var(--nav-item-height);
+  padding: 6px 12px;
+  color: var(--nav-accent);
+  text-align: start;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--nav-radius);
+  transition: background-color 120ms;
+}
+
+.switcher:hover,
+.switcher[data-expanded] {
+  background: var(--nav-hover-bg);
+}
+
+.root[data-collapsed] .switcher {
+  justify-content: center;
+  gap: 2px;
+  padding-inline: 0;
+}
+
+.switcherText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  font-size: 14px;
+}
+
+.switcherLabel {
+  color: var(--nav-text);
+}
+
+.switcherValue {
+  font-weight: 600;
+}
+
+.chevron {
+  flex: none;
+  color: var(--nav-text-dimmed);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nav-gap);
+}
+
+.item {
+  height: var(--nav-item-height);
+  padding: 0 12px;
+  color: var(--nav-text);
+  font-weight: 600;
+  border-radius: var(--nav-radius);
+}
+
+.item:hover {
+  background: var(--nav-hover-bg);
+}
+
+.item[data-active] {
+  color: var(--nav-accent);
+  background: var(--nav-active-bg);
+}
+
+.root[data-collapsed] .item {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.itemLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.itemSection {
+  margin: 0;
+}
+
+.itemSection[data-position='left'] {
+  margin-inline-end: 12px;
+}
+
+.root[data-collapsed] .itemSection[data-position='left'] {
+  margin-inline-end: 0;
+}
+
+.count {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding-inline: 6px;
+  color: var(--nav-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  background: var(--nav-field-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.divider {
+  margin-block: 8px;
+  border-color: var(--nav-border);
+}
+
+.menuDropdown {
+  padding: 4px;
+  background: var(--background-default);
+  border-color: var(--nav-border);
+  border-radius: var(--nav-radius);
+}
+
+.menuItem {
+  padding: 8px 12px;
+  color: var(--nav-text);
+  border-radius: var(--nav-radius);
+}
+
+.menuItem:hover {
+  background: var(--nav-hover-bg);
+}
+
+.menuItem[data-selected] {
+  color: var(--nav-accent);
+  background: var(--nav-active-bg);
+}
+
+.menuTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.menuDescription {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--nav-text-dimmed);
+  white-space: normal;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--nav-accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .switcher {
+    transition: none;
+  }
+}

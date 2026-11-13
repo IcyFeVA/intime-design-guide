@@ -1,0 +1,81 @@
+.specimens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px 40px;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pair {
+  display: flex;
+  gap: 12px;
+}
+
+.panel {
+  display: flex;
+  height: 520px;
+  overflow: hidden;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+}
+
+.frame {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  height: 520px;
+  overflow: hidden;
+  background: var(--mantine-color-body);
+}
+
+.slot {
+  position: relative;
+  flex: none;
+  transition: width var(--nav-transition);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.scrim {
+  position: absolute;
+  inset-block: 0;
+  inset-inline: var(--nav-width-collapsed) 0;
+  z-index: 2;
+  padding: 0;
+  cursor: pointer;
+  background: var(--nav-scrim);
+  border: 0;
+}
+
+.card {
+  height: 112px;
+  padding: 16px;
+  background: var(--intime-surface);
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+}
+
+.swatch {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot {
+    transition: none;
+  }
+}

@@ -3,6 +3,7 @@ import { brandPalettes, neutralPalette } from './tokens/colors'
 import { findTheme, isColorToken, type ThemeDef } from './tokens/themes'
 import { fontFamilies, fontSizes, headingScale } from './tokens/typography'
 import { radius, shadows, spacing } from './tokens/scales'
+import { navCssVariables } from './tokens/navigation'
 
 const toRecord = <T extends { name: string; value: string }>(items: T[]) =>
   Object.fromEntries(items.map((item) => [item.name, item.value]))
@@ -76,7 +77,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: {},
+  variables: navCssVariables,
   light: schemeVariables(findTheme('light')),
   dark: schemeVariables(findTheme('dark')),
 })

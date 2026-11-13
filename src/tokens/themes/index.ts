@@ -163,7 +163,7 @@ export const signalGroups: SignalGroup[] = [
     description: 'Neutral notices, tips and onboarding.',
     swatches: [sw('background-info', 'filled'), sw('background-info-light', 'light')],
   },
-  signal('indigo', 'Indigo', 'Secondary accent for categorisation (e.g. tags, training).'),
+  // signal('indigo', 'Indigo', 'Secondary accent for categorisation (e.g. tags, training).'),
   signal('gray', 'Gray', 'Neutral actions and inactive status.'),
 ]
 
@@ -173,7 +173,7 @@ export const textSignalSwatches: SwatchDef[] = [
   sw('text-warning-default', 'Text Warning'),
   sw('text-error-default', 'Text Error'),
   sw('text-info', 'Text Info'),
-  sw('text-indigo-default', 'Text Indigo'),
+  // sw('text-indigo-default', 'Text Indigo'),
 ]
 
 export const alertExamples = [

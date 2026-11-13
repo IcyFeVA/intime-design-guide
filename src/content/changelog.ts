@@ -10,6 +10,17 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-13',
+    page: '/patterns/navigation',
+    summary: 'New Navigation pattern with a reusable component and CSS variables.',
+    changes: [
+      'Four variants by role: Scheduler, Administrator, Employee (and Scheduler), Employee only. The role switcher appears only for users with more than one role.',
+      'Collapsed rail: icon-only items with tooltips, and dots instead of count badges.',
+      'Pinned (page shifts) and overlay (floats over the page) behavior, with a live demo.',
+      '`--nav-*` CSS variables in src/tokens/navigation.ts, published on :root and aliased to the theme tokens.',
+    ],
+  },
+  {
     date: '2026-11-12',
     page: '/foundations/typography',
     summary: 'Typography updated to the production typefaces and type scales.',

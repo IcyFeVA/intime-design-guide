@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
-  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, Shapes, Sparkles, Table, Tag, Type,
+  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 
@@ -105,6 +105,13 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/Feedback')),
   },
   // Patterns
+  {
+    path: '/patterns/navigation', title: 'Navigation', group: 'Patterns', icon: PanelLeft, status: 'draft', updated: '2026-11-13',
+    description: 'The main navigation: four role-based variants, a collapsed rail, and pinned or overlay behavior.',
+    keywords: ['sidebar', 'menu', 'nav', 'rail', 'collapse', 'pin', 'overlay', 'role', 'acting as', 'switcher', 'permissions', 'tooltip', 'badge'],
+    sections: s(['variants', 'Variants'], ['switchers', 'Role and unit switchers'], ['collapsed', 'Collapsed rail'], ['pinning', 'Pinned and overlay'], ['component', 'Using the component'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/Navigation')),
+  },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12',
     description: 'Day, week and month schedule layouts and shift swap requests.',
