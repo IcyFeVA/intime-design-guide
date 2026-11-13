@@ -12,6 +12,7 @@ import MobileSchedule from '../../components/schedule/MobileSchedule'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import LocationPath from '../../components/schedule/LocationPath'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
+import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
 import { locationPeopleSections, locationSections, postTime } from '../../components/schedule/sections'
 import { MOCK_TODAY, formatFullDate, formatRange, rangeDays, type Chip } from '../../components/schedule/data'
 import { fullName, locationSites, personForChip, scheduleLocations, type ScheduleLocation } from '../../components/schedule/locations'
@@ -45,11 +46,12 @@ function DesktopDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [query, setQuery] = useState('')
   const [hint, setHint] = useState<string | null>(null)
+  const coverage = useCoverageDrawer('desktop')
 
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   const days = rangeDays(range, anchor)
   const q = query.trim().toLowerCase()
-  const reset = () => { setSite('all'); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setHint(null) }
+  const reset = () => { setSite('all'); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setHint(null); coverage.close() }
 
   return (
     <Preview
@@ -81,7 +83,9 @@ function DesktopDemo() {
           isMuted={q ? (chip) => !chipMatches(chip, q) : undefined}
           empty={<>Nobody matching “{query}” is on a post in this range.</>}
           maxHeight="100%"
+          onCoverageClick={coverage.onCoverageClick}
         />
+        {coverage.drawer}
       </DesktopDemoFrame>
     </Preview>
   )
@@ -124,7 +128,8 @@ function MobileDemo() {
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const locations = locationsForSite(site)
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
-  const reset = () => { setMode('day'); setAnchor(MOCK_TODAY); setSite('all'); setDismissed([]) }
+  const coverage = useCoverageDrawer('mobile')
+  const reset = () => { setMode('day'); setAnchor(MOCK_TODAY); setSite('all'); setDismissed([]); coverage.close() }
   const shortfall = mode === 'day' && !dismissed.includes(anchor) ? worstShortfall(locations, anchor) : null
 
   return (
@@ -159,7 +164,9 @@ function MobileDemo() {
           days={days}
           today={MOCK_TODAY}
           onSwipe={step}
+          onCoverageClick={coverage.onCoverageClick}
         />
+        {coverage.drawer}
       </MobileDemoFrame>
     </Preview>
   )
@@ -249,6 +256,7 @@ export default function LocationView() {
 
       <Section id="coverage" title="Coverage" description="Coverage works as in Team View, per location instead of per team. It sits above the location’s posts.">
         <Text size="sm">Bodies, hours and time of day use the same colors, arrows and outlines. See <Anchor component={Link} to="/patterns/team-view?section=coverage">Team View coverage</Anchor>.</Text>
+        <Text size="sm" mt="xs">Select a time-of-day cell to open a drawer with that day’s coverage for the location, hour by hour. It is the same drawer as in <Anchor component={Link} to="/patterns/team-view?section=details">Team View</Anchor>: from the right on desktop, a bottom sheet on a phone.</Text>
         <Text size="sm" mt="xs">On the mobile day view, a location with nobody on duty shows only its header, without coverage.</Text>
       </Section>
 

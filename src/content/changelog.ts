@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/location-view',
+    summary: 'Time-of-day cells open the coverage drawer, as in Team View.',
+    changes: [
+      'The drawer shows the location breadcrumb, the date and the day’s coverage hour by hour. A bottom sheet on a phone.',
+      'New useCoverageDrawer hook in src/components/schedule, used by Team View and Location View.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/team-view',
     summary: 'Team View opens coverage details and employee details.',
     changes: [

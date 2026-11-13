@@ -27,8 +27,8 @@ function SheetHandle({ onClose }: { onClose: () => void }) {
 /* ------------------------------------------------------------------ */
 
 export interface CoverageSelection {
-  /** Team or location name, shown above the date */
-  title: string
+  /** Team name or location breadcrumb, shown above the date */
+  title: ReactNode
   day: number
   coverage: DayCoverage
 }

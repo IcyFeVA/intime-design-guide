@@ -14,10 +14,11 @@ import ShiftChip from '../../components/schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { teamSections } from '../../components/schedule/sections'
-import { CoverageDrawer, EmployeeDetailsModal, type CoverageSelection } from '../../components/schedule/ScheduleDetails'
+import { EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
+import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
 import { memberProfile, type EmployeeProfile } from '../../components/schedule/profiles'
 import {
-  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleRow, type ScheduleSection,
+  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleRow,
   type ScheduleSort,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
@@ -39,16 +40,16 @@ function filterGroups(unitKey: string, query: string, sort: ScheduleSort): Sched
 }
 
 /** Coverage drawer and employee details, shared by both demos. */
-function useScheduleDetails() {
-  const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
+function useScheduleDetails(variant: 'desktop' | 'mobile') {
+  const coverage = useCoverageDrawer(variant)
   const [profile, setProfile] = useState<EmployeeProfile | null>(null)
   return {
-    onCoverageClick: (section: ScheduleSection, day: number) => setCoverage({ title: section.name, day, coverage: section.coverage!(day) }),
+    onCoverageClick: coverage.onCoverageClick,
     onRowClick: (row: ScheduleRow) => setProfile(memberProfile(row.id)),
-    close: () => { setCoverage(null); setProfile(null) },
-    overlays: (variant: 'desktop' | 'mobile') => (
+    close: () => { coverage.close(); setProfile(null) },
+    overlays: (
       <>
-        <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} variant={variant} contained />
+        {coverage.drawer}
         <EmployeeDetailsModal profile={profile} onClose={() => setProfile(null)} variant={variant} contained />
       </>
     ),
@@ -66,7 +67,7 @@ function DesktopDemo() {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ScheduleSort>('team')
   const [hint, setHint] = useState<string | null>(null)
-  const details = useScheduleDetails()
+  const details = useScheduleDetails('desktop')
 
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   const days = rangeDays(range, anchor)
@@ -106,7 +107,7 @@ function DesktopDemo() {
           onRowClick={details.onRowClick}
           onCoverageClick={details.onCoverageClick}
         />
-        {details.overlays('desktop')}
+        {details.overlays}
       </DesktopDemoFrame>
     </Preview>
   )
@@ -123,7 +124,7 @@ function MobileDemo() {
   const [sort, setSort] = useState<ScheduleSort>('team')
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
-  const details = useScheduleDetails()
+  const details = useScheduleDetails('mobile')
   const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team'); details.close() }
 
   return (
@@ -163,7 +164,7 @@ function MobileDemo() {
           onRowClick={details.onRowClick}
           onCoverageClick={details.onCoverageClick}
         />
-        {details.overlays('mobile')}
+        {details.overlays}
       </MobileDemoFrame>
     </Preview>
   )
