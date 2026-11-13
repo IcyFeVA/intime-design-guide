@@ -21,3 +21,8 @@
 - `npm run dev` starts the local app.
 - `npm run build` type-checks and builds for production.
 - `npm run lint` checks the source with ESLint.
+
+## Deployment
+- Hosted on GitHub Pages at https://icyfeva.github.io/intime-design-guide/. `.github/workflows/deploy.yml` deploys on every push to `master`.
+- `vite.config.ts` sets `base: '/intime-design-guide/'` only when `GITHUB_ACTIONS` is set.
+- Never use root-absolute URLs (`/figma/…`) for files in `public/`. Prefix them with `import.meta.env.BASE_URL`.

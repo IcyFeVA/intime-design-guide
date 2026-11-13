@@ -27,7 +27,7 @@ Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 
 3. **Changelog**: add an entry at the **top** of `src/content/changelog.ts` (`date`, `page` path, `summary`, optional `changes[]`).
 4. Put page-specific styles in a sibling `<Name>.module.css`.
 5. If a pattern or component will be reused on other pages, put it in `src/components/<name>/` and its data/tokens in `src/tokens/<name>.ts` (see Navigation below).
-6. Add Figma screenshots the user provides to `public/figma/<page>-<what>.png`. Show them in a `figma` section with `<img src="/figma/…">` and descriptive `alt`. Otherwise use `<FigmaSlot title notes />`.
+6. Add Figma screenshots the user provides to `public/figma/<page>-<what>.png`. Show them in a `figma` section with `<img src={`${import.meta.env.BASE_URL}figma/…`}>` (never a bare `/figma/…`, it breaks on GitHub Pages) and descriptive `alt`. Otherwise use `<FigmaSlot title notes />`.
 7. Verify in the browser (see below), then type-check and lint.
 
 Typical section set for a component/pattern page: live demos, then `guidelines` (DoDont), then `figma` (Figma reference). Look at `src/pages/patterns/Navigation.tsx` as the most complete example.
@@ -104,3 +104,9 @@ Check both schemes: `localStorage.setItem('intime-guide-color-scheme', 'light')`
 - Git repo on `master`. Commit only when asked, ending messages with the Co-Authored-By line from the system reminder.
 - `.figma/` holds Figma Make config. Leave it alone and keep it committed.
 - `plans/intime-style-guide.md` is the original scaffold plan and is partly outdated (it says Inter/blue; the current design uses Roboto/cyan).
+
+## Deployment
+
+- Hosted on GitHub Pages at https://icyfeva.github.io/intime-design-guide/. `.github/workflows/deploy.yml` builds and deploys on every push to `master`.
+- `vite.config.ts` sets `base: '/intime-design-guide/'` only when `GITHUB_ACTIONS` is set. Locally the base is `/`.
+- Never use root-absolute URLs (`/figma/…`) for files in `public/`. Prefix them with `import.meta.env.BASE_URL`. Hash routes need no extra config.
