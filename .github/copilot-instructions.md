@@ -8,7 +8,7 @@
 ## Content Model
 - Token values live only in `src/tokens/*`. `src/theme.ts` derives the Mantine theme from them.
 - `src/content/pages.ts` registers every page and its sections. Section ids must match the `<Section id>` values on the page.
-- Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry.
+- Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry. The same applies when the user approves a page: set the page and its tokens to `confirmed` and add the changelog entry in the same change, without being asked.
 
 ## UI Conventions
 - Keep the Mantine core and spotlight stylesheets imported in `src/main.tsx`, and keep the app wrapped in `MantineProvider`. The default scheme is dark.

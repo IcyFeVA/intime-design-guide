@@ -27,35 +27,35 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/foundations/Colors')),
   },
   {
-    path: '/foundations/typography', title: 'Typography', group: 'Foundations', icon: Type, status: 'review', updated: '2026-11-12',
+    path: '/foundations/typography', title: 'Typography', group: 'Foundations', icon: Type, status: 'confirmed', updated: '2026-11-12',
     description: 'Roboto and Cousine, the heading and body type scales, and rules for times and numbers.',
     keywords: ['font', 'roboto', 'cousine', 'mono', 'heading', 'body', 'text', 'type scale', 'numbers', 'time format'],
     sections: s(['families', 'Font families'], ['heading-scale', 'Heading type scale'], ['body-scale', 'Body type scale'], ['numerals', 'Numbers & time'], ['usage', 'Usage in code']),
     component: lazy(() => import('../pages/foundations/Typography')),
   },
   {
-    path: '/foundations/icons', title: 'Icons', group: 'Foundations', icon: Shapes, status: 'draft', updated: '2026-11-12',
+    path: '/foundations/icons', title: 'Icons', group: 'Foundations', icon: Shapes, status: 'confirmed', updated: '2026-11-12',
     description: 'Curated Lucide icon set, sizes, stroke and accessibility rules.',
     keywords: ['lucide', 'svg', 'glyph', 'symbol'],
     sections: s(['library', 'Icon library'], ['sizing', 'Size & stroke'], ['accessibility', 'Accessibility'], ['usage', 'Usage in code']),
     component: lazy(() => import('../pages/foundations/Icons')),
   },
   {
-    path: '/foundations/spacing-layout', title: 'Spacing & Layout', group: 'Foundations', icon: LayoutGrid, status: 'draft', updated: '2026-11-12',
+    path: '/foundations/spacing-layout', title: 'Spacing & Layout', group: 'Foundations', icon: LayoutGrid, status: 'confirmed', updated: '2026-11-12',
     description: 'Spacing scale, breakpoints, grid and app shell dimensions.',
     keywords: ['padding', 'margin', 'gap', 'grid', 'breakpoint', 'responsive', 'container'],
     sections: s(['spacing', 'Spacing scale'], ['breakpoints', 'Breakpoints'], ['layout', 'App shell dimensions'], ['grid', 'Grid & containers']),
     component: lazy(() => import('../pages/foundations/SpacingLayout')),
   },
   {
-    path: '/foundations/radius-elevation', title: 'Radius & Elevation', group: 'Foundations', icon: Layers, status: 'draft', updated: '2026-11-12',
+    path: '/foundations/radius-elevation', title: 'Radius & Elevation', group: 'Foundations', icon: Layers, status: 'confirmed', updated: '2026-11-12',
     description: 'Corner radii, shadows on dark surfaces and z-index layers.',
     keywords: ['border radius', 'shadow', 'depth', 'z-index', 'layer'],
     sections: s(['radius', 'Radius'], ['elevation', 'Elevation'], ['z-index', 'Z-index layers']),
     component: lazy(() => import('../pages/foundations/RadiusElevation')),
   },
   {
-    path: '/foundations/motion', title: 'Motion', group: 'Foundations', icon: Sparkles, status: 'draft', updated: '2026-11-12',
+    path: '/foundations/motion', title: 'Motion', group: 'Foundations', icon: Sparkles, status: 'confirmed', updated: '2026-11-12',
     description: 'Durations, easing curves and reduced-motion behavior.',
     keywords: ['animation', 'transition', 'easing', 'duration', 'reduced motion'],
     sections: s(['durations', 'Durations'], ['easing', 'Easing'], ['reduced-motion', 'Reduced motion']),
@@ -63,14 +63,14 @@ export const pages: PageDef[] = [
   },
   // Components
   {
-    path: '/components/buttons', title: 'Buttons', group: 'Components', icon: MousePointerClick, status: 'draft', updated: '2026-11-12',
+    path: '/components/buttons', title: 'Buttons', group: 'Components', icon: MousePointerClick, status: 'confirmed', updated: '2026-11-12',
     description: 'Button variants, sizes, icon buttons and states.',
     keywords: ['cta', 'action', 'action icon', 'destructive', 'loading'],
     sections: s(['variants', 'Variants'], ['sizes', 'Sizes'], ['icon-buttons', 'Icon buttons'], ['states', 'States'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/components/Buttons')),
   },
   {
-    path: '/components/forms', title: 'Forms', group: 'Components', icon: FormInput, status: 'draft', updated: '2026-11-12',
+    path: '/components/forms', title: 'Forms', group: 'Components', icon: FormInput, status: 'confirmed', updated: '2026-11-12',
     description: 'Inputs, selection controls, date & time fields and validation.',
     keywords: ['input', 'select', 'checkbox', 'radio', 'switch', 'validation', 'date', 'time', 'field'],
     sections: s(['text-inputs', 'Text inputs'], ['selection', 'Selection controls'], ['date-time', 'Date & time'], ['validation', 'Validation'], ['layout', 'Form layout'], ['figma', 'Figma reference']),
@@ -98,7 +98,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/StatusBadges')),
   },
   {
-    path: '/components/feedback', title: 'Feedback', group: 'Components', icon: MessageSquareWarning, status: 'draft', updated: '2026-11-12',
+    path: '/components/feedback', title: 'Feedback', group: 'Components', icon: MessageSquareWarning, status: 'confirmed', updated: '2026-11-12',
     description: 'Alerts, notifications, confirmation modals and tooltips.',
     keywords: ['alert', 'toast', 'notification', 'modal', 'dialog', 'confirm', 'tooltip'],
     sections: s(['alerts', 'Alerts'], ['notifications', 'Notifications'], ['modals', 'Modals & confirmation'], ['tooltips', 'Tooltips'], ['figma', 'Figma reference']),
@@ -134,7 +134,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/ScheduleViews')),
   },
   {
-    path: '/patterns/states', title: 'Empty & Loading States', group: 'Patterns', icon: Box, status: 'draft', updated: '2026-11-12',
+    path: '/patterns/states', title: 'Empty & Loading States', group: 'Patterns', icon: Box, status: 'confirmed', updated: '2026-11-12',
     description: 'Empty, loading, error and no-permission states.',
     keywords: ['empty', 'skeleton', 'loader', 'error', 'permission', 'zero state'],
     sections: s(['empty', 'Empty'], ['loading', 'Loading'], ['error', 'Error'], ['permission', 'No permission']),
@@ -142,7 +142,7 @@ export const pages: PageDef[] = [
   },
   // Resources
   {
-    path: '/resources/accessibility', title: 'Accessibility', group: 'Resources', icon: Accessibility, status: 'draft', updated: '2026-11-12',
+    path: '/resources/accessibility', title: 'Accessibility', group: 'Resources', icon: Accessibility, status: 'confirmed', updated: '2026-11-12',
     description: 'Contrast, focus, keyboard and field-use requirements.',
     keywords: ['a11y', 'wcag', 'contrast', 'focus', 'keyboard', 'screen reader', 'touch target'],
     sections: s(['contrast', 'Contrast'], ['focus', 'Focus states'], ['keyboard', 'Keyboard'], ['color-independence', 'Beyond color'], ['touch-targets', 'Touch targets']),

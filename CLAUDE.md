@@ -34,7 +34,7 @@ Typical section set for a component/pattern page: live demos, then `guidelines` 
 
 ## Status lifecycle
 
-`TokenStatus = 'draft' | 'review' | 'confirmed'` (`src/tokens/types.ts`), shown as Draft / Needs review / Confirmed. There is no "approved". When the user says a page is approved, set the page (and its tokens) to `confirmed`. Pages start as `draft` unless matched to a Figma frame.
+`TokenStatus = 'draft' | 'review' | 'confirmed'` (`src/tokens/types.ts`), shown as Draft / Needs review / Confirmed. There is no "approved". When the user says a page is approved, set the page (and its tokens) to `confirmed` **and add a changelog entry** at the top of `src/content/changelog.ts` (`page` is the page path, or `null` for several pages at once). Do both in the same change, without being asked. Pages start as `draft` unless matched to a Figma frame.
 
 ## Building blocks (`src/components`)
 

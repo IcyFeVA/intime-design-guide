@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: null,
+    summary: 'Ten pages approved and set to Confirmed.',
+    changes: [
+      'Foundations: Typography, Icons, Spacing & Layout, Radius & Elevation and Motion. Their spacing, radius, shadow, breakpoint, z-index and motion tokens are Confirmed too.',
+      'Components: Buttons, Forms and Feedback.',
+      'Patterns: Empty & Loading States.',
+      'Resources: Accessibility.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/location-view',
     summary: 'New Location View pattern, built on the Team View components.',
     changes: [
