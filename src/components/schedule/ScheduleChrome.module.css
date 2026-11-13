@@ -7,6 +7,8 @@
 .shell {
   display: flex;
   height: 760px;
+  /* Holds the coverage drawer and the employee modal inside the mock app */
+  transform: translateZ(0);
   overflow: hidden;
   background: var(--mantine-color-body);
 }
@@ -108,6 +110,8 @@
 
 .phone {
   position: relative;
+  /* Holds bottom sheets inside the phone */
+  transform: translateZ(0);
   display: flex;
   flex-direction: column;
   width: 390px;

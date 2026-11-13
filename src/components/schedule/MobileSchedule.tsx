@@ -3,7 +3,7 @@ import { Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { Clock3 } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type ScheduleSection,
+  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type ScheduleRow, type ScheduleSection,
 } from './data'
 import ShiftChip from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
@@ -20,6 +20,29 @@ export interface MobileScheduleProps {
   today?: number
   /** Called with -1 or 1 when the user swipes right or left */
   onSwipe?: (direction: 1 | -1) => void
+  /** Makes names buttons, e.g. to open employee details */
+  onRowClick?: (row: ScheduleRow, section: ScheduleSection) => void
+  /** Makes time-of-day bars buttons that open the coverage details for that day */
+  onCoverageClick?: (section: ScheduleSection, day: number) => void
+}
+
+function TimeOfDay({ section, day, onCoverageClick }: { section: ScheduleSection; day: number; onCoverageClick?: MobileScheduleProps['onCoverageClick'] }) {
+  const bar = <TimeOfDayBar segments={section.coverage!(day).timeOfDay} />
+  if (!onCoverageClick) return bar
+  return (
+    <UnstyledButton className={classes.coverageButton} onClick={() => onCoverageClick(section, day)} aria-label={`${section.name}, coverage on ${formatHeader(day)}. Show details`} aria-haspopup="dialog">
+      {bar}
+    </UnstyledButton>
+  )
+}
+
+function RowName({ row, section, className, onRowClick }: { row: ScheduleRow; section: ScheduleSection; className: string; onRowClick?: MobileScheduleProps['onRowClick'] }) {
+  if (!onRowClick) return <div className={className}>{row.name}</div>
+  return (
+    <UnstyledButton className={`${className} ${classes.nameButton}`} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}. Show details`}>
+      {row.name}
+    </UnstyledButton>
+  )
 }
 
 const ticks = [0, 3, 6, 9, 12, 15, 18, 21, 24]
@@ -38,7 +61,7 @@ function useSwipe(onSwipe?: (direction: 1 | -1) => void) {
   }
 }
 
-function WeekView({ sections, days, today }: MobileScheduleProps) {
+function WeekView({ sections, days, today, onRowClick, onCoverageClick }: MobileScheduleProps) {
   return (
     <>
       <div className={classes.weekHeader}>
@@ -57,7 +80,7 @@ function WeekView({ sections, days, today }: MobileScheduleProps) {
               <div className={classes.coverageGrid}>
                 {days.map((day) => <BodiesValue key={day} bodies={section.coverage!(day).bodies} />)}
                 {days.map((day) => <HoursValue key={day} hours={section.coverage!(day).hours} />)}
-                {days.map((day) => <TimeOfDayBar key={day} segments={section.coverage!(day).timeOfDay} />)}
+                {days.map((day) => <TimeOfDay key={day} section={section} day={day} onCoverageClick={onCoverageClick} />)}
               </div>
             </>
           )}
@@ -68,7 +91,7 @@ function WeekView({ sections, days, today }: MobileScheduleProps) {
             const overflow = (row.extraLines ?? 'overflow') === 'overflow'
             return (
               <div key={row.id}>
-                <div className={classes.name}>{row.name}</div>
+                <RowName row={row} section={section} className={classes.name} onRowClick={onRowClick} />
                 {Array.from({ length: lines }, (_, line) => (
                   <div className={classes.strip} data-overflow={(overflow && line > 0) || undefined} data-positions={!overflow || undefined} key={line}>
                     {days.map((day, index) => {
@@ -86,7 +109,7 @@ function WeekView({ sections, days, today }: MobileScheduleProps) {
   )
 }
 
-function DayView({ sections, daySections, days, today }: MobileScheduleProps) {
+function DayView({ sections, daySections, days, today, onRowClick, onCoverageClick }: MobileScheduleProps) {
   const day = days[0]
   return (
     <>
@@ -107,14 +130,14 @@ function DayView({ sections, daySections, days, today }: MobileScheduleProps) {
                   <Text size="sm" fw={600} tt="uppercase" lts="0.06em" c="dimmed">Coverage</Text>
                   <BodiesValue bodies={coverage.bodies} />
                   <HoursValue hours={coverage.hours} />
-                  <TimeOfDayBar segments={coverage.timeOfDay} />
+                  <TimeOfDay section={section} day={day} onCoverageClick={onCoverageClick} />
                 </div>
               </div>
             )}
             <div className={classes.groupHeader}>{section.title}</div>
             {section.rows.map((row) => (
               <div className={classes.dayRow} key={row.id}>
-                <div className={classes.dayName}>{row.name}</div>
+                <RowName row={row} section={section} className={classes.dayName} onRowClick={onRowClick} />
                 <div className={classes.track}>
                   {row.chips(day).flatMap((chip, chipIndex) => !chip ? [] : chip.segments.map((segment, index) => {
                     const { start, end } = segmentHours(segment)

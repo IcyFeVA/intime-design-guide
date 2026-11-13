@@ -1,0 +1,191 @@
+/* ---------- Drawer and sheet ---------- */
+
+/* Mantine leaves `left` unset. Inside a demo frame that would place the overlay where it sits in the markup. */
+.inner {
+  left: 0;
+}
+
+.drawerContent {
+  background: var(--background-body-alt);
+}
+
+[data-sheet] .drawerContent {
+  height: auto;
+  max-height: 88%;
+  border-radius: 16px 16px 0 0;
+}
+
+.drawerHeader {
+  align-items: flex-start;
+  padding: 24px 24px 20px;
+  background: var(--background-body-alt);
+  border-bottom: 1px solid var(--border-default);
+}
+
+[data-sheet] .drawerHeader {
+  padding: 12px 24px 8px;
+  border-bottom: 0;
+}
+
+.drawerTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.drawerBody {
+  padding: 24px;
+}
+
+[data-sheet] .drawerTitle {
+  flex: 1;
+}
+
+[data-sheet] .drawerBody {
+  padding: 12px 24px 32px;
+}
+
+.handle {
+  align-self: center;
+  width: 40px;
+  height: 5px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  background: var(--border-default);
+}
+
+.handle:hover {
+  background: var(--text-dimmed);
+}
+
+.eyebrow {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+}
+
+.heading {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* ---------- Coverage ---------- */
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot,
+.hour,
+.marker {
+  background: var(--schedule-hour-met);
+}
+
+[data-level='under'].dot,
+[data-level='under'].hour,
+[data-level='under'].marker {
+  background: var(--schedule-hour-under);
+}
+
+[data-level='over'].dot,
+[data-level='over'].hour,
+[data-level='over'].marker {
+  background: var(--schedule-hour-over);
+}
+
+.hours {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 2px;
+  height: 28px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-md);
+}
+
+.ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: var(--mantine-font-size-xs);
+  color: var(--text-dimmed);
+}
+
+.windows {
+  border-top: 1px solid var(--border-default);
+}
+
+.windows abbr {
+  text-decoration: none;
+}
+
+.windows th {
+  font-weight: 600;
+}
+
+.windows th + th,
+.windows td + td {
+  width: 56px;
+}
+
+.marker {
+  display: inline-block;
+  width: 4px;
+  height: 18px;
+  margin-inline-end: 12px;
+  vertical-align: -3px;
+  border-radius: 2px;
+}
+
+.diff[data-level='under'] {
+  color: var(--schedule-hour-under);
+}
+
+.diff[data-level='over'] {
+  color: var(--schedule-hour-over);
+}
+
+.diff[data-level='met'] {
+  color: var(--text-dimmed);
+}
+
+/* ---------- Employee ---------- */
+
+.modalHeader {
+  padding: 24px 24px 8px;
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.modalBody {
+  padding: 16px 24px 24px;
+}
+
+.avatar {
+  border: 1px solid var(--border-default);
+}
+
+.contact {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  row-gap: 10px;
+  margin: 0;
+}
+
+.contact dt {
+  color: var(--text-default);
+}
+
+.contact dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}

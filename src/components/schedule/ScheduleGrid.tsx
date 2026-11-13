@@ -1,6 +1,6 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
-import { VisuallyHidden } from '@mantine/core'
-import { dayNumber, formatFullDate, formatHeader, isPeriodStart, rowLines, type Chip, type ScheduleSection } from './data'
+import { UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { dayNumber, formatFullDate, formatHeader, isPeriodStart, rowLines, type Chip, type ScheduleRow, type ScheduleSection } from './data'
 import ShiftChip from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
 import classes from './Schedule.module.css'
@@ -25,11 +25,15 @@ export interface ScheduleGridProps {
   /** Accessible name of the grid */
   label?: string
   maxHeight?: number | string
+  /** Makes row headers buttons, e.g. to open employee details */
+  onRowClick?: (row: ScheduleRow, section: ScheduleSection) => void
+  /** Makes time-of-day cells buttons that open the coverage details for that day */
+  onCoverageClick?: (section: ScheduleSection, day: number) => void
 }
 
 /** Rows down the side, days across. Row headers and the date row stay pinned while the grid scrolls. */
 export default function ScheduleGrid({
-  sections, days, density = 'comfortable', columnMin = 120, today, corner, showCoverage = true, empty, isMuted, label = 'Schedule', maxHeight,
+  sections, days, density = 'comfortable', columnMin = 120, today, corner, showCoverage = true, empty, isMuted, label = 'Schedule', maxHeight, onRowClick, onCoverageClick,
 }: ScheduleGridProps) {
   const compact = density === 'compact'
   const visible = sections.filter((section) => section.rows.length)
@@ -72,7 +76,14 @@ export default function ScheduleGrid({
                 {([
                   ['Bodies', (day: number) => <BodiesValue bodies={section.coverage!(day).bodies} />],
                   ['Hours', (day: number) => <HoursValue hours={section.coverage!(day).hours} />],
-                  ['Time of day', (day: number) => <TimeOfDayBar segments={section.coverage!(day).timeOfDay} />],
+                  ['Time of day', (day: number) => {
+                    const bar = <TimeOfDayBar segments={section.coverage!(day).timeOfDay} />
+                    return onCoverageClick ? (
+                      <UnstyledButton className={classes.coverageButton} onClick={() => onCoverageClick(section, day)} aria-label={`${section.name}, coverage on ${formatHeader(day)}. Show details`} aria-haspopup="dialog">
+                        {bar}
+                      </UnstyledButton>
+                    ) : bar
+                  }],
                 ] as const).map(([rowLabel, render]) => (
                   <div role="row" className={classes.row} key={rowLabel}>
                     <div role="rowheader" className={classes.coverageLabel}>{rowLabel}</div>
@@ -91,7 +102,11 @@ export default function ScheduleGrid({
               return Array.from({ length: lines }, (_, line) => (
                 <div role="row" className={classes.row} key={`${row.id}-${line}`}>
                   <div role="rowheader" className={classes.label} data-overflow={(overflow && line > 0) || undefined}>
-                    {line === 0 ? row.label ?? row.name : (
+                    {line === 0 ? (onRowClick ? (
+                      <UnstyledButton className={classes.rowButton} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}. Show details`}>
+                        {row.label ?? row.name}
+                      </UnstyledButton>
+                    ) : row.label ?? row.name) : (
                       <VisuallyHidden>{row.name}, {overflow ? 'additional assignments' : `position ${line + 1}`}</VisuallyHidden>
                     )}
                   </div>

@@ -221,3 +221,35 @@
   background: var(--schedule-overflow-bg);
   border-top: 1px solid var(--border-default);
 }
+
+/* ---------- Clickable names and coverage ---------- */
+
+.nameButton {
+  display: block;
+  width: 100%;
+  text-align: start;
+  color: inherit;
+}
+
+.dayName.nameButton {
+  display: flex;
+}
+
+.nameButton:hover {
+  background: var(--background-default-hover);
+}
+
+.coverageButton {
+  display: flex;
+  width: 100%;
+}
+
+.coverageGrid > .coverageButton > * {
+  height: 100%;
+}
+
+.nameButton:focus-visible,
+.coverageButton:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}

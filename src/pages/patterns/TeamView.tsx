@@ -13,8 +13,11 @@ import ShiftChip from '../../components/schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { teamSections } from '../../components/schedule/sections'
+import { CoverageDrawer, EmployeeDetailsModal, type CoverageSelection } from '../../components/schedule/ScheduleDetails'
+import { memberProfile, type EmployeeProfile } from '../../components/schedule/profiles'
 import {
-  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleSort,
+  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleRow, type ScheduleSection,
+  type ScheduleSort,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
 import classes from './TeamView.module.css'
@@ -34,6 +37,23 @@ function filterGroups(unitKey: string, query: string, sort: ScheduleSort): Sched
   }))
 }
 
+/** Coverage drawer and employee details, shared by both demos. */
+function useScheduleDetails() {
+  const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
+  const [profile, setProfile] = useState<EmployeeProfile | null>(null)
+  return {
+    onCoverageClick: (section: ScheduleSection, day: number) => setCoverage({ title: section.name, day, coverage: section.coverage!(day) }),
+    onRowClick: (row: ScheduleRow) => setProfile(memberProfile(row.id)),
+    close: () => { setCoverage(null); setProfile(null) },
+    overlays: (variant: 'desktop' | 'mobile') => (
+      <>
+        <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} variant={variant} contained />
+        <EmployeeDetailsModal profile={profile} onClose={() => setProfile(null)} variant={variant} contained />
+      </>
+    ),
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Desktop                                                             */
 /* ------------------------------------------------------------------ */
@@ -45,10 +65,11 @@ function DesktopDemo() {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ScheduleSort>('team')
   const [hint, setHint] = useState<string | null>(null)
+  const details = useScheduleDetails()
 
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   const days = rangeDays(range, anchor)
-  const reset = () => { setUnit(scheduleUnits[0].key); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setSort('team'); setHint(null) }
+  const reset = () => { setUnit(scheduleUnits[0].key); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setSort('team'); setHint(null); details.close() }
 
   return (
     <Preview
@@ -81,7 +102,10 @@ function DesktopDemo() {
           corner={<CoWorkerSearch value={query} onChange={setQuery} />}
           empty={<>No co-workers match “{query}”.</>}
           maxHeight="100%"
+          onRowClick={details.onRowClick}
+          onCoverageClick={details.onCoverageClick}
         />
+        {details.overlays('desktop')}
       </DesktopDemoFrame>
     </Preview>
   )
@@ -98,7 +122,8 @@ function MobileDemo() {
   const [sort, setSort] = useState<ScheduleSort>('team')
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
-  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team') }
+  const details = useScheduleDetails()
+  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team'); details.close() }
 
   return (
     <Preview flush title="Team View, mobile">
@@ -128,7 +153,16 @@ function MobileDemo() {
           </>
         }
       >
-        <MobileSchedule sections={teamSections(filterGroups(unit, '', sort))} mode={mode} days={days} today={MOCK_TODAY} onSwipe={step} />
+        <MobileSchedule
+          sections={teamSections(filterGroups(unit, '', sort))}
+          mode={mode}
+          days={days}
+          today={MOCK_TODAY}
+          onSwipe={step}
+          onRowClick={details.onRowClick}
+          onCoverageClick={details.onCoverageClick}
+        />
+        {details.overlays('mobile')}
       </MobileDemoFrame>
     </Preview>
   )
@@ -185,6 +219,7 @@ export default function TeamView() {
         <Stack gap="xs" mt="md">
           <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team starts with its coverage.</Text>
           <Text size="sm">A member with more than one cell on a day gets an extra row without a name, on a lighter background.</Text>
+          <Text size="sm">Select a time-of-day cell for that day’s coverage hour by hour, or a name for the employee’s details.</Text>
         </Stack>
       </Section>
 
@@ -233,6 +268,34 @@ export default function TeamView() {
         <Text size="sm" mt="md">The arrow and the outline repeat what the color says, and every value has an accessible name such as “2.5 hours short”.</Text>
       </Section>
 
+      <Section id="details" title="Coverage and employee details" description="The grid shows a summary. Selecting a time-of-day cell or a name opens the details on top of the schedule, so the user keeps their place.">
+        <Table.ScrollContainer minWidth={560} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th>Select</Table.Th><Table.Th>Desktop</Table.Th><Table.Th>Mobile</Table.Th><Table.Th>Shows</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Td><Text size="sm" fw={600}>Time-of-day cell</Text></Table.Td>
+                <Table.Td><Text size="sm">Drawer from the right, 440px</Text></Table.Td>
+                <Table.Td><Text size="sm">Bottom sheet</Text></Table.Td>
+                <Table.Td><Text size="sm">The team and date, 24 hour blocks colored under, met or over, and each stretch of the day with staff required, scheduled and the difference.</Text></Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td><Text size="sm" fw={600}>Name</Text></Table.Td>
+                <Table.Td><Text size="sm">Modal, 480px</Text></Table.Td>
+                <Table.Td><Text size="sm">Bottom sheet</Text></Table.Td>
+                <Table.Td><Text size="sm">Photo or initials, full name, rank, team, first day of employment, work email, mobile number and employee ID.</Text></Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Try it</strong> in the Desktop and Mobile demos. Both overlays dim and blur the schedule behind them.</Text>
+          <Text size="sm"><strong>Closing.</strong> The close button, Escape or a click outside. On a phone, tap the handle or outside the sheet.</Text>
+          <Text size="sm"><strong>Colors with labels.</strong> The legend names each color, and the Diff column repeats it as −1, +1 or a dash.</Text>
+          <Text size="sm"><strong>Contact links.</strong> The email opens a new message and the mobile number starts a call on a phone.</Text>
+        </Stack>
+      </Section>
+
       <Section id="mobile" title="Mobile" description="On a phone the same schedule becomes a week of color strips or a single day on a timeline. Switch between them with the two list icons.">
         <MobileDemo />
       </Section>
@@ -250,6 +313,8 @@ export default function TeamView() {
           { prop: 'empty', type: 'ReactNode', description: 'Shown when no section has rows, e.g. after a search.' },
           { prop: 'isMuted', type: '(chip: Chip) => boolean', description: 'Dims cells that do not match, e.g. a co-worker search in Location View.' },
           { prop: 'label', type: 'string', default: "'Schedule'", description: 'Accessible name of the grid.' },
+          { prop: 'onRowClick', type: '(row, section) => void', description: 'Makes row headers buttons. Team View opens the employee details.' },
+          { prop: 'onCoverageClick', type: '(section, day) => void', description: 'Makes time-of-day cells buttons. Team View opens the coverage drawer.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">MobileSchedule</Text>
         <PropsTable rows={[
@@ -259,6 +324,15 @@ export default function TeamView() {
           { prop: 'days', type: 'number[]', description: 'Seven days in week mode; the first day in day mode.' },
           { prop: 'today', type: 'number', description: 'Highlights today in the week header.' },
           { prop: 'onSwipe', type: '(direction: 1 | -1) => void', description: 'Called on a horizontal swipe. 1 means forward.' },
+          { prop: 'onRowClick', type: '(row, section) => void', description: 'Makes names buttons, as on desktop.' },
+          { prop: 'onCoverageClick', type: '(section, day) => void', description: 'Makes time-of-day bars buttons, as on desktop.' },
+        ]} />
+        <Text size="sm" fw={600} mb="xs" mt="lg">CoverageDrawer and EmployeeDetailsModal</Text>
+        <PropsTable rows={[
+          { prop: 'selection / profile', type: 'CoverageSelection | EmployeeProfile | null', description: 'What to show. null closes it. Build a profile with memberProfile(id).' },
+          { prop: 'onClose', type: '() => void', description: 'Called on the close button, Escape or a click outside.' },
+          { prop: 'variant', type: "'desktop' | 'mobile'", default: "'desktop'", description: 'Drawer or modal on desktop, a bottom sheet on mobile.' },
+          { prop: 'contained', type: 'boolean', default: 'false', description: 'Renders inside the demo frame instead of over the window. The frame needs transform: translateZ(0).' },
         ]} />
         <Text size="sm" c="dimmed" mt="sm">Shift codes, kinds, ranges and CSS variables live in src/tokens/schedule.ts. Mock members and date helpers live in src/components/schedule/data.ts, section builders in sections.tsx, and the demo shell in ScheduleChrome.tsx.</Text>
       </Section>
@@ -294,12 +368,14 @@ export default function TeamView() {
             'Pair every fill with a code or a tag, and give each cell a tooltip and an accessible name.',
             'Put coverage directly above the team it describes.',
             'Move a second assignment that does not fit into an overflow row instead of shrinking the cell.',
+            'Open details over the schedule, so closing them returns the user to the same place.',
           ]}
           dontItems={[
             'Shrink text to fit a month. Switch to compact cells and let the grid scroll.',
             'Use the shift fills for anything other than regular, leave and overtime.',
             'Show color alone for coverage. Keep the numbers, arrows and outlines.',
             'Offer ranges longer than a week on a phone.',
+            'Navigate away from the schedule to show coverage or a profile.',
           ]}
         />
       </Section>
@@ -308,9 +384,12 @@ export default function TeamView() {
         <Stack gap="md">
           <img src={`${import.meta.env.BASE_URL}figma/team-view-week.png`} alt="Team View on desktop, one week: Patrol Alpha with shift cells for Richards, Torres, Marino, Petrov, Dijkstra, two Haddads and Tanaka, followed by coverage rows." className={classes.figma} />
           <img src={`${import.meta.env.BASE_URL}figma/team-view-month.png`} alt="Team View on desktop, one month: compact cells with codes only, period lines every seven days and coverage per day." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/team-view-coverage-drawer.png`} alt="Coverage drawer for Communication A on Sat, Sep 26: a legend, 24 hour blocks colored under, met and over, and a table of time ranges with required, scheduled and difference." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/team-view-employee-details.png`} alt="Employee details modal for Christine Harris, Sergeant: photo, first employed date, work email, mobile number, employee ID and a Close button." className={classes.figma} />
           <div className={classes.figmaPair}>
             <img src={`${import.meta.env.BASE_URL}figma/team-view-mobile-week.png`} alt="Team View on a phone, week view: names above strips of seven colored cells with OT and OU tags, coverage after each team." className={classes.figma} />
             <img src={`${import.meta.env.BASE_URL}figma/team-view-mobile-day.png`} alt="Team View on a phone, day view: names on the left and assignments on a 0 to 24 hour timeline, with coverage below the team." className={classes.figma} />
+            <img src={`${import.meta.env.BASE_URL}figma/team-view-mobile-coverage.png`} alt="Coverage details as a bottom sheet on a phone, over a blurred Team View week." className={classes.figma} />
           </div>
         </Stack>
       </Section>

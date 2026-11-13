@@ -98,6 +98,9 @@ export const scheduleTokens: ScheduleToken[] = [
   t('--schedule-over-text', 'var(--text-warning-default)', 'color', 'Coverage value above target, and its outline on the time-of-day bar.'),
   t('--schedule-met-bg', mix('--text-success-default', 16), 'color', 'Coverage on target. Also the empty track of the time-of-day bar.'),
   t('--schedule-met-text', 'var(--text-success-default)', 'color', 'Coverage value on target.'),
+  t('--schedule-hour-under', 'var(--text-error-default)', 'color', 'Hour blocks and markers below target in the coverage details.'),
+  t('--schedule-hour-met', 'var(--text-dimmed)', 'color', 'Hour blocks and markers on target in the coverage details.'),
+  t('--schedule-hour-over', 'var(--text-warning-default)', 'color', 'Hour blocks and markers above target in the coverage details.'),
 ]
 
 export const scheduleCssVariables: Record<string, string> = Object.fromEntries(

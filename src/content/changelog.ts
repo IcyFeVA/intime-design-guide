@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/team-view',
+    summary: 'Team View opens coverage details and employee details.',
+    changes: [
+      'Select a time-of-day cell to open the day’s coverage hour by hour: a side drawer on desktop, a bottom sheet on a phone.',
+      'Select a name to see the employee’s rank, team, first day, contact details and employee ID.',
+      'ScheduleGrid and MobileSchedule take onRowClick and onCoverageClick. New CoverageDrawer and EmployeeDetailsModal in ScheduleDetails.tsx.',
+      'New --schedule-hour-under, --schedule-hour-met and --schedule-hour-over variables.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: null,
     summary: 'Calendar and Overview approved and set to Confirmed.',
     changes: [

@@ -302,6 +302,37 @@ export const scheduleUnits: { key: string; label: string; groups: ScheduleGroup[
   },
 ]
 
+/** A stretch of the day in the coverage details: staff required against staff scheduled. */
+export interface CoverageWindow {
+  from: number
+  to: number
+  level: CoverageLevel
+  required: number
+  actual: number
+}
+
+/** Splits the day at the time-of-day segments. Gaps between them are on target. Mock numbers scale with the day's need. */
+export function coverageWindows(day: DayCoverage): CoverageWindow[] {
+  const base = Math.max(1, Math.round(day.bodies.need / 4))
+  const stretches: { from: number; to: number; level: CoverageLevel }[] = []
+  let hour = 0
+  for (const segment of [...day.timeOfDay].sort((a, b) => a.from - b.from)) {
+    if (segment.from > hour) stretches.push({ from: hour, to: segment.from, level: 'met' })
+    stretches.push(segment)
+    hour = segment.to
+  }
+  if (hour < 24) stretches.push({ from: hour, to: 24, level: 'met' })
+  return stretches.map((stretch, index) => {
+    const required = base + (index % 2)
+    const actual = stretch.level === 'under' ? Math.max(0, required - 1 - (index % 2)) : stretch.level === 'over' ? required + 1 : required
+    return { ...stretch, required, actual }
+  })
+}
+
+/** Level of each hour, 0–23. */
+export const hourLevels = (windows: CoverageWindow[]): CoverageLevel[] =>
+  Array.from({ length: 24 }, (_, hour) => windows.find((window) => hour >= window.from && hour < window.to)?.level ?? 'met')
+
 export const coverageLevel = (have: number, need: number): CoverageLevel => (have < need ? 'under' : have > need ? 'over' : 'met')
 export const hoursLevel = (hours: DayCoverage['hours']): CoverageLevel => (hours.direction === 'down' ? 'under' : hours.direction === 'up' ? 'over' : 'met')
 

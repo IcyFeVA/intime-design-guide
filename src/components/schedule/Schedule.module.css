@@ -319,6 +319,48 @@
   border: 1.5px solid currentColor;
 }
 
+/* ---------- Clickable row headers and coverage ---------- */
+
+.rowButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  margin: -4px;
+  padding: 4px;
+  border-radius: var(--mantine-radius-sm);
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.rowButton:hover {
+  background: var(--background-default-hover);
+}
+
+.coverageButton {
+  display: flex;
+  width: 100%;
+  border-radius: var(--mantine-radius-xs);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.coverageButton:hover {
+  filter: brightness(1.35);
+}
+
+.coverageButton:focus-visible,
+.rowButton:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowButton,
+  .coverageButton {
+    transition: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .chip {
     transition: none;
