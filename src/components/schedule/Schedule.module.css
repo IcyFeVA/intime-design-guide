@@ -1,0 +1,322 @@
+/* ---------- Grid ---------- */
+
+.scroller {
+  overflow: auto;
+  background: var(--mantine-color-body);
+  overscroll-behavior: contain;
+}
+
+.grid {
+  display: grid;
+  min-width: min-content;
+}
+
+.row {
+  display: contents;
+}
+
+.corner,
+.dayHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.corner {
+  left: 0;
+  z-index: 3;
+  padding: 8px 12px;
+}
+
+.dayHeader {
+  justify-content: center;
+  padding: 0 4px;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+  color: var(--text-default);
+  white-space: nowrap;
+}
+
+.dayHeader[data-today] {
+  color: var(--schedule-today-text);
+  background:
+    linear-gradient(var(--schedule-today-bg), var(--schedule-today-bg)),
+    var(--mantine-color-body);
+}
+
+.groupHeader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  background: var(--schedule-group-bg);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.groupTitle {
+  position: sticky;
+  left: 0;
+  padding-inline: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-default);
+}
+
+.label,
+.coverageLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: var(--schedule-row-height);
+  padding: 6px 12px 6px 18px;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.coverageLabel {
+  padding-inline-start: 24px;
+  font-size: var(--mantine-font-size-md);
+}
+
+.initials {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 15px;
+  background: var(--background-default);
+  color: var(--text-default);
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cell,
+.coverageCell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: var(--schedule-row-height);
+  padding: 6px 7px;
+  border-bottom: 1px solid var(--border-default);
+  border-inline-start: 1px solid color-mix(in srgb, var(--border-default) 60%, transparent);
+}
+
+.cell[data-density='compact'],
+.coverageCell[data-density='compact'] {
+  padding-inline: 3px;
+}
+
+.cell[data-overflow] {
+  background: var(--schedule-overflow-bg);
+}
+
+.cell[data-boundary] {
+  box-shadow: inset 2px 0 0 var(--schedule-boundary);
+}
+
+.empty {
+  grid-column: 1 / -1;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-dimmed);
+  border-bottom: 1px solid var(--border-default);
+}
+
+/* ---------- Shift chip ---------- */
+
+.chip {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: var(--schedule-chip-height);
+  overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--schedule-chip-text);
+  background: linear-gradient(to top right, var(--chip-a) 50%, var(--chip-b) 50%);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chip:hover {
+  filter: brightness(1.12);
+}
+
+.chip[data-out-of-unit]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px);
+}
+
+.segment {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 8px;
+}
+
+.segment[data-last] {
+  flex: 1;
+}
+
+.segment + .segment {
+  border-inline-start: 1px solid var(--schedule-chip-divider);
+}
+
+.chip[data-tagged][data-density='comfortable'] .segment {
+  padding-top: 14px;
+}
+
+.code {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.segment[data-cancelled] .code {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.tags {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Compact: two weeks and longer */
+.chip[data-density='compact'] {
+  flex-direction: column;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.chip[data-density='compact'] .segment {
+  flex: none;
+  justify-content: center;
+  padding: 0 3px;
+  border: 0;
+}
+
+.chip[data-density='compact'] .tags {
+  top: 1px;
+  right: 2px;
+}
+
+.more {
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  font-size: 11px;
+}
+
+/* Strip: mobile week, no codes */
+.chip[data-density='strip'] {
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.chip[data-density='strip'] .tags {
+  position: static;
+  font-size: 15px;
+}
+
+.chip[data-density='strip'][data-cancelled]::after {
+  content: '';
+  width: 80%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--schedule-chip-text);
+}
+
+/* ---------- Coverage ---------- */
+
+.coverage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 28px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--schedule-met-text);
+  background: var(--schedule-met-bg);
+}
+
+.coverageCell[data-density='compact'] .coverage {
+  font-size: 13px;
+}
+
+.coverage[data-level='under'],
+.todSegment[data-level='under'] {
+  color: var(--schedule-under-text);
+  background: var(--schedule-under-bg);
+}
+
+.coverage[data-level='over'],
+.todSegment[data-level='over'] {
+  color: var(--schedule-over-text);
+  background: var(--schedule-over-bg);
+}
+
+.timeOfDay {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--schedule-met-bg);
+}
+
+.todSegment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border: 1.5px solid currentColor;
+  border-radius: var(--mantine-radius-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip {
+    transition: none;
+  }
+}

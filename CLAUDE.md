@@ -50,6 +50,7 @@ Typical section set for a component/pattern page: live demos, then `guidelines` 
 | `FigmaSlot` | Placeholder for a missing Figma frame: `title`, `notes`. |
 | `StatusBadge` | `status`. |
 | `app-nav/AppNav` | The real product sidebar (roles, collapsed rail, pin/overlay). Reuse it in app-shell mocks. Props are documented on the Navigation page. |
+| `schedule/ScheduleGrid`, `MobileSchedule`, `ShiftChip`, `Coverage` | Team schedule grid (desktop, 1–4 weeks), mobile week/day, shift cells and coverage values. Mock members and date helpers in `schedule/data.ts`. Props are documented on the Team View page. |
 | `pages/foundations/TokenSwatch` | Color swatch used by the Colors page. |
 
 For tables, use `<Table.ScrollContainer minWidth={560} className="doc-table"><Table verticalSpacing="sm" horizontalSpacing="md">…`.
@@ -76,7 +77,7 @@ Plain, short sentences in sentence case. Explain behavior ("Pinning keeps the na
 ## Tokens map (`src/tokens`)
 
 - `themes/dark.css`, `themes/light.css`: raw Figma variable exports, pasted verbatim. `themes/index.ts` parses them and resolves `var(--primary-primary-color-N)`-style primitives to Mantine default ramps (primary = cyan). Watch for user pastes where the "dark" block is a copy of light. Compare against the existing file before overwriting.
-- `colors.ts` (palettes), `typography.ts` (Roboto + Cousine, heading/body scales), `scales.ts` (spacing, radius, shadows, breakpoints, z-index, motion, app-shell `layout`), `icons.ts` (curated Lucide set), `status.ts` (shift states, departments), `navigation.ts` (nav roles, items, variants, `--nav-*` vars).
+- `colors.ts` (palettes), `typography.ts` (Roboto + Cousine, heading/body scales), `scales.ts` (spacing, radius, shadows, breakpoints, z-index, motion, app-shell `layout`), `icons.ts` (curated Lucide set), `status.ts` (shift states, departments), `navigation.ts` (nav roles, items, variants, `--nav-*` vars), `schedule.ts` (shift kinds and codes, date ranges, `--schedule-*` vars).
 - `src/theme.ts` builds the Mantine theme and `cssVariablesResolver` from these. Change token files, not the theme.
 
 ## Verifying UI in a browser

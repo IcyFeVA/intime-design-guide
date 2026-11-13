@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
-  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type,
+  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 
@@ -111,6 +111,13 @@ export const pages: PageDef[] = [
     keywords: ['sidebar', 'menu', 'nav', 'rail', 'collapse', 'pin', 'overlay', 'role', 'acting as', 'switcher', 'permissions', 'tooltip', 'badge'],
     sections: s(['variants', 'Variants'], ['switchers', 'Role and unit switchers'], ['collapsed', 'Collapsed rail'], ['pinning', 'Pinned and overlay'], ['component', 'Using the component'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/Navigation')),
+  },
+  {
+    path: '/patterns/team-view', title: 'Team View', group: 'Patterns', icon: Users, status: 'draft', updated: '2026-11-13',
+    description: 'The team schedule by unit: members down the side, days across, with coverage under each team. One to four weeks on desktop, a day or a week on mobile.',
+    keywords: ['schedule', 'roster', 'grid', 'unit', 'week', 'month', 'two weeks', 'three weeks', 'day view', 'mobile', 'coverage', 'bodies', 'hours', 'time of day', 'overtime', 'OT', 'out of unit', 'OU', 'sick', 'PTO', 'leave', 'cancelled', 'shift code', 'co-worker search'],
+    sections: s(['desktop', 'Desktop'], ['ranges', 'Date ranges'], ['cells', 'Shift cells'], ['coverage', 'Coverage'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/TeamView')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12',

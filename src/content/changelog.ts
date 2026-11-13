@@ -11,6 +11,18 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/team-view',
+    summary: 'New Team View pattern with reusable schedule components and CSS variables.',
+    changes: [
+      'Desktop grid for one, two or three weeks or a month, with pinned names and dates, a today header, schedule period lines and co-worker search.',
+      'Shift cells: regular, leave and overtime fills, diagonal split for mixed days, OT and OU tags, hatching for out of unit, strikethrough for cancelled, overflow rows.',
+      'Coverage under each team: bodies, hours and a time-of-day bar.',
+      'Mobile week strips and a 24-hour day timeline.',
+      '`--schedule-*` CSS variables in src/tokens/schedule.ts.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/navigation',
     summary: 'New Navigation pattern with a reusable component and CSS variables.',
     changes: [

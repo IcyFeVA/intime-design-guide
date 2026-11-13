@@ -4,6 +4,7 @@ import { findTheme, isColorToken, type ThemeDef } from './tokens/themes'
 import { fontFamilies, fontSizes, headingScale } from './tokens/typography'
 import { radius, shadows, spacing } from './tokens/scales'
 import { navCssVariables } from './tokens/navigation'
+import { scheduleCssVariables, scheduleDarkVariables, scheduleLightVariables } from './tokens/schedule'
 
 const toRecord = <T extends { name: string; value: string }>(items: T[]) =>
   Object.fromEntries(items.map((item) => [item.name, item.value]))
@@ -77,7 +78,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: navCssVariables,
-  light: schemeVariables(findTheme('light')),
-  dark: schemeVariables(findTheme('dark')),
+  variables: { ...navCssVariables, ...scheduleCssVariables },
+  light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables },
+  dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables },
 })

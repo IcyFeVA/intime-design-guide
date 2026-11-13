@@ -1,0 +1,212 @@
+.root {
+  color: var(--text-default);
+  background: var(--mantine-color-body);
+  touch-action: pan-y;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+  background: var(--schedule-group-bg);
+  border-block: 1px solid var(--border-default);
+}
+
+/* ---------- Week ---------- */
+
+.weekHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  background: var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.weekDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 6px;
+  font-size: 16px;
+  line-height: 1.25;
+  color: var(--text-dimmed);
+  background: var(--schedule-group-bg);
+}
+
+.weekDay[data-today] {
+  color: var(--schedule-today-text);
+  background:
+    linear-gradient(var(--schedule-today-bg), var(--schedule-today-bg)),
+    var(--schedule-group-bg);
+}
+
+.name {
+  padding: 12px 16px 10px;
+  font-size: 16px;
+}
+
+.strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  height: 48px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.strip[data-overflow] {
+  background: var(--schedule-overflow-bg);
+}
+
+.stripCell {
+  display: flex;
+  min-width: 0;
+}
+
+.coverageHeader {
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+  background: var(--schedule-group-bg);
+  border-top: 1px solid var(--border-default);
+}
+
+.coverageGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px 2px;
+  padding: 4px 2px 8px;
+}
+
+.coverageGrid > * {
+  height: 32px;
+}
+
+/* ---------- Day ---------- */
+
+.dayHeader,
+.dayRow {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+}
+
+.dayHeader {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  align-items: center;
+  height: 56px;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dayTitle {
+  padding-inline: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dayTitle[data-today] {
+  color: var(--schedule-today-text);
+}
+
+.track {
+  position: relative;
+  height: 100%;
+  margin-inline: 12px 14px;
+}
+
+.tick {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  color: var(--text-dimmed);
+}
+
+.dayRow {
+  min-height: 44px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dayName {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-inline: 16px 8px;
+  overflow: hidden;
+  font-size: 15px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.dayRow .track {
+  height: 44px;
+}
+
+.bar {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  display: flex;
+  align-items: center;
+  min-width: 6px;
+  padding-inline: 6px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--schedule-chip-text);
+  background: linear-gradient(to top right, var(--chip-a) 50%, var(--chip-b) 50%);
+}
+
+.bar[data-out-of-unit]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px);
+}
+
+.barLabel {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: clip;
+}
+
+.bar[data-cancelled] .barLabel {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.barIcon {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+}
+
+.dayCoverage {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px 12px 12px;
+}
+
+.dayCoverage > div {
+  height: 32px;
+}
