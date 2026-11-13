@@ -206,7 +206,6 @@ export default function Navigation() {
         <Stack gap="md">
           <img src="/figma/navigation-variants.png" alt="Navigation in four variants, each expanded and collapsed: Scheduler, Administrator, Employee (and Scheduler), Employee only." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
           <img src="/figma/navigation-role-switcher.png" alt="The Acting as field in its default and hover states, and its open menu listing Employee, Scheduler and Administrator." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
-          <Text size="xs" c="dimmed">The Figma search field reads “Search anyting...”. The guide uses the corrected “Search anything...”.</Text>
         </Stack>
       </Section>
     </>
