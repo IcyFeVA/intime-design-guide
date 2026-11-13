@@ -164,7 +164,18 @@
 }
 
 .itemSection {
+  display: flex;
+  align-items: center;
   margin: 0;
+}
+
+.itemSection :global(.mantine-Indicator-root),
+.itemSection svg {
+  display: flex;
+}
+
+.root[data-collapsed] .itemBody {
+  display: none;
 }
 
 .itemSection[data-position='left'] {

@@ -46,7 +46,7 @@ function NavItem({ item, collapsed, active, onSelect }: { item: NavItemDef; coll
       ) : icon}
       rightSection={!collapsed && item.count ? <span className={classes.count} aria-hidden="true">{item.count}</span> : undefined}
       onClick={onSelect}
-      classNames={{ root: classes.item, label: classes.itemLabel, section: classes.itemSection }}
+      classNames={{ root: classes.item, body: classes.itemBody, label: classes.itemLabel, section: classes.itemSection }}
     />
   )
   return (

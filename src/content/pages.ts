@@ -106,7 +106,7 @@ export const pages: PageDef[] = [
   },
   // Patterns
   {
-    path: '/patterns/navigation', title: 'Navigation', group: 'Patterns', icon: PanelLeft, status: 'draft', updated: '2026-11-13',
+    path: '/patterns/navigation', title: 'Navigation', group: 'Patterns', icon: PanelLeft, status: 'confirmed', updated: '2026-11-13',
     description: 'The main navigation: four role-based variants, a collapsed rail, and pinned or overlay behavior.',
     keywords: ['sidebar', 'menu', 'nav', 'rail', 'collapse', 'pin', 'overlay', 'role', 'acting as', 'switcher', 'permissions', 'tooltip', 'badge'],
     sections: s(['variants', 'Variants'], ['switchers', 'Role and unit switchers'], ['collapsed', 'Collapsed rail'], ['pinning', 'Pinned and overlay'], ['component', 'Using the component'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),

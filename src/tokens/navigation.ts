@@ -91,7 +91,7 @@ export interface NavToken {
   status: TokenStatus
 }
 
-const t = (name: NavToken['name'], value: string, kind: NavToken['kind'], usage: string): NavToken => ({ name, value, kind, usage, status: 'draft' })
+const t = (name: NavToken['name'], value: string, kind: NavToken['kind'], usage: string): NavToken => ({ name, value, kind, usage, status: 'confirmed' })
 
 /**
  * Navigation variables. Colors alias the theme tokens, so they follow the dark/light scheme.
