@@ -1,24 +1,20 @@
-import { useState, type ReactNode } from 'react'
-import {
-  ActionIcon, Button, Group, Indicator, Menu, Modal, SegmentedControl, Stack, Table, Text, TextInput, Tooltip, UnstyledButton,
-} from '@mantine/core'
-import {
-  ArrowUpDown, BatteryFull, Maximize2, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, List, Logs, Menu as MenuIcon, RotateCcw,
-  Search, Signal, SlidersHorizontal, UserRound, Wifi,
-} from 'lucide-react'
+import { useState } from 'react'
+import { Group, Menu, Stack, Table, Text } from '@mantine/core'
+import { ArrowUpDown, Check } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
 import DoDont from '../../components/DoDont'
 import CopyValue from '../../components/CopyValue'
 import PropsTable from '../../components/PropsTable'
-import AppNav from '../../components/app-nav/AppNav'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid'
 import MobileSchedule from '../../components/schedule/MobileSchedule'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
+import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
+import { teamSections } from '../../components/schedule/sections'
 import {
-  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, shiftRange, sortMembers, type Chip, type ScheduleGroup, type ScheduleSort,
+  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleSort,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
 import classes from './TeamView.module.css'
@@ -38,44 +34,6 @@ function filterGroups(unitKey: string, query: string, sort: ScheduleSort): Sched
   }))
 }
 
-/** Menu whose trigger looks like a select: label plus chevron, checkmark on the current option. */
-function PickerMenu<T extends string>({ value, options, onChange, label, leftSection, size = 'sm' }: {
-  value: T
-  options: { key: T; label: string }[]
-  onChange: (value: T) => void
-  label: string
-  leftSection?: ReactNode
-  size?: 'md' | 'sm'
-}) {
-  const current = options.find((option) => option.key === value)
-  return (
-    <Menu position="bottom-start" offset={4}>
-      <Menu.Target>
-        <Button variant="default" size={size} leftSection={leftSection} rightSection={<ChevronDown size={16} aria-hidden="true" />} aria-label={`${label}: ${current?.label}`} fw={400}>
-          {leftSection ? label : current?.label}
-        </Button>
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Label>{label}</Menu.Label>
-        {options.map((option) => (
-          <Menu.Item key={option.key} onClick={() => onChange(option.key)} rightSection={option.key === value ? <Check size={14} aria-hidden="true" /> : null}>
-            {option.label}
-          </Menu.Item>
-        ))}
-      </Menu.Dropdown>
-    </Menu>
-  )
-}
-
-function ViewTabs({ onLocation, size = 'md' }: { onLocation: () => void; size?: 'md' | 'lg' }) {
-  return (
-    <div className={classes.viewTabs} data-size={size}>
-      <UnstyledButton className={classes.viewTab} data-active aria-pressed="true">Unit</UnstyledButton>
-      <UnstyledButton className={classes.viewTab} aria-pressed="false" onClick={onLocation}>Location</UnstyledButton>
-    </div>
-  )
-}
-
 /* ------------------------------------------------------------------ */
 /* Desktop                                                             */
 /* ------------------------------------------------------------------ */
@@ -87,91 +45,47 @@ function DesktopDemo() {
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ScheduleSort>('team')
   const [hint, setHint] = useState<string | null>(null)
-  const [fullScreen, setFullScreen] = useState(false)
 
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   const days = rangeDays(range, anchor)
-  const groups = filterGroups(unit, query, sort)
   const reset = () => { setUnit(scheduleUnits[0].key); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setSort('team'); setHint(null) }
-
-  const shell = (
-    <div className={classes.shell} data-full-screen={fullScreen || undefined}>
-      <AppNav roles={['employee', 'scheduler']} defaultRole="scheduler" defaultActive="team-view" defaultExpanded={false} defaultPinned={false} />
-      <div className={classes.main}>
-        <div className={classes.topBar}>
-          <Text size="md">Field Operations Division - ITME</Text>
-          <Group gap={8} wrap="nowrap">
-            <Indicator size={7} offset={3} color="var(--background-info)"><UserRound size={20} strokeWidth={1.75} aria-hidden="true" /></Indicator>
-            <Text size="sm" fw={600}>John B. McLane</Text>
-            <ChevronDown size={16} aria-hidden="true" />
-          </Group>
-        </div>
-        <div className={classes.titleRow}>
-          <h3 className={classes.title}>Team View</h3>
-          <ViewTabs onLocation={() => setHint('Location View has its own page. It is coming next.')} />
-        </div>
-        <div className={classes.toolbar}>
-          <PickerMenu label="Team" value={unit} options={scheduleUnits.map(({ key, label }) => ({ key, label }))} onChange={setUnit} />
-          <PickerMenu label="Range" value={range} options={scheduleRanges.map(({ key, label }) => ({ key, label }))} onChange={(value) => setRange(value)} />
-          <span className={classes.toolbarDivider} aria-hidden="true" />
-          <Tooltip label={`Previous ${range === 'month' ? 'month' : 'range'}`}>
-            <ActionIcon variant="default" size={36} aria-label="Previous range" onClick={() => setAnchor((value) => shiftRange(range, value, -1))}><ChevronLeft size={18} /></ActionIcon>
-          </Tooltip>
-          <Button variant="default" size="sm" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')}>
-            <span className="tabular">{formatRange(days)}</span>
-          </Button>
-          <Tooltip label={`Next ${range === 'month' ? 'month' : 'range'}`}>
-            <ActionIcon variant="default" size={36} aria-label="Next range" onClick={() => setAnchor((value) => shiftRange(range, value, 1))}><ChevronRight size={18} /></ActionIcon>
-          </Tooltip>
-          <Button variant="default" size="sm" fw={400} onClick={() => setAnchor(MOCK_TODAY)}>Today</Button>
-          <div style={{ flex: 1 }} />
-          <PickerMenu label="Sort" leftSection={<ArrowUpDown size={16} aria-hidden="true" />} value={sort} options={sortOptions} onChange={setSort} />
-        </div>
-        <ScheduleGrid
-          groups={groups}
-          days={days}
-          density={rangeDef.density === 'comfortable' ? 'comfortable' : 'compact'}
-          columnMin={rangeDef.columnMin}
-          today={MOCK_TODAY}
-          corner={
-            <TextInput
-              value={query}
-              onChange={(event) => setQuery(event.currentTarget.value)}
-              placeholder="Search co-workers"
-              aria-label="Search co-workers"
-              leftSection={<Search size={16} aria-hidden="true" />}
-              w="100%"
-            />
-          }
-          empty={<>No co-workers match “{query}”.</>}
-          maxHeight="100%"
-        />
-      </div>
-    </div>
-  )
 
   return (
     <Preview
       flush
       title="Team View, desktop"
-      code={'<ScheduleGrid\n  groups={groups}\n  days={rangeDays(range, anchor)}\n  density={range === "week" ? "comfortable" : "compact"}\n  columnMin={range === "week" ? 120 : 56}\n  today={today}\n  corner={<CoWorkerSearch />}\n/>'}
+      code={'<ScheduleGrid\n  sections={teamSections(groups)}\n  days={rangeDays(range, anchor)}\n  density={range === "week" ? "comfortable" : "compact"}\n  columnMin={range === "week" ? 120 : 56}\n  today={today}\n  corner={<CoWorkerSearch />}\n/>'}
     >
-      <Group justify="space-between" px="md" py="xs" className={classes.demoBar}>
-        <Text size="xs" c="dimmed" role="status">{hint ?? 'Preview only. “Today” is Friday, June 5, 2026 in this demo.'}</Text>
-        <Group gap={4} wrap="nowrap">
-          <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Maximize2 size={14} />} onClick={() => setFullScreen(true)}>Full screen</Button>
-          <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={reset}>Reset demo</Button>
-        </Group>
-      </Group>
-      {!fullScreen && shell}
-      <Modal opened={fullScreen} onClose={() => setFullScreen(false)} fullScreen title="Team View, desktop" padding={0} classNames={{ body: classes.modalBody, header: classes.modalHeader }}>
-        {fullScreen && shell}
-      </Modal>
+      <DesktopDemoFrame
+        view="unit"
+        status={hint ?? 'Preview only. “Today” is Friday, June 5, 2026 in this demo.'}
+        onReset={reset}
+        toolbar={
+          <>
+            <PickerMenu label="Team" value={unit} options={scheduleUnits.map(({ key, label }) => ({ key, label }))} onChange={setUnit} />
+            <PickerMenu label="Range" value={range} options={scheduleRanges.map(({ key, label }) => ({ key, label }))} onChange={setRange} />
+            <ToolbarDivider />
+            <RangeStepper range={range} days={days} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')} />
+            <div style={{ flex: 1 }} />
+            <PickerMenu label="Sort" leftSection={<ArrowUpDown size={16} aria-hidden="true" />} value={sort} options={sortOptions} onChange={setSort} />
+          </>
+        }
+      >
+        <ScheduleGrid
+          label="Team schedule"
+          sections={teamSections(filterGroups(unit, query, sort))}
+          days={days}
+          density={rangeDef.density === 'comfortable' ? 'comfortable' : 'compact'}
+          columnMin={rangeDef.columnMin}
+          today={MOCK_TODAY}
+          corner={<CoWorkerSearch value={query} onChange={setQuery} />}
+          empty={<>No co-workers match “{query}”.</>}
+          maxHeight="100%"
+        />
+      </DesktopDemoFrame>
     </Preview>
   )
 }
-
-
 
 /* ------------------------------------------------------------------ */
 /* Mobile                                                              */
@@ -182,77 +96,40 @@ function MobileDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [unit, setUnit] = useState(scheduleUnits[0].key)
   const [sort, setSort] = useState<ScheduleSort>('team')
-  const [hint, setHint] = useState<string | null>(null)
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
-  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team'); setHint(null) }
+  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team') }
 
   return (
     <Preview flush title="Team View, mobile">
-      <Group justify="space-between" px="md" py="xs" className={classes.demoBar}>
-        <Group gap={6}>
-          <Button variant="default" size="compact-xs" leftSection={<ChevronLeft size={14} />} onClick={() => step(-1)}>Swipe right</Button>
-          <Button variant="default" size="compact-xs" rightSection={<ChevronRight size={14} />} onClick={() => step(1)}>Swipe left</Button>
-          <Text size="xs" c="dimmed" role="status">{hint ?? (mode === 'week' ? formatRange(days) : formatFullDate(anchor))}</Text>
-        </Group>
-        <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={reset}>Reset demo</Button>
-      </Group>
-      <div className={classes.mobileStage}>
-        <div className={classes.phone}>
-          <div className={classes.statusBar} aria-hidden="true">
-            <span className="tabular">9:41</span>
-            <Group gap={6}><Signal size={16} /><Wifi size={16} /><BatteryFull size={20} /></Group>
-          </div>
-          <div className={classes.phoneHeader}>
-            <Group gap={20} wrap="nowrap">
-              <Indicator size={8} offset={2} position="bottom-end" color="var(--background-info)">
-                <MenuIcon size={24} strokeWidth={1.75} aria-label="Open navigation" />
-              </Indicator>
-              <UserRound size={24} strokeWidth={1.75} aria-label="Profile" />
-            </Group>
-            <Text size="sm" c="dimmed" truncate>Field Operations Division - ITME</Text>
-          </div>
-          <div className={classes.phoneScroll}>
-            <div className={classes.phoneTitle}>
-              <h3 className={classes.title}>Team View</h3>
-              <Group justify="space-between" wrap="nowrap" mt="lg">
-                <ViewTabs onLocation={() => setHint('Location View has its own page. It is coming next.')} />
-                <Group gap={8} wrap="nowrap">
-                  <SegmentedControl
-                    value={mode}
-                    onChange={(value) => setMode(value as 'week' | 'day')}
-                    aria-label="View"
-                    data={[
-                      { value: 'week', label: <Tooltip label="Week"><span className={classes.segmentIcon}><List size={18} aria-label="Week" /></span></Tooltip> },
-                      { value: 'day', label: <Tooltip label="Day"><span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span></Tooltip> },
-                    ]}
-                  />
-                  <Menu position="bottom-end" offset={4} withinPortal={false}>
-                    <Menu.Target>
-                      <Tooltip label="Filters and sort"><ActionIcon variant="default" size={38} aria-label="Filters and sort"><SlidersHorizontal size={18} /></ActionIcon></Tooltip>
-                    </Menu.Target>
-                    <Menu.Dropdown>
-                      <Menu.Label>Team</Menu.Label>
-                      {scheduleUnits.map((item) => <Menu.Item key={item.key} onClick={() => setUnit(item.key)} rightSection={item.key === unit ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
-                      <Menu.Divider />
-                      <Menu.Label>Sort by</Menu.Label>
-                      {sortOptions.map((item) => <Menu.Item key={item.key} onClick={() => setSort(item.key)} rightSection={item.key === sort ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
-                    </Menu.Dropdown>
-                  </Menu>
-                </Group>
-              </Group>
-            </div>
-            <MobileSchedule groups={filterGroups(unit, '', sort)} mode={mode} days={days} today={MOCK_TODAY} onSwipe={step} />
-          </div>
-        </div>
-        <Stack gap="sm" maw={340} className={classes.mobileNotes}>
-          <Text size="sm"><strong>Two views only.</strong> Phones show a week or a single day. Longer ranges need the desktop grid.</Text>
-          <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell for details.</Text>
-          <Text size="sm"><strong>Day.</strong> Assignments sit on a 0–24 hour timeline, so gaps and overlaps are easy to spot.</Text>
-          <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day come first, above each team’s members.</Text>
-          <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. Team and sort live behind the sliders button.</Text>
-        </Stack>
-      </div>
+      <MobileDemoFrame
+        view="unit"
+        status={mode === 'week' ? formatRange(days) : formatFullDate(anchor)}
+        onReset={reset}
+        onStep={step}
+        mode={mode}
+        onModeChange={setMode}
+        filters={
+          <>
+            <Menu.Label>Team</Menu.Label>
+            {scheduleUnits.map((item) => <Menu.Item key={item.key} onClick={() => setUnit(item.key)} rightSection={item.key === unit ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
+            <Menu.Divider />
+            <Menu.Label>Sort by</Menu.Label>
+            {sortOptions.map((item) => <Menu.Item key={item.key} onClick={() => setSort(item.key)} rightSection={item.key === sort ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
+          </>
+        }
+        notes={
+          <>
+            <Text size="sm"><strong>Two views only.</strong> Phones show a week or a single day. Longer ranges need the desktop grid.</Text>
+            <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell for details.</Text>
+            <Text size="sm"><strong>Day.</strong> Assignments sit on a 0–24 hour timeline, so gaps and overlaps are easy to spot.</Text>
+            <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day come first, above each team’s members.</Text>
+            <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. Team and sort live behind the sliders button.</Text>
+          </>
+        }
+      >
+        <MobileSchedule sections={teamSections(filterGroups(unit, '', sort))} mode={mode} days={days} today={MOCK_TODAY} onSwipe={step} />
+      </MobileDemoFrame>
     </Preview>
   )
 }
@@ -363,24 +240,27 @@ export default function TeamView() {
       <Section id="component" title="Using the components" description="The demos use the real components in src/components/schedule, so Location View and other pages can reuse them.">
         <Text size="sm" fw={600} mb="xs">ScheduleGrid (desktop)</Text>
         <PropsTable rows={[
-          { prop: 'groups', type: 'ScheduleGroup[]', description: 'Teams with members and a coverage function. Filter and sort before passing them in.' },
+          { prop: 'sections', type: 'ScheduleSection[]', description: 'Teams with their rows and coverage. Build them with teamSections(groups); filter and sort the groups first. Location View uses locationSections.' },
           { prop: 'days', type: 'number[]', description: 'Visible days. Use rangeDays(range, anchor).' },
           { prop: 'density', type: "'comfortable' | 'compact'", default: "'comfortable'", description: 'Comfortable for one week, compact for longer ranges.' },
           { prop: 'columnMin', type: 'number', default: '120', description: 'Minimum day column width in px. Narrow containers scroll sideways.' },
           { prop: 'today', type: 'number', description: 'Highlights that day’s column header.' },
           { prop: 'corner', type: 'ReactNode', description: 'Top-left cell, usually the co-worker search.' },
           { prop: 'showCoverage', type: 'boolean', default: 'true', description: 'Coverage rows before each team’s members.' },
-          { prop: 'empty', type: 'ReactNode', description: 'Shown when no team has members, e.g. after a search.' },
+          { prop: 'empty', type: 'ReactNode', description: 'Shown when no section has rows, e.g. after a search.' },
+          { prop: 'isMuted', type: '(chip: Chip) => boolean', description: 'Dims cells that do not match, e.g. a co-worker search in Location View.' },
+          { prop: 'label', type: 'string', default: "'Schedule'", description: 'Accessible name of the grid.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">MobileSchedule</Text>
         <PropsTable rows={[
-          { prop: 'groups', type: 'ScheduleGroup[]', description: 'Same data as the desktop grid.' },
+          { prop: 'sections', type: 'ScheduleSection[]', description: 'Same data as the desktop grid.' },
+          { prop: 'daySections', type: 'ScheduleSection[]', description: 'Sections for day mode when they differ. Location View lists the people on duty. Defaults to sections.' },
           { prop: 'mode', type: "'week' | 'day'", description: 'Week strips or the day timeline.' },
           { prop: 'days', type: 'number[]', description: 'Seven days in week mode; the first day in day mode.' },
           { prop: 'today', type: 'number', description: 'Highlights today in the week header.' },
           { prop: 'onSwipe', type: '(direction: 1 | -1) => void', description: 'Called on a horizontal swipe. 1 means forward.' },
         ]} />
-        <Text size="sm" c="dimmed" mt="sm">Shift codes, kinds, ranges and CSS variables live in src/tokens/schedule.ts. Mock members and date helpers live in src/components/schedule/data.ts.</Text>
+        <Text size="sm" c="dimmed" mt="sm">Shift codes, kinds, ranges and CSS variables live in src/tokens/schedule.ts. Mock members and date helpers live in src/components/schedule/data.ts, section builders in sections.tsx, and the demo shell in ScheduleChrome.tsx.</Text>
       </Section>
 
       <Section id="tokens" title="CSS variables" description="Shift fills are their own colors per scheme. Everything else points at theme tokens, so it follows dark and light.">

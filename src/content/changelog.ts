@@ -11,6 +11,26 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/location-view',
+    summary: 'New Location View pattern, built on the Team View components.',
+    changes: [
+      'Posts down the side with their hours, one line per position, and surnames in the cells.',
+      'Location headers as breadcrumb paths, with coverage above each location.',
+      'Co-worker search dims other people and hides posts they are not on.',
+      'Mobile week (posts and positions) and day (people on duty), plus a coverage alert for the location furthest below target.',
+    ],
+  },
+  {
+    date: '2026-11-13',
+    page: '/patterns/team-view',
+    summary: 'Schedule components generalized for Location View.',
+    changes: [
+      'ScheduleGrid and MobileSchedule take `sections` (build them with teamSections) instead of `groups`.',
+      'The Unit and Location tabs in the demos now open the other page.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/team-view',
     summary: 'New Team View pattern with reusable schedule components and CSS variables.',
     changes: [

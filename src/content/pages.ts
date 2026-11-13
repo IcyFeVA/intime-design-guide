@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
-  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users,
+  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 
@@ -118,6 +118,13 @@ export const pages: PageDef[] = [
     keywords: ['schedule', 'roster', 'grid', 'unit', 'week', 'month', 'two weeks', 'three weeks', 'day view', 'mobile', 'coverage', 'bodies', 'hours', 'time of day', 'overtime', 'OT', 'out of unit', 'OU', 'sick', 'PTO', 'leave', 'cancelled', 'shift code', 'co-worker search'],
     sections: s(['desktop', 'Desktop'], ['ranges', 'Date ranges'], ['cells', 'Shift cells'], ['coverage', 'Coverage'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/TeamView')),
+  },
+  {
+    path: '/patterns/location-view', title: 'Location View', group: 'Patterns', icon: MapPin, status: 'confirmed', updated: '2026-11-13',
+    description: 'The schedule by location: posts down the side with one line per position, people in the cells, and coverage above each location.',
+    keywords: ['location', 'site', 'post', 'position', 'open position', 'breadcrumb', 'paid duty', 'event', 'coverage alert', 'shortfall', 'notification', 'toast', 'day view', 'mobile', 'schedule'],
+    sections: s(['desktop', 'Desktop'], ['posts', 'Posts and positions'], ['locations', 'Location headers'], ['coverage', 'Coverage'], ['mobile', 'Mobile'], ['coverage-alert', 'Coverage alert'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/LocationView')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12',

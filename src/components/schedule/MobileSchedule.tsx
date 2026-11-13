@@ -3,14 +3,17 @@ import { Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { Clock3 } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, segmentHours, segmentKind, type ScheduleGroup,
+  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type ScheduleSection,
 } from './data'
 import ShiftChip from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
 import classes from './Mobile.module.css'
 
 export interface MobileScheduleProps {
-  groups: ScheduleGroup[]
+  /** Teams or locations, as for ScheduleGrid */
+  sections: ScheduleSection[]
+  /** Sections for day mode when they differ (Location View lists the people on duty). Defaults to `sections`. */
+  daySections?: ScheduleSection[]
   mode: 'week' | 'day'
   /** Seven day numbers in week mode; the first is used in day mode */
   days: number[]
@@ -18,10 +21,6 @@ export interface MobileScheduleProps {
   /** Called with -1 or 1 when the user swipes right or left */
   onSwipe?: (direction: 1 | -1) => void
 }
-
-/** Surname, plus initials when two members of a team share it */
-const displayName = (group: ScheduleGroup, member: ScheduleGroup['members'][number]) =>
-  group.members.filter((other) => other.name === member.name).length > 1 ? `${member.name} (${member.initials})` : member.name
 
 const ticks = [0, 3, 6, 9, 12, 15, 18, 21, 24]
 const pct = (hour: number) => `${(Math.min(Math.max(hour, 0), 24) / 24) * 100}%`
@@ -39,7 +38,7 @@ function useSwipe(onSwipe?: (direction: 1 | -1) => void) {
   }
 }
 
-function WeekView({ groups, days, today }: MobileScheduleProps) {
+function WeekView({ sections, days, today }: MobileScheduleProps) {
   return (
     <>
       <div className={classes.weekHeader}>
@@ -50,26 +49,31 @@ function WeekView({ groups, days, today }: MobileScheduleProps) {
           </div>
         ))}
       </div>
-      {groups.map((group) => (
-        <section key={group.id} aria-label={group.title}>
-          <div className={classes.coverageHeader}>Coverage</div>
-          <div className={classes.coverageGrid}>
-            {days.map((day) => <BodiesValue key={day} bodies={group.coverage(day).bodies} />)}
-            {days.map((day) => <HoursValue key={day} hours={group.coverage(day).hours} />)}
-            {days.map((day) => <TimeOfDayBar key={day} segments={group.coverage(day).timeOfDay} />)}
-          </div>
-          <div className={classes.groupHeader}>{group.title}</div>
-          {group.members.map((member) => {
-            const chipsByDay = days.map((day) => member.chips(day))
-            const rows = Math.max(1, ...chipsByDay.map((chips) => chips.length))
+      {sections.map((section) => (
+        <section key={section.id} aria-label={section.name}>
+          {section.rows.length > 0 && section.coverage && (
+            <>
+              <div className={classes.coverageHeader}>Coverage</div>
+              <div className={classes.coverageGrid}>
+                {days.map((day) => <BodiesValue key={day} bodies={section.coverage!(day).bodies} />)}
+                {days.map((day) => <HoursValue key={day} hours={section.coverage!(day).hours} />)}
+                {days.map((day) => <TimeOfDayBar key={day} segments={section.coverage!(day).timeOfDay} />)}
+              </div>
+            </>
+          )}
+          <div className={classes.groupHeader}>{section.title}</div>
+          {section.rows.map((row) => {
+            const chipsByDay = days.map((day) => row.chips(day))
+            const lines = rowLines(row, chipsByDay)
+            const overflow = (row.extraLines ?? 'overflow') === 'overflow'
             return (
-              <div key={member.id}>
-                <div className={classes.name}>{displayName(group, member)}</div>
-                {Array.from({ length: rows }, (_, row) => (
-                  <div className={classes.strip} data-overflow={row > 0 || undefined} key={row}>
+              <div key={row.id}>
+                <div className={classes.name}>{row.name}</div>
+                {Array.from({ length: lines }, (_, line) => (
+                  <div className={classes.strip} data-overflow={(overflow && line > 0) || undefined} data-positions={!overflow || undefined} key={line}>
                     {days.map((day, index) => {
-                      const chip = chipsByDay[index][row]
-                      return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${member.name}, ${formatHeader(day)}`} />}</div>
+                      const chip = chipsByDay[index][line]
+                      return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${row.name}, ${formatHeader(day)}`} />}</div>
                     })}
                   </div>
                 ))}
@@ -82,7 +86,7 @@ function WeekView({ groups, days, today }: MobileScheduleProps) {
   )
 }
 
-function DayView({ groups, days, today }: MobileScheduleProps) {
+function DayView({ sections, daySections, days, today }: MobileScheduleProps) {
   const day = days[0]
   return (
     <>
@@ -92,30 +96,33 @@ function DayView({ groups, days, today }: MobileScheduleProps) {
           {ticks.map((hour) => <span key={hour} className={`${classes.tick} tabular`} style={{ left: pct(hour) }}>{hour}</span>)}
         </div>
       </div>
-      {groups.map((group) => {
-        const coverage = group.coverage(day)
+      {(daySections ?? sections).map((section) => {
+        const coverage = section.coverage?.(day)
         return (
-          <section key={group.id} aria-label={group.title}>
-            <div className={classes.dayRow} data-coverage>
-              <div className={classes.dayName} />
-              <div className={classes.dayCoverage}>
-                <Text size="sm" fw={600} tt="uppercase" lts="0.06em" c="dimmed">Coverage</Text>
-                <BodiesValue bodies={coverage.bodies} />
-                <HoursValue hours={coverage.hours} />
-                <TimeOfDayBar segments={coverage.timeOfDay} />
+          <section key={section.id} aria-label={section.name}>
+            {section.rows.length > 0 && coverage && (
+              <div className={classes.dayRow} data-coverage>
+                <div className={classes.dayName} />
+                <div className={classes.dayCoverage}>
+                  <Text size="sm" fw={600} tt="uppercase" lts="0.06em" c="dimmed">Coverage</Text>
+                  <BodiesValue bodies={coverage.bodies} />
+                  <HoursValue hours={coverage.hours} />
+                  <TimeOfDayBar segments={coverage.timeOfDay} />
+                </div>
               </div>
-            </div>
-            <div className={classes.groupHeader}>{group.title}</div>
-            {group.members.map((member) => (
-              <div className={classes.dayRow} key={member.id}>
-                <div className={classes.dayName}>{displayName(group, member)}</div>
+            )}
+            <div className={classes.groupHeader}>{section.title}</div>
+            {section.rows.map((row) => (
+              <div className={classes.dayRow} key={row.id}>
+                <div className={classes.dayName}>{row.name}</div>
                 <div className={classes.track}>
-                  {member.chips(day).flatMap((chip, chipIndex) => chip.segments.map((segment, index) => {
+                  {row.chips(day).flatMap((chip, chipIndex) => !chip ? [] : chip.segments.map((segment, index) => {
                     const { start, end } = segmentHours(segment)
                     const kind = segmentKind(segment)
-                    const label = `${shiftCodeMap[segment.code]?.label ?? segment.code}, ${formatHour(start)}–${formatHour(end)}${segment.overtime ? ', overtime' : ''}${segment.cancelled ? ', cancelled' : ''}${chip.outOfUnit ? ', out of unit' : ''}`
+                    const name = shiftCodeMap[segment.code]?.label ?? segment.code
+                    const label = `${name}, ${formatHour(start)}–${formatHour(end)}${segment.overtime ? ', overtime' : ''}${chip.partialKind ? `, partly ${chip.partialKind}` : ''}${segment.cancelled ? ', cancelled' : ''}${chip.outOfUnit ? ', out of unit' : ''}`
                     return (
-                      <Tooltip label={`${member.name}: ${label}`} key={`${chipIndex}-${index}`}>
+                      <Tooltip label={`${row.name}: ${label}`} key={`${chipIndex}-${index}`}>
                         <UnstyledButton
                           className={classes.bar}
                           data-out-of-unit={chip.outOfUnit || undefined}
@@ -124,11 +131,11 @@ function DayView({ groups, days, today }: MobileScheduleProps) {
                             left: pct(start),
                             width: `calc(${pct(end)} - ${pct(start)} - 2px)`,
                             '--chip-a': `var(--schedule-${kind})`,
-                            '--chip-b': `var(--schedule-${segment.overtime ? 'overtime' : kind})`,
+                            '--chip-b': `var(--schedule-${segment.overtime ? 'overtime' : chip.partialKind ?? kind})`,
                           } as CSSProperties}
-                          aria-label={`${member.name}: ${label}`}
+                          aria-label={`${row.name}: ${label}`}
                         >
-                          <span className={classes.barLabel}>{shiftCodeMap[segment.code]?.label ?? segment.code}</span>
+                          <span className={classes.barLabel}>{name}</span>
                           {segment.overtime && <Clock3 className={classes.barIcon} size={13} strokeWidth={2} aria-hidden="true" />}
                         </UnstyledButton>
                       </Tooltip>
@@ -147,10 +154,9 @@ function DayView({ groups, days, today }: MobileScheduleProps) {
 /** Phone layout of the schedule: a week of color strips, or one day on a 24-hour timeline. */
 export default function MobileSchedule(props: MobileScheduleProps) {
   const swipe = useSwipe(props.onSwipe)
-  const empty = props.groups.every((group) => !group.members.length)
   return (
     <div className={classes.root} data-mode={props.mode} {...swipe}>
-      {empty ? <Text c="dimmed" ta="center" py="xl">No co-workers to show.</Text>
+      {props.sections.length === 0 ? <Text c="dimmed" ta="center" py="xl">Nothing to show.</Text>
         : props.mode === 'week' ? <WeekView {...props} /> : <DayView {...props} />}
     </div>
   )

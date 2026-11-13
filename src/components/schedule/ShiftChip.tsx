@@ -42,6 +42,7 @@ function TooltipBody({ chip, context }: { chip: Chip; context?: string }) {
         const { start, end } = segmentHours(segment)
         return (
           <Text size="xs" key={index} td={segment.cancelled ? 'line-through' : undefined}>
+            {segment.label && <>{segment.label} · </>}
             <span className="tabular">{formatHour(start)}–{formatHour(end)}</span> · {shiftCodeMap[segment.code]?.label ?? segment.code}
             {segment.overtime === 'full' && ' · overtime'}
             {segment.overtime === 'partial' && ' · partly overtime'}
@@ -49,6 +50,7 @@ function TooltipBody({ chip, context }: { chip: Chip; context?: string }) {
           </Text>
         )
       })}
+      {chip.partialKind && <Text size="xs" mt={4}>Part of the shift is {chip.partialKind}</Text>}
       {chip.outOfUnit && <Text size="xs" mt={4}>Working out of unit</Text>}
     </div>
   )
@@ -72,7 +74,7 @@ export default function ShiftChip({ chip, density = 'comfortable', context }: Sh
       >
         {density !== 'strip' && visible.map((segment, index) => (
           <span className={classes.segment} data-cancelled={segment.cancelled || undefined} data-last={index === visible.length - 1 || undefined} key={index}>
-            <span className={classes.code}>{segment.code}</span>
+            <span className={classes.code}>{segment.label ?? segment.code}</span>
           </span>
         ))}
         {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}

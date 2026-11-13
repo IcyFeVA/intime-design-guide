@@ -1,0 +1,185 @@
+.demoBar {
+  border-bottom: 1px solid var(--intime-border);
+}
+
+/* ---------- Desktop app shell ---------- */
+
+.shell {
+  display: flex;
+  height: 760px;
+  overflow: hidden;
+  background: var(--mantine-color-body);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.main > :last-child {
+  flex: 1;
+  min-height: 0;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 56px;
+  padding-inline: 24px;
+  background: var(--background-body-alt);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 24px 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.viewTabs {
+  display: flex;
+  gap: 4px;
+}
+
+.viewTab {
+  padding: 6px 14px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-md);
+  color: var(--text-default);
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.viewTabs[data-size='lg'] .viewTab {
+  padding: 8px 16px;
+}
+
+.viewTab:hover {
+  background: var(--background-default-hover);
+}
+
+.viewTab[data-active] {
+  color: var(--text-primary-default);
+  font-weight: 600;
+  background: var(--background-primary-light);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 28px;
+  margin-inline: 6px;
+  background: var(--border-default);
+}
+
+/* ---------- Mobile ---------- */
+
+.mobileStage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 32px;
+  padding: 32px 24px;
+  background-image: radial-gradient(var(--intime-border) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.phone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 390px;
+  max-width: 100%;
+  height: 780px;
+  overflow: hidden;
+  border: 8px solid var(--background-default-hover);
+  border-radius: 44px;
+  background: var(--mantine-color-body);
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px 4px 36px;
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--background-body-alt);
+}
+
+.phoneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--background-body-alt);
+}
+
+.phoneScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.phoneTitle {
+  padding: 16px 16px 16px;
+  background: var(--background-default);
+}
+
+.segmentIcon {
+  display: flex;
+  padding: 2px 6px;
+}
+
+.mobileNotes {
+  padding-top: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewTab {
+    transition: none;
+  }
+}
+
+.shell[data-full-screen] {
+  height: calc(100dvh - 61px);
+}
+
+.modalHeader {
+  border-bottom: 1px solid var(--intime-border);
+}
+
+.modalBody {
+  padding: 0;
+}
+
+.phoneOverlay {
+  position: absolute;
+  inset-inline: 12px;
+  bottom: 16px;
+  z-index: 3;
+}

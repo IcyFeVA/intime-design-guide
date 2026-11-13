@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { shiftCodeMap, type ScheduleRange, type ShiftKind } from '../../tokens/schedule'
 
 /* ------------------------------------------------------------------ */
@@ -6,6 +7,8 @@ import { shiftCodeMap, type ScheduleRange, type ShiftKind } from '../../tokens/s
 
 export interface Segment {
   code: string
+  /** Shown instead of the code, e.g. the person's surname in Location View */
+  label?: string
   /** Hours 0–24. Default from the shift code. */
   start?: number
   end?: number
@@ -19,6 +22,8 @@ export interface Chip {
   segments: Segment[]
   /** Working for another unit */
   outOfUnit?: boolean
+  /** Part of the day is this kind without its own code (e.g. leave), shown as a diagonal split */
+  partialKind?: ShiftKind
 }
 
 export interface ScheduleMember {
@@ -29,6 +34,37 @@ export interface ScheduleMember {
   /** Cells per day number. A second cell on the same day goes to an overflow row. */
   chips: (day: number) => Chip[]
 }
+
+/* ------------------------------------------------------------------ */
+/* Grid rows. Team View rows are members, Location View rows are posts. */
+/* ------------------------------------------------------------------ */
+
+export interface ScheduleRow {
+  id: string
+  /** Plain name for the mobile row label, tooltips and screen readers */
+  name: string
+  /** Desktop row header. Defaults to `name`. */
+  label?: ReactNode
+  /** Cells per day, one per line. `null` is an empty line (e.g. an unfilled position). */
+  chips: (day: number) => (Chip | null)[]
+  /** Minimum number of lines, e.g. positions on a post. Default 1. */
+  lines?: number
+  /** `overflow`: extra lines are a lighter overflow row (Team View). `position`: every line is a position (Location View). */
+  extraLines?: 'overflow' | 'position'
+}
+
+export interface ScheduleSection {
+  id: string
+  /** Header content: a team name or a location path */
+  title: ReactNode
+  /** Plain title for screen readers */
+  name: string
+  rows: ScheduleRow[]
+  coverage?: (day: number) => DayCoverage
+}
+
+export const rowLines = (row: ScheduleRow, chipsByDay: (Chip | null)[][]) =>
+  Math.max(row.lines ?? 1, ...chipsByDay.map((chips) => chips.length))
 
 export type CoverageLevel = 'under' | 'over' | 'met'
 
@@ -64,7 +100,8 @@ export const formatWeekday = (day: number) => weekdayShort.format(toDate(day))
 export const formatMonthDay = (day: number) => monthDay.format(toDate(day))
 export const formatFullDate = (day: number) => fullDate.format(toDate(day))
 export const formatHeader = (day: number) => `${formatWeekday(day)}, ${formatMonthDay(day)}`
-export const formatHour = (hour: number) => `${String(Math.floor(hour)).padStart(2, '0')}:${hour % 1 ? '30' : '00'}`
+/** 24.5 → "00:30": shifts past midnight wrap around */
+export const formatHour = (hour: number) => `${String(Math.floor(hour) % 24).padStart(2, '0')}:${hour % 1 ? '30' : '00'}`
 
 /** "Today" in the demos, so the mock data and the Figma frames line up. */
 export const MOCK_TODAY = dayOf(2026, 6, 5)
@@ -114,6 +151,7 @@ export function chipFills(chip: Chip): [ShiftKind, ShiftKind] {
     kinds.push(segmentKind(segment))
     if (segment.overtime === 'partial') kinds.push('overtime')
   }
+  if (chip.partialKind) kinds.push(chip.partialKind)
   const unique = [...new Set(kinds)]
   return [unique[0], unique[unique.length - 1]]
 }
@@ -125,9 +163,9 @@ export function describeChip(chip: Chip): string {
     const code = shiftCodeMap[segment.code]
     const { start, end } = segmentHours(segment)
     const extras = [segment.overtime === 'full' && 'overtime', segment.overtime === 'partial' && 'partly overtime', segment.cancelled && 'cancelled'].filter(Boolean)
-    return `${code?.label ?? segment.code} ${formatHour(start)}–${formatHour(end)}${extras.length ? ` (${extras.join(', ')})` : ''}`
+    return `${segment.label ? `${segment.label}, ` : ''}${code?.label ?? segment.code} ${formatHour(start)}–${formatHour(end)}${extras.length ? ` (${extras.join(', ')})` : ''}`
   })
-  return `${parts.join(', ')}${chip.outOfUnit ? '. Out of unit' : ''}`
+  return `${parts.join(', ')}${chip.partialKind ? `. Partly ${chip.partialKind}` : ''}${chip.outOfUnit ? '. Out of unit' : ''}`
 }
 
 /* ------------------------------------------------------------------ */
@@ -234,7 +272,8 @@ const todCycle: DayCoverage['timeOfDay'][] = [
   [{ from: 3, to: 6, level: 'under' }, { from: 6, to: 9, level: 'over' }, { from: 9, to: 12, level: 'under' }],
 ]
 
-function coverage(seed: number) {
+/** Mock coverage that cycles through the values in the Figma frames. */
+export function coverage(seed: number) {
   return (day: number): DayCoverage => {
     const [have, need] = bodiesCycle[(day + seed) % bodiesCycle.length]
     return { bodies: { have, need }, hours: hoursCycle[(day + seed) % hoursCycle.length], timeOfDay: todCycle[(day + seed) % todCycle.length] }
