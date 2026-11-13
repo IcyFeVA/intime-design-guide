@@ -65,6 +65,23 @@ export default function ScheduleGrid({
 
         {visible.map((group) => (
           <Fragment key={group.id}>
+            {showCoverage && (
+              <>
+                <div role="row" className={classes.row}>
+                  <div role="rowheader" className={classes.groupHeader}><span className={classes.groupTitle}>Coverage display</span></div>
+                </div>
+                {([
+                  ['Bodies', (day: number) => <BodiesValue bodies={group.coverage(day).bodies} />],
+                  ['Hours', (day: number) => <HoursValue hours={group.coverage(day).hours} />],
+                  ['Time of day', (day: number) => <TimeOfDayBar segments={group.coverage(day).timeOfDay} />],
+                ] as const).map(([label, render]) => (
+                  <div role="row" className={classes.row} key={label}>
+                    <div role="rowheader" className={classes.coverageLabel}>{label}</div>
+                    {days.map((day) => <div role="cell" className={classes.coverageCell} data-density={density} key={day}>{render(day)}</div>)}
+                  </div>
+                ))}
+              </>
+            )}
             <div role="row" className={classes.row}>
               <div role="rowheader" className={classes.groupHeader}><span className={classes.groupTitle}>{group.title}</span></div>
             </div>
@@ -96,23 +113,6 @@ export default function ScheduleGrid({
               ))
             })}
 
-            {showCoverage && (
-              <>
-                <div role="row" className={classes.row}>
-                  <div role="rowheader" className={classes.groupHeader}><span className={classes.groupTitle}>Coverage display</span></div>
-                </div>
-                {([
-                  ['Bodies', (day: number) => <BodiesValue bodies={group.coverage(day).bodies} />],
-                  ['Hours', (day: number) => <HoursValue hours={group.coverage(day).hours} />],
-                  ['Time of day', (day: number) => <TimeOfDayBar segments={group.coverage(day).timeOfDay} />],
-                ] as const).map(([label, render]) => (
-                  <div role="row" className={classes.row} key={label}>
-                    <div role="rowheader" className={classes.coverageLabel}>{label}</div>
-                    {days.map((day) => <div role="cell" className={classes.coverageCell} data-density={density} key={day}>{render(day)}</div>)}
-                  </div>
-                ))}
-              </>
-            )}
           </Fragment>
         ))}
       </div>

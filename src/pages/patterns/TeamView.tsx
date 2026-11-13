@@ -20,7 +20,7 @@ import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule
 import {
   MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, shiftRange, sortMembers, type Chip, type ScheduleGroup, type ScheduleSort,
 } from '../../components/schedule/data'
-import { scheduleRanges, scheduleTokens, shiftCodes, type ScheduleRange } from '../../tokens/schedule'
+import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
 import classes from './TeamView.module.css'
 
 const sortOptions: { key: ScheduleSort; label: string }[] = [
@@ -249,7 +249,7 @@ function MobileDemo() {
           <Text size="sm"><strong>Two views only.</strong> Phones show a week or a single day. Longer ranges need the desktop grid.</Text>
           <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell for details.</Text>
           <Text size="sm"><strong>Day.</strong> Assignments sit on a 0–24 hour timeline, so gaps and overlaps are easy to spot.</Text>
-          <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day follow each team instead of sitting at the end.</Text>
+          <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day come first, above each team’s members.</Text>
           <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. Team and sort live behind the sliders button.</Text>
         </Stack>
       </div>
@@ -306,7 +306,7 @@ export default function TeamView() {
       <Section id="desktop" title="Desktop" description="Members down the side, days across. Pick a team and a range, then step through time. Names and the date row stay in place while the grid scrolls.">
         <DesktopDemo />
         <Stack gap="xs" mt="md">
-          <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team is followed by its coverage.</Text>
+          <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team starts with its coverage.</Text>
           <Text size="sm">A member with more than one cell on a day gets an extra row without a name, on a lighter background.</Text>
         </Stack>
       </Section>
@@ -336,24 +336,9 @@ export default function TeamView() {
 
       <Section id="cells" title="Shift cells" description="A cell holds one or more assignments for one day. The fill says what kind of time it is; tags and lines add the rest. Never rely on color alone: the code, the OT and OU tags and the tooltip carry the meaning too.">
         <CellSpecimens />
-        <Table.ScrollContainer minWidth={560} className="doc-table" mt="md">
-          <Table verticalSpacing="xs" horizontalSpacing="md">
-            <Table.Thead><Table.Tr><Table.Th>Code</Table.Th><Table.Th>Meaning</Table.Th><Table.Th>Kind</Table.Th></Table.Tr></Table.Thead>
-            <Table.Tbody>
-              {shiftCodes.map((code) => (
-                <Table.Tr key={code.code}>
-                  <Table.Td><Text size="sm" fw={600}>{code.code}</Text></Table.Td>
-                  <Table.Td><Text size="sm">{code.label}</Text></Table.Td>
-                  <Table.Td><Text size="sm" c="dimmed" tt="capitalize">{code.kind}</Text></Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
-        <Text size="xs" c="dimmed" mt="xs">Example codes. Each agency sets up its own.</Text>
       </Section>
 
-      <Section id="coverage" title="Coverage" description="Under each team, three rows compare the schedule with what the team needs. Red is below target, amber is above, green is on target.">
+      <Section id="coverage" title="Coverage" description="Above each team, three rows compare the schedule with what the team needs. Red is below target, amber is above, green is on target.">
         <Preview title="Coverage values" align="start">
           <div className={classes.coverageSpecimens}>
             {([
@@ -384,7 +369,7 @@ export default function TeamView() {
           { prop: 'columnMin', type: 'number', default: '120', description: 'Minimum day column width in px. Narrow containers scroll sideways.' },
           { prop: 'today', type: 'number', description: 'Highlights that day’s column header.' },
           { prop: 'corner', type: 'ReactNode', description: 'Top-left cell, usually the co-worker search.' },
-          { prop: 'showCoverage', type: 'boolean', default: 'true', description: 'Coverage rows after each team.' },
+          { prop: 'showCoverage', type: 'boolean', default: 'true', description: 'Coverage rows before each team’s members.' },
           { prop: 'empty', type: 'ReactNode', description: 'Shown when no team has members, e.g. after a search.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">MobileSchedule</Text>
@@ -427,7 +412,7 @@ export default function TeamView() {
             'Keep names and the date row pinned while the grid scrolls.',
             'Show initials next to names, so two people with the same surname can be told apart.',
             'Pair every fill with a code or a tag, and give each cell a tooltip and an accessible name.',
-            'Put coverage directly under the team it describes.',
+            'Put coverage directly above the team it describes.',
             'Move a second assignment that does not fit into an overflow row instead of shrinking the cell.',
           ]}
           dontItems={[

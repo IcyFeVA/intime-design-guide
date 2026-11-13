@@ -52,6 +52,12 @@ function WeekView({ groups, days, today }: MobileScheduleProps) {
       </div>
       {groups.map((group) => (
         <section key={group.id} aria-label={group.title}>
+          <div className={classes.coverageHeader}>Coverage</div>
+          <div className={classes.coverageGrid}>
+            {days.map((day) => <BodiesValue key={day} bodies={group.coverage(day).bodies} />)}
+            {days.map((day) => <HoursValue key={day} hours={group.coverage(day).hours} />)}
+            {days.map((day) => <TimeOfDayBar key={day} segments={group.coverage(day).timeOfDay} />)}
+          </div>
           <div className={classes.groupHeader}>{group.title}</div>
           {group.members.map((member) => {
             const chipsByDay = days.map((day) => member.chips(day))
@@ -70,12 +76,6 @@ function WeekView({ groups, days, today }: MobileScheduleProps) {
               </div>
             )
           })}
-          <div className={classes.coverageHeader}>Coverage</div>
-          <div className={classes.coverageGrid}>
-            {days.map((day) => <BodiesValue key={day} bodies={group.coverage(day).bodies} />)}
-            {days.map((day) => <HoursValue key={day} hours={group.coverage(day).hours} />)}
-            {days.map((day) => <TimeOfDayBar key={day} segments={group.coverage(day).timeOfDay} />)}
-          </div>
         </section>
       ))}
     </>
@@ -96,6 +96,15 @@ function DayView({ groups, days, today }: MobileScheduleProps) {
         const coverage = group.coverage(day)
         return (
           <section key={group.id} aria-label={group.title}>
+            <div className={classes.dayRow} data-coverage>
+              <div className={classes.dayName} />
+              <div className={classes.dayCoverage}>
+                <Text size="sm" fw={600} tt="uppercase" lts="0.06em" c="dimmed">Coverage</Text>
+                <BodiesValue bodies={coverage.bodies} />
+                <HoursValue hours={coverage.hours} />
+                <TimeOfDayBar segments={coverage.timeOfDay} />
+              </div>
+            </div>
             <div className={classes.groupHeader}>{group.title}</div>
             {group.members.map((member) => (
               <div className={classes.dayRow} key={member.id}>
@@ -128,15 +137,6 @@ function DayView({ groups, days, today }: MobileScheduleProps) {
                 </div>
               </div>
             ))}
-            <div className={classes.dayRow} data-coverage>
-              <div className={classes.dayName} />
-              <div className={classes.dayCoverage}>
-                <Text size="sm" fw={600} tt="uppercase" lts="0.06em" c="dimmed">Coverage</Text>
-                <BodiesValue bodies={coverage.bodies} />
-                <HoursValue hours={coverage.hours} />
-                <TimeOfDayBar segments={coverage.timeOfDay} />
-              </div>
-            </div>
           </section>
         )
       })}

@@ -69,7 +69,7 @@ export interface ScheduleToken {
 }
 
 const t = (name: ScheduleToken['name'], value: string, kind: ScheduleToken['kind'], usage: string, light?: string): ScheduleToken =>
-  ({ name, value, light, kind, usage, status: 'draft' })
+  ({ name, value, light, kind, usage, status: 'confirmed' })
 
 const mix = (token: string, percent: number) => `color-mix(in srgb, var(${token}) ${percent}%, transparent)`
 

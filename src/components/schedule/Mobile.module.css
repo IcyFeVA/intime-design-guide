@@ -91,7 +91,7 @@
 }
 
 .coverageGrid > * {
-  height: 32px;
+  height: 24px;
 }
 
 /* ---------- Day ---------- */
@@ -203,10 +203,10 @@
 .dayCoverage {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 14px 12px 12px;
+  gap: 4px;
+  padding: 8px 14px 10px 12px;
 }
 
 .dayCoverage > div {
-  height: 32px;
+  height: 24px;
 }
