@@ -1,5 +1,5 @@
 import { Suspense, useEffect } from 'react'
-import { AppShell, Badge, Box, Burger, Center, Divider, Group, Loader, NavLink, ScrollArea, Text, Tooltip } from '@mantine/core'
+import { AppShell, Box, Burger, Center, Divider, Group, Loader, NavLink, ScrollArea, Text, Tooltip } from '@mantine/core'
 import { useDisclosure, useReducedMotion } from '@mantine/hooks'
 import { Link, Outlet, useLocation, useSearchParams } from 'react-router'
 import { navPages, pageGroups } from '../content/pages'
@@ -61,9 +61,6 @@ export default function Layout() {
             <Text size="sm" c="dimmed" fw={500} visibleFrom="xs">
               Design Guide
             </Text>
-            <Badge variant="outline" color="yellow" size="sm" visibleFrom="md">
-              v0.1 Draft
-            </Badge>
           </Group>
           <Group gap="xs" wrap="nowrap">
             <SearchTrigger />

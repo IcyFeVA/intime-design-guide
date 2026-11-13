@@ -52,7 +52,7 @@ export interface RequestState {
   label: string
   /** Tone class; colors come from the light/dark theme tokens */
   tone: 'warning' | 'success' | 'error' | 'info' | 'gray'
-  icon: LucideIcon
+  icon?: LucideIcon
   group: 'Waiting' | 'Positive' | 'Negative' | 'Neutral'
   meaning: string
   status: TokenStatus
@@ -67,6 +67,7 @@ export const requestStates: RequestState[] = [
   { key: 'available', label: 'Available', tone: 'success', icon: CircleCheck, group: 'Positive', meaning: 'Open for sign-up.', status: 'confirmed' },
   { key: 'rejected', label: 'Rejected', tone: 'error', icon: Ban, group: 'Negative', meaning: 'Request was declined.', status: 'confirmed' },
   { key: 'expired', label: 'Expired', tone: 'error', icon: Clock, group: 'Negative', meaning: 'The deadline passed before action was taken.', status: 'confirmed' },
+  { key: 'missed', label: 'Missed', tone: 'error', group: 'Negative', meaning: 'The member did not pick before the window closed.', status: 'confirmed' },
   { key: 'taken-down', label: 'Taken Down', tone: 'error', icon: Ban, group: 'Negative', meaning: 'Posting was withdrawn by a manager.', status: 'confirmed' },
   { key: 'submitted', label: 'Submitted', tone: 'info', icon: Check, group: 'Neutral', meaning: 'Sent successfully; no decision yet.', status: 'confirmed' },
   { key: 'closed', label: 'Closed', tone: 'gray', icon: Lock, group: 'Neutral', meaning: 'No longer accepting sign-ups.', status: 'confirmed' },

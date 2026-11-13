@@ -11,6 +11,11 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/components/status-badges',
+    summary: 'Added Missed, dot badges (Live, Closed) and the outline role badge.',
+  },
+  {
+    date: '2026-11-13',
     page: '/resources/changelog',
     summary: 'Changelog approved.',
   },

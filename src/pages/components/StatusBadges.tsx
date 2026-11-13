@@ -29,6 +29,20 @@ export default function StatusBadges() {
           ]} />
         </Stack>
       </Section>
+      <Section id="outline-dot" title="Outline & dot badges" description="Mantine's own outline and dot variants. Use dot badges for a live or closed state and outline badges for roles and labels.">
+        <Stack gap="lg">
+          <Preview code={'<Badge variant="dot" color="intime">Live</Badge>\n<Badge variant="dot" color="red">Closed</Badge>\n<Badge variant="outline" color="intime">Sergeant</Badge>'}>
+            <Badge variant="dot" color="intime" size="lg">Live</Badge>
+            <Badge variant="dot" color="red" size="lg">Closed</Badge>
+            <Badge variant="outline" color="intime" size="lg">Sergeant</Badge>
+          </Preview>
+          <PropsTable rows={[
+            { prop: 'variant', type: 'dot | outline', description: 'dot shows a colored dot before a neutral label; outline colors both border and label.' },
+            { prop: 'color', type: 'intime | red', description: 'intime for live and roles, red for closed.' },
+            { prop: 'size', type: 'sm | md | lg', default: 'md', description: 'lg for list cards and profile headers.' },
+          ]} />
+        </Stack>
+      </Section>
       <Section id="counts" title="Counts & indicators" description="Use counts for quantity, status labels for meaning, and a dot only as a supplemental cue.">
         <Preview code={'<Badge variant="default">12 members</Badge>\n<Badge color="yellow" variant="light">3 open shifts</Badge>\n<Indicator color="green" size={8}><Text>Dispatch online</Text></Indicator>'}>
           <Group gap="xl"><Badge variant="default">12 members</Badge><Badge color="yellow" variant="light">3 open shifts</Badge><Indicator color="green" size={8} offset={-6}><Text size="sm">Dispatch online</Text></Indicator></Group>
