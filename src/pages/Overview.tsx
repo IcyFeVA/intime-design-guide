@@ -5,7 +5,7 @@ import PageHeader from '../components/PageHeader'
 import Section from '../components/Section'
 import StatusBadge from '../components/StatusBadge'
 import CopyValue from '../components/CopyValue'
-import { pageGroups, pages, findPage } from '../content/pages'
+import { pageGroups, navPages as pages, findPage } from '../content/pages'
 import { changelog } from '../content/changelog'
 import { statusMeta, type TokenStatus } from '../tokens/types'
 
@@ -24,18 +24,18 @@ export default function Overview() {
             This is the working design reference for <Anchor href="https://www.intime.com" target="_blank" rel="noreferrer" inherit>InTime's</Anchor> workforce scheduling web app. It connects the visual foundations,
             Mantine components and scheduling patterns that developers use to build a consistent public-safety experience.
           </Text>
-          <Group gap="xs">
+          {/* <Group gap="xs">
             <Badge variant="outline" color="gray">Mantine 9</Badge>
             <Badge variant="outline" color="gray">Lucide icons</Badge>
             <Badge variant="outline" color="yellow">Provisional v0.1</Badge>
-          </Group>
+          </Group> */}
         </Paper>
-        <Text c="dimmed" size="xs" mt="sm">
+        {/* <Text c="dimmed" size="xs" mt="sm">
           This scaffold is not an official InTime brand specification. All starting values remain Draft until matched to real Figma frames.
-        </Text>
+        </Text> */}
       </Section>
 
-      <Section id="how-to-use" title="How to use this guide" description="A reference for implementation today, with a clear path to production accuracy tomorrow.">
+      {/* <Section id="how-to-use" title="How to use this guide" description="A reference for implementation today, with a clear path to production accuracy tomorrow.">
         <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
           {[
             { Icon: Compass, title: 'Find your pattern', text: 'Browse the grouped sidebar or search pages and sections.', extra: <Group gap={4}><Kbd>⌘</Kbd><Kbd>K</Kbd><Text size="xs" c="dimmed">or</Text><Kbd>/</Kbd></Group> },
@@ -50,7 +50,7 @@ export default function Overview() {
             </Card>
           ))}
         </SimpleGrid>
-      </Section>
+      </Section> */}
 
       <Section id="status-legend" title="Know what is ready" description="Status is attached to the documented value, not just the page. A page may contain a mix of confirmed and draft tokens as the guide evolves.">
         <Stack gap="sm">
@@ -65,7 +65,7 @@ export default function Overview() {
         </Stack>
       </Section>
 
-      <Section id="pages" title="Explore the system">
+      {/* <Section id="pages" title="Explore the system">
         <Stack gap="xl">
           {pageGroups.filter((group) => group !== 'Getting started').map((group) => (
             <div key={group}>
@@ -91,7 +91,7 @@ export default function Overview() {
             </div>
           ))}
         </Stack>
-      </Section>
+      </Section> */}
 
       <Section id="recent-changes" title="Recent changes">
         <Paper withBorder p="lg" style={{ background: 'var(--intime-surface)', borderColor: 'var(--intime-border)' }}>

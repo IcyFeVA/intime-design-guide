@@ -2,7 +2,7 @@ import { Suspense, useEffect } from 'react'
 import { AppShell, Badge, Box, Burger, Center, Divider, Group, Loader, NavLink, ScrollArea, Text, Tooltip } from '@mantine/core'
 import { useDisclosure, useReducedMotion } from '@mantine/hooks'
 import { Link, Outlet, useLocation, useSearchParams } from 'react-router'
-import { pageGroups, pages } from '../content/pages'
+import { navPages, pageGroups } from '../content/pages'
 import { statusMeta } from '../tokens/types'
 import GuideSpotlight from './GuideSpotlight'
 import Logo from './Logo'
@@ -80,7 +80,7 @@ export default function Layout() {
                 <Text size="xs" fw={600} tt="uppercase" lts="0.08em" c="dimmed" px="sm" mb={6}>
                   {group}
                 </Text>
-                {pages
+                {navPages
                   .filter((page) => page.group === group)
                   .map((page) => {
                     const Icon = page.icon

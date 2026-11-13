@@ -1,7 +1,7 @@
 import { Group, Text, UnstyledButton } from '@mantine/core'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router'
-import { pages } from '../content/pages'
+import { navPages as pages } from '../content/pages'
 
 export default function PageFooterNav() {
   const { pathname } = useLocation()

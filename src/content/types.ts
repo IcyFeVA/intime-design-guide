@@ -20,5 +20,7 @@ export interface PageDef {
   keywords: string[]
   sections: PageSection[]
   updated: string
+  /** Route still works, but the page is left out of the sidebar, search, overview and prev/next links. */
+  hidden?: boolean
   component: LazyExoticComponent<ComponentType>
 }

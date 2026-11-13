@@ -2,7 +2,7 @@ import { Button, Stack, Text } from '@mantine/core'
 import { Spotlight, spotlight, type SpotlightActionGroupData } from '@mantine/spotlight'
 import { Hash, Search } from 'lucide-react'
 import { useNavigate } from 'react-router'
-import { pages } from '../content/pages'
+import { navPages as pages } from '../content/pages'
 import { sectionPath } from '../lib/links'
 
 export default function GuideSpotlight() {

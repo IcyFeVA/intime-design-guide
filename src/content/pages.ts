@@ -77,21 +77,21 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/Forms')),
   },
   {
-    path: '/components/data-tables', title: 'Data Tables', group: 'Components', icon: Table, status: 'draft', updated: '2026-11-12',
+    path: '/components/data-tables', title: 'Data Tables', group: 'Components', icon: Table, status: 'draft', updated: '2026-11-12', hidden: true,
     description: 'Roster tables, density, sorting and row states.',
     keywords: ['table', 'roster', 'grid', 'list', 'sort', 'personnel'],
     sections: s(['roster', 'Roster table'], ['density', 'Density'], ['row-states', 'Row states'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/components/DataTables')),
   },
   {
-    path: '/components/shift-cells', title: 'Calendar & Shift Cells', group: 'Components', icon: CalendarRange, status: 'draft', updated: '2026-11-12',
+    path: '/components/shift-cells', title: 'Calendar & Shift Cells', group: 'Components', icon: CalendarRange, status: 'draft', updated: '2026-11-12', hidden: true,
     description: 'Shift blocks and calendar day cells used across schedule views.',
     keywords: ['calendar', 'shift', 'block', 'event', 'day cell', 'assignment'],
     sections: s(['shift-block', 'Shift block'], ['day-cell', 'Day cell'], ['variants', 'Variants'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/components/ShiftCells')),
   },
   {
-    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'draft', updated: '2026-11-12',
+    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'draft', updated: '2026-11-12', hidden: true,
     description: 'Shift-state badges, department tags and counters.',
     keywords: ['badge', 'tag', 'chip', 'pill', 'overtime', 'on duty', 'leave', 'sick', 'conflict', 'open shift'],
     sections: s(['shift-states', 'Shift states'], ['departments', 'Department tags'], ['counts', 'Counts & indicators'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
@@ -127,7 +127,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/LocationView')),
   },
   {
-    path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12',
+    path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12', hidden: true,
     description: 'Day, week and month schedule layouts and shift swap requests.',
     keywords: ['day view', 'week view', 'month view', 'calendar', 'swap', 'trade', 'roster'],
     sections: s(['day', 'Day view'], ['week', 'Week view'], ['month', 'Month view'], ['swap-request', 'Shift swap request'], ['figma', 'Figma reference']),
@@ -163,6 +163,9 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/resources/Changelog')),
   },
 ]
+
+/** Pages shown in navigation, search and links. */
+export const navPages = pages.filter((page) => !page.hidden)
 
 export const findPage = (path: string) => pages.find((page) => page.path === path)
 
