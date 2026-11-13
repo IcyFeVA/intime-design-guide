@@ -37,8 +37,9 @@ function DesktopDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [events, setEvents] = useState(initialEvents)
   const [hint, setHint] = useState<string | null>(null)
+  const [legend, setLegend] = useState(false)
   const { openEvent, openSignUps, addTask, modals } = useCalendarModals({ setEvents, signUps: mockSignUps, onHint: setHint })
-  const reset = () => { setView('month'); setAnchor(MOCK_TODAY); setEvents(initialEvents()); setHint(null) }
+  const reset = () => { setView('month'); setAnchor(MOCK_TODAY); setEvents(initialEvents()); setHint(null); setLegend(false) }
 
   return (
     <Preview
@@ -58,10 +59,11 @@ function DesktopDemo() {
             <ToolbarDivider />
             <CalendarStepper view={view} anchor={anchor} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')} />
             <div style={{ flex: 1 }} />
-            <MapButton onClick={() => setHint('The map is not part of this demo.')} />
+            <MapButton pressed={legend} label={legend ? 'Hide legend' : 'Show legend'} onClick={() => setLegend((value) => !value)} />
           </>
         }
       >
+        {legend && <div className={classes.desktopLegend}><CalendarLegend /></div>}
         <CalendarBody view={view} anchor={anchor} events={events} onOpenEvent={openEvent} onOpenSignUps={openSignUps} onAdd={addTask} />
       </DesktopDemoFrame>
       {modals}
@@ -78,8 +80,9 @@ function MobileDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [events, setEvents] = useState(initialEvents)
   const [hint, setHint] = useState<string | null>(null)
+  const [legend, setLegend] = useState(false)
   const { openEvent, openSignUps, addTask, modals } = useCalendarModals({ setEvents, signUps: mockSignUps, onHint: setHint })
-  const reset = () => { setView('month'); setAnchor(MOCK_TODAY); setEvents(initialEvents()); setHint(null) }
+  const reset = () => { setView('month'); setAnchor(MOCK_TODAY); setEvents(initialEvents()); setHint(null); setLegend(false) }
   const step = (direction: 1 | -1) => setAnchor((value) => stepView(view, value, direction))
 
   return (
@@ -89,7 +92,8 @@ function MobileDemo() {
         notes={
           <>
             <Text size="sm"><strong>Same four views.</strong> Month, week, day and agenda sit behind the calendar button on the left.</Text>
-            <Text size="sm"><strong>Month.</strong> A legend explains the fills. Cells show titles only, cut off at the edge; tap one for details.</Text>
+            <Text size="sm"><strong>Legend.</strong> The map button shows and hides a legend for the fills, in any view, as on desktop.</Text>
+            <Text size="sm"><strong>Month.</strong> Cells show titles only, cut off at the edge; tap one for details.</Text>
             <Text size="sm"><strong>Week.</strong> Seven narrow columns on the timeline. Titles and times wrap inside each block.</Text>
             <Text size="sm"><strong>Day and agenda</strong> read best on a phone: full titles, times and icons.</Text>
             <Text size="sm"><strong>Swipe</strong> left or right to move by the view. The calendar-with-a-1 button jumps back to today.</Text>
@@ -106,9 +110,9 @@ function MobileDemo() {
               <div className={classes.phoneToolbar}>
                 <CalendarViewMenu view={view} onChange={setView} />
                 <CalendarStepper compact view={view} anchor={anchor} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo.')} />
-                <MapButton size={38} onClick={() => setHint('The map is not part of this demo.')} />
+                <MapButton size={38} pressed={legend} label={legend ? 'Hide legend' : 'Show legend'} onClick={() => setLegend((value) => !value)} />
               </div>
-              {view === 'month' && <div className={classes.phoneLegend}><CalendarLegend /></div>}
+              {legend && <div className={classes.phoneLegend}><CalendarLegend /></div>}
             </div>
           }
         >

@@ -57,10 +57,20 @@ export function CalendarViewMenu({ view, onChange }: { view: CalendarView; onCha
   )
 }
 
-export function MapButton({ onClick, size = 36 }: { onClick: () => void; size?: number }) {
+/** Map button. Pass `pressed` to use it as a toggle (the phone uses it to show and hide the legend). */
+export function MapButton({ onClick, size = 36, pressed, label = 'Show on map' }: { onClick: () => void; size?: number; pressed?: boolean; label?: string }) {
   return (
-    <Tooltip label="Map">
-      <ActionIcon variant="default" size={size} aria-label="Show on map" onClick={onClick}><MapIcon size={18} /></ActionIcon>
+    <Tooltip label={label}>
+      <ActionIcon
+        variant={pressed ? 'light' : 'default'}
+        color={pressed ? 'intime' : undefined}
+        size={size}
+        aria-label={label}
+        aria-pressed={pressed}
+        onClick={onClick}
+      >
+        <MapIcon size={18} aria-hidden="true" />
+      </ActionIcon>
     </Tooltip>
   )
 }

@@ -11,6 +11,12 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/calendar',
+    summary: 'The map button toggles the legend, on desktop and on the phone.',
+    changes: ['The legend is hidden by default and can be shown in any view. On desktop it sits under the toolbar. MapButton takes pressed and label for toggle use.'],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/team-view',
     summary: 'Shift cells open the day details.',
     changes: [
