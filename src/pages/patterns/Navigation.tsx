@@ -204,8 +204,8 @@ export default function Navigation() {
 
       <Section id="figma" title="Figma reference" description="Frames the variants and the role menu were taken from.">
         <Stack gap="md">
-          <img src="/figma/navigation-variants.png" alt="Navigation in four variants, each expanded and collapsed: Scheduler, Administrator, Employee (and Scheduler), Employee only." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
-          <img src="/figma/navigation-role-switcher.png" alt="The Acting as field in its default and hover states, and its open menu listing Employee, Scheduler and Administrator." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
+          <img src={`${import.meta.env.BASE_URL}figma/navigation-variants.png`} alt="Navigation in four variants, each expanded and collapsed: Scheduler, Administrator, Employee (and Scheduler), Employee only." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
+          <img src={`${import.meta.env.BASE_URL}figma/navigation-role-switcher.png`} alt="The Acting as field in its default and hover states, and its open menu listing Employee, Scheduler and Administrator." style={{ width: '100%', borderRadius: 'var(--mantine-radius-md)', border: '1px solid var(--intime-border)' }} />
         </Stack>
       </Section>
     </>

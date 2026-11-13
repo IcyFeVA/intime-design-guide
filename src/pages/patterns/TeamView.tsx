@@ -306,11 +306,11 @@ export default function TeamView() {
 
       <Section id="figma" title="Figma reference" description="Frames this page was built from.">
         <Stack gap="md">
-          <img src="/figma/team-view-week.png" alt="Team View on desktop, one week: Patrol Alpha with shift cells for Richards, Torres, Marino, Petrov, Dijkstra, two Haddads and Tanaka, followed by coverage rows." className={classes.figma} />
-          <img src="/figma/team-view-month.png" alt="Team View on desktop, one month: compact cells with codes only, period lines every seven days and coverage per day." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/team-view-week.png`} alt="Team View on desktop, one week: Patrol Alpha with shift cells for Richards, Torres, Marino, Petrov, Dijkstra, two Haddads and Tanaka, followed by coverage rows." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/team-view-month.png`} alt="Team View on desktop, one month: compact cells with codes only, period lines every seven days and coverage per day." className={classes.figma} />
           <div className={classes.figmaPair}>
-            <img src="/figma/team-view-mobile-week.png" alt="Team View on a phone, week view: names above strips of seven colored cells with OT and OU tags, coverage after each team." className={classes.figma} />
-            <img src="/figma/team-view-mobile-day.png" alt="Team View on a phone, day view: names on the left and assignments on a 0 to 24 hour timeline, with coverage below the team." className={classes.figma} />
+            <img src={`${import.meta.env.BASE_URL}figma/team-view-mobile-week.png`} alt="Team View on a phone, week view: names above strips of seven colored cells with OT and OU tags, coverage after each team." className={classes.figma} />
+            <img src={`${import.meta.env.BASE_URL}figma/team-view-mobile-day.png`} alt="Team View on a phone, day view: names on the left and assignments on a 0 to 24 hour timeline, with coverage below the team." className={classes.figma} />
           </div>
         </Stack>
       </Section>

@@ -299,10 +299,10 @@ export default function LocationView() {
 
       <Section id="figma" title="Figma reference" description="Frames this page was built from.">
         <Stack gap="md">
-          <img src="/figma/location-view-week.png" alt="Location View on desktop, one week: Convention Centre and its North Entrances A and B, each with coverage rows and posts such as Special Event 06:00-17:00 with surnames in the cells." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/location-view-week.png`} alt="Location View on desktop, one week: Convention Centre and its North Entrances A and B, each with coverage rows and posts such as Special Event 06:00-17:00 with surnames in the cells." className={classes.figma} />
           <div className={classes.figmaPair}>
-            <img src="/figma/location-view-mobile-week.png" alt="Location View on a phone, week view: posts such as Chicco’s Chickeria Day Shift 06:00-14:00 with a strip of seven cells per position, and coverage." className={classes.figma} />
-            <img src="/figma/location-view-mobile-day.png" alt="Location View on a phone, day view: location headers, people on a 0 to 24 hour timeline, coverage, and a coverage alert at the bottom." className={classes.figma} />
+            <img src={`${import.meta.env.BASE_URL}figma/location-view-mobile-week.png`} alt="Location View on a phone, week view: posts such as Chicco’s Chickeria Day Shift 06:00-14:00 with a strip of seven cells per position, and coverage." className={classes.figma} />
+            <img src={`${import.meta.env.BASE_URL}figma/location-view-mobile-day.png`} alt="Location View on a phone, day view: location headers, people on a 0 to 24 hour timeline, coverage, and a coverage alert at the bottom." className={classes.figma} />
           </div>
         </Stack>
       </Section>
