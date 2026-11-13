@@ -1,0 +1,51 @@
+import { Badge, Group, Indicator, Stack, Table, Text } from '@mantine/core'
+import { Flame, Shield } from 'lucide-react'
+import PageHeader from '../../components/PageHeader'
+import Section from '../../components/Section'
+import Preview from '../../components/Preview'
+import FigmaSlot from '../../components/FigmaSlot'
+import PropsTable from '../../components/PropsTable'
+import DoDont from '../../components/DoDont'
+import StatusBadge from '../../components/StatusBadge'
+import { departments, shiftStates } from '../../tokens/status'
+import ShiftStateBadge from './ShiftStateBadge'
+
+export default function StatusBadges() {
+  return (
+    <>
+      <PageHeader />
+      <Section id="shift-states" title="Shift states" description="Status badges pair an icon with a short, unambiguous label. The palette is provisional; the meaning is never conveyed by color alone.">
+        <Stack gap="lg">
+          <Preview code={'<Badge variant="light" color="orange"\n  leftSection={<Clock3 size={12} />}>Overtime</Badge>'}>
+            {shiftStates.map((state) => <ShiftStateBadge key={state.key} stateKey={state.key} />)}
+          </Preview>
+          <Table.ScrollContainer minWidth={500} className="doc-table">
+            <Table verticalSpacing="sm" horizontalSpacing="md"><Table.Thead><Table.Tr><Table.Th>State</Table.Th><Table.Th>Meaning</Table.Th><Table.Th>Source</Table.Th></Table.Tr></Table.Thead>
+              <Table.Tbody>{shiftStates.map((state) => <Table.Tr key={state.key}><Table.Td><ShiftStateBadge stateKey={state.key} /></Table.Td><Table.Td><Text size="sm">{state.meaning}</Text></Table.Td><Table.Td><StatusBadge status={state.status} /></Table.Td></Table.Tr>)}</Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+          <PropsTable rows={[
+            { prop: 'variant', type: 'light | outline | filled', default: 'light', description: 'Light badges keep status legible without overpowering the roster.' },
+            { prop: 'leftSection', type: 'ReactNode', description: 'Use the icon assigned by the shift state token.' },
+            { prop: 'size', type: 'xs | sm | md', default: 'sm', description: 'xs for calendar cells, sm for tables, md for detail headers.' },
+          ]} />
+        </Stack>
+      </Section>
+      <Section id="departments" title="Department tags" description="Department tags identify agency context; they do not indicate schedule health or approval status.">
+        <Preview code={'<Badge color="police" variant="light" leftSection={<Shield size={12} />}>Police</Badge>\n<Badge color="fire" variant="light" leftSection={<Flame size={12} />}>Fire</Badge>'}>
+          {departments.map((department) => {
+            const Icon = department.key === 'police' ? Shield : Flame
+            return <Stack key={department.key} align="center" gap={8}><Badge color={department.color} variant="light" leftSection={<Icon size={12} />}>{department.label}</Badge><Text size="xs" c="dimmed">{department.example}</Text></Stack>
+          })}
+        </Preview>
+      </Section>
+      <Section id="counts" title="Counts & indicators" description="Use counts for quantity, status labels for meaning, and a dot only as a supplemental cue.">
+        <Preview code={'<Badge variant="default">12 members</Badge>\n<Badge color="yellow" variant="light">3 open shifts</Badge>\n<Indicator color="green" size={8}><Text>Dispatch online</Text></Indicator>'}>
+          <Group gap="xl"><Badge variant="default">12 members</Badge><Badge color="yellow" variant="light">3 open shifts</Badge><Indicator color="green" size={8} offset={-6}><Text size="sm">Dispatch online</Text></Indicator></Group>
+        </Preview>
+      </Section>
+      <Section id="guidelines" title="Guidelines"><DoDont doItems={['Use the shared shift-state token for label, icon and color.', 'Use sentence case and concise labels.', 'Keep status badges non-interactive unless they open clearly labeled details.']} dontItems={['Use a red or green dot without a text alternative.', 'Invent different labels for the same state in different views.', 'Use a badge as a substitute for an action button.']} /></Section>
+      <Section id="figma" title="Figma reference"><FigmaSlot title="Badges — states, departments & counts" notes="Provide the confirmed state inventory, labels, icon mapping, colors, size variants and any interactive badge behavior." /></Section>
+    </>
+  )
+}

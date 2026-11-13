@@ -1,0 +1,17 @@
+.scroll { overflow-x: auto; border: 1px solid var(--intime-border); border-radius: var(--mantine-radius-md); background: var(--intime-surface); }
+.toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--intime-border); }
+.day { display: grid; grid-template-columns: 64px repeat(3, minmax(140px, 1fr)); min-width: 560px; }
+.dayHead { padding: 12px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); font-size: 12px; font-weight: 600; }
+.time { padding: 12px 8px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); font-size: 11px; color: var(--mantine-color-dimmed); text-align: right; }
+.cell { min-height: 72px; padding: 5px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); }
+.shift { padding: 8px 9px; border-radius: var(--mantine-radius-xs); border-left: 3px solid var(--shift-color); background: color-mix(in srgb, var(--shift-color) 12%, var(--intime-surface)); font-size: 11px; }
+.week { min-width: 790px; display: grid; grid-template-columns: 120px repeat(7, minmax(86px, 1fr)); }
+.weekLabel { padding: 10px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); }
+.weekCell { min-height: 86px; padding: 5px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); }
+.month { min-width: 650px; display: grid; grid-template-columns: repeat(7, minmax(90px, 1fr)); }
+.monthHead { padding: 9px; font-size: 11px; font-weight: 600; color: var(--mantine-color-dimmed); text-align: center; border-bottom: 1px solid var(--intime-border); }
+.monthCell { min-height: 100px; padding: 8px; border-right: 1px solid var(--intime-border); border-bottom: 1px solid var(--intime-border); }
+.monthCell[data-muted] { opacity: .35; }
+.date { display: grid; place-items: center; width: 23px; height: 23px; font-size: 11px; margin-bottom: 6px; }
+.date[data-today] { background: var(--mantine-color-intime-6); color: white; border-radius: 50%; }
+.monthEvent { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px; padding: 3px 5px; background: var(--intime-surface-raised); border-radius: 2px; }

@@ -1,0 +1,317 @@
+/* Colors page — specs from Figma frame "Colors (default theme)" (node 4:1094). */
+
+.note {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 1024px;
+  margin-bottom: 48px;
+  padding: 16px 24px;
+  border-radius: 16px;
+  background: rgba(109, 69, 23, 0.4);
+}
+
+.noteTitle {
+  margin: 0;
+  color: #a1a1a1;
+  font-family: 'Inter:Medium', Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+
+.noteItem {
+  display: flex;
+  gap: 8px;
+  max-width: 700px;
+  margin: 0;
+  font-family: 'Inter:Regular', Inter, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  color: #a1a1a1;
+}
+
+.noteItem::before {
+  content: '•';
+  color: #fafafa;
+}
+
+.noteItem a {
+  color: var(--text-link);
+}
+
+.toolbar {
+  position: sticky;
+  top: 64px;
+  z-index: 50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -16px 0 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--intime-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--mantine-color-body) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.kicker {
+  margin: 0 0 12px;
+  color: #ff385c;
+  font-family: 'Inter:Regular', Inter, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.groupTitle {
+  margin: 0;
+  font-family: 'Inter:Medium', Inter, sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 33px;
+  letter-spacing: -0.55px;
+}
+
+.groupDescription {
+  margin: 4px 0 0;
+  color: var(--mantine-color-dimmed);
+  font-family: 'Inter:Regular', Inter, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 1024px;
+}
+
+/* SG Swatch */
+.swatch {
+  --card-bg: #1c1c1c;
+  --card-border: #2a2a2a;
+  --card-name: #f5f5f5;
+  --card-value: #d4d4d4;
+  display: flex;
+  flex: 1 1 140px;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 244px;
+  padding: 1px 1px 12px;
+  overflow: clip;
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  text-align: left;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+:global([data-mantine-color-scheme='light']) .swatch {
+  --card-bg: #ffffff;
+  --card-border: #e4e7ec;
+  --card-name: #1f2937;
+  --card-value: #4b5563;
+}
+
+.swatch:hover {
+  border-color: var(--mantine-color-intime-6);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--mantine-color-intime-5);
+  outline-offset: 2px;
+}
+
+.swatch[data-missing] {
+  opacity: 0.55;
+}
+
+.chip {
+  position: relative;
+  height: 96px;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%);
+}
+
+.chip[data-variant='text'] {
+  border-radius: 16px;
+}
+
+.chip[data-variant='border'] {
+  border: 4px solid;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.chipCopied {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: inherit;
+  background: rgb(0 0 0 / 55%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.swatchMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px 0;
+  min-width: 0;
+}
+
+.swatchName {
+  overflow: hidden;
+  color: var(--card-name);
+  font-family: 'Inter:Medium', Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.swatchValue {
+  color: var(--card-value);
+  font-family: 'Inter:Regular', Inter, sans-serif;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.swatchAlias {
+  overflow: hidden;
+  color: var(--card-value);
+  opacity: 0.7;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 10.5px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Alert examples */
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  max-width: 1024px;
+  margin-top: 48px;
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 12px 48px;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.alertTitle {
+  margin: 0;
+  font-family: 'Roboto:SemiBold', Roboto, sans-serif;
+  font-weight: 600;
+  font-variation-settings: 'wdth' 100;
+}
+
+.alertBody {
+  margin: 0;
+  font-family: 'Roboto:Regular', Roboto, sans-serif;
+  font-weight: 400;
+  font-variation-settings: 'wdth' 100;
+}
+
+/* Themes */
+.themeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--intime-border);
+  border-radius: 16px;
+  background: var(--intime-surface);
+  text-align: left;
+  transition: border-color 150ms ease;
+}
+
+.themeCard[data-active] {
+  border-color: var(--mantine-color-intime-6);
+  box-shadow: 0 0 0 1px var(--mantine-color-intime-6);
+}
+
+.themeCard[data-planned] {
+  border-style: dashed;
+  background: transparent;
+  cursor: default;
+}
+
+.themePreview {
+  display: grid;
+  grid-template-columns: 28% 1fr;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.themePreview > div {
+  padding: 10px;
+}
+
+.themeBar {
+  height: 6px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+}
+
+/* Ramps */
+.ramp {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--intime-border);
+  border-radius: 12px;
+}
+
+.rampStep {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 76px;
+  padding: 6px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 10.5px;
+  line-height: 1.3;
+  text-align: left;
+  transition: transform 120ms ease;
+}
+
+.rampStep:hover,
+.rampStep:focus-visible {
+  position: relative;
+  z-index: 1;
+  transform: scaleY(1.06);
+}
+
+@media (max-width: 36em) {
+  .ramp {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,83 @@
+.full {
+  width: 100%;
+}
+.label {
+  margin: 0 0 8px;
+  color: var(--mantine-color-dimmed);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.shift {
+  padding: 12px;
+  border: 1px solid var(--intime-border);
+  border-left: 3px solid var(--shift-color);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--intime-surface-raised);
+}
+.shiftCompact {
+  padding: 7px 10px;
+}
+.shiftHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dayCell {
+  padding: 12px;
+  min-width: 0;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--intime-surface);
+}
+.roster {
+  width: 100%;
+  --table-border-color: var(--intime-border);
+}
+.roster thead {
+  background: var(--intime-surface-raised);
+}
+.roster th {
+  font-size: 11px;
+  color: var(--mantine-color-dimmed);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.rowConflict {
+  background: var(--mantine-color-red-light);
+}
+.rowSelected {
+  background: var(--mantine-color-intime-light);
+}
+.rowOff {
+  color: var(--mantine-color-dimmed);
+}
+.notification {
+  width: min(100%, 420px);
+}
+.panel {
+  width: min(100%, 460px);
+  padding: 24px;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--intime-surface);
+}
+.stateCard {
+  padding: 16px;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--intime-surface);
+}
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+@media (max-width: 560px) {
+  .calendarGrid {
+    grid-template-columns: 1fr;
+  }
+}
