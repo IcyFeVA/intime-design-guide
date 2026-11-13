@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Group, Menu, Stack, Table, Text } from '@mantine/core'
+import { Link } from 'react-router'
+import { Anchor, Group, Menu, Stack, Table, Text } from '@mantine/core'
 import { ArrowUpDown, Check } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -265,7 +266,10 @@ export default function TeamView() {
             ))}
           </div>
         </Preview>
-        <Text size="sm" mt="md">The arrow and the outline repeat what the color says, and every value has an accessible name such as “2.5 hours short”.</Text>
+        <Stack gap="xs" mt="md">
+          <Text size="sm">The arrow and the outline repeat what the color says, and every value has an accessible name such as “2.5 hours short”.</Text>
+          <Text size="sm">Select a time-of-day cell to open a drawer with that day’s coverage hour by hour. See <Anchor component={Link} to="/patterns/team-view?section=details" size="sm">Coverage and employee details</Anchor>.</Text>
+        </Stack>
       </Section>
 
       <Section id="details" title="Coverage and employee details" description="The grid shows a summary. Selecting a time-of-day cell or a name opens the details on top of the schedule, so the user keeps their place.">
