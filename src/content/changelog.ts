@@ -11,6 +11,26 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/resources/changelog',
+    summary: 'Changelog approved.',
+  },
+  {
+    date: '2026-11-13',
+    page: '/components/status-badges',
+    summary: 'Status Badges approved.',
+    changes: ['Page and request status tokens are now confirmed.'],
+  },
+  {
+    date: '2026-11-13',
+    page: '/components/status-badges',
+    summary: 'Status Badges page is now visible, with the new pill badges from the design.',
+    changes: [
+      'Eleven states: Queued, Pending, Approved, Your Turn, Available, Rejected, Expired, Taken Down, Submitted, Closed and Full.',
+      'Each pairs an icon with a label, grouped by color: yellow waiting, teal positive, red negative, blue submitted, gray closed.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/location-view',
     summary: 'Time-of-day cells open the coverage drawer, as in Team View.',
     changes: [

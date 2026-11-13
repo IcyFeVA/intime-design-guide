@@ -1,0 +1,13 @@
+.root {
+  --tone-bg: var(--background-gray-light);
+  --tone-fg: var(--text-dimmed);
+  background: color-mix(in srgb, var(--tone-bg) 16%, transparent);
+  color: var(--tone-fg);
+  font-weight: 700;
+  text-transform: none;
+}
+
+.root[data-tone='warning'] { --tone-bg: var(--background-warning-light); --tone-fg: var(--text-warning-default); }
+.root[data-tone='success'] { --tone-bg: var(--background-success-light); --tone-fg: var(--text-success-default); }
+.root[data-tone='error'] { --tone-bg: var(--background-error-light); --tone-fg: var(--text-error-default); }
+.root[data-tone='info'] { --tone-bg: var(--background-info-light); --tone-fg: var(--text-info); }

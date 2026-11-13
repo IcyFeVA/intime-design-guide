@@ -1,11 +1,18 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  ArrowRight,
   BadgeCheck,
+  Ban,
   CalendarClock,
+  Check,
+  CircleCheck,
   CircleSlash,
+  Clock,
   Clock3,
   GraduationCap,
   HeartPulse,
+  Hourglass,
+  Lock,
   TreePalm,
   TriangleAlert,
   UserPlus,
@@ -39,3 +46,29 @@ export const departments = [
   { key: 'police', label: 'Police', color: 'police', example: 'Patrol · District 4' },
   { key: 'fire', label: 'Fire', color: 'fire', example: 'Engine 12 · Station 3' },
 ] as const
+
+export interface RequestState {
+  key: string
+  label: string
+  /** Tone class; colors come from the light/dark theme tokens */
+  tone: 'warning' | 'success' | 'error' | 'info' | 'gray'
+  icon: LucideIcon
+  group: 'Waiting' | 'Positive' | 'Negative' | 'Neutral'
+  meaning: string
+  status: TokenStatus
+}
+
+/** Request and sign-up states (time off, shift swaps, open shifts). Icon + label always. */
+export const requestStates: RequestState[] = [
+  { key: 'queued', label: 'Queued', tone: 'warning', icon: Hourglass, group: 'Waiting', meaning: 'Request is in line and has not been reviewed yet.', status: 'confirmed' },
+  { key: 'pending', label: 'Pending', tone: 'warning', icon: Clock, group: 'Waiting', meaning: 'Waiting for a decision.', status: 'confirmed' },
+  { key: 'approved', label: 'Approved', tone: 'success', icon: CircleCheck, group: 'Positive', meaning: 'Request was accepted.', status: 'confirmed' },
+  { key: 'your-turn', label: 'Your Turn', tone: 'success', icon: ArrowRight, group: 'Positive', meaning: 'The member can now act, for example pick a shift.', status: 'confirmed' },
+  { key: 'available', label: 'Available', tone: 'success', icon: CircleCheck, group: 'Positive', meaning: 'Open for sign-up.', status: 'confirmed' },
+  { key: 'rejected', label: 'Rejected', tone: 'error', icon: Ban, group: 'Negative', meaning: 'Request was declined.', status: 'confirmed' },
+  { key: 'expired', label: 'Expired', tone: 'error', icon: Clock, group: 'Negative', meaning: 'The deadline passed before action was taken.', status: 'confirmed' },
+  { key: 'taken-down', label: 'Taken Down', tone: 'error', icon: Ban, group: 'Negative', meaning: 'Posting was withdrawn by a manager.', status: 'confirmed' },
+  { key: 'submitted', label: 'Submitted', tone: 'info', icon: Check, group: 'Neutral', meaning: 'Sent successfully; no decision yet.', status: 'confirmed' },
+  { key: 'closed', label: 'Closed', tone: 'gray', icon: Lock, group: 'Neutral', meaning: 'No longer accepting sign-ups.', status: 'confirmed' },
+  { key: 'full', label: 'Full', tone: 'gray', icon: Lock, group: 'Neutral', meaning: 'All spots are taken.', status: 'confirmed' },
+]

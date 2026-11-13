@@ -91,10 +91,10 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/ShiftCells')),
   },
   {
-    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'draft', updated: '2026-11-12', hidden: true,
-    description: 'Shift-state badges, department tags and counters.',
+    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'confirmed', updated: '2026-11-13',
+    description: 'Request and sign-up status badges and counters.',
     keywords: ['badge', 'tag', 'chip', 'pill', 'overtime', 'on duty', 'leave', 'sick', 'conflict', 'open shift'],
-    sections: s(['shift-states', 'Shift states'], ['departments', 'Department tags'], ['counts', 'Counts & indicators'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    sections: s(['shift-states', 'Status badges'], ['counts', 'Counts & indicators'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/components/StatusBadges')),
   },
   {
@@ -163,7 +163,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/resources/TokensCode')),
   },
   {
-    path: '/resources/changelog', title: 'Changelog', group: 'Resources', icon: FileClock, status: 'draft', updated: '2026-11-12',
+    path: '/resources/changelog', title: 'Changelog', group: 'Resources', icon: FileClock, status: 'confirmed', updated: '2026-11-13',
     description: 'History of guide updates and how to submit Figma frames.',
     keywords: ['history', 'updates', 'release', 'figma frames', 'submit'],
     sections: s(['entries', 'Updates'], ['submitting-frames', 'Submitting Figma frames']),
