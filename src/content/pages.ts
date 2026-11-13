@@ -15,7 +15,7 @@ export const pages: PageDef[] = [
     path: '/', title: 'Overview', group: 'Getting started', icon: BookOpen, status: 'draft', updated: '2026-11-12',
     description: 'What this guide is, how to use it, and how values move from Draft to Confirmed.',
     keywords: ['home', 'intro', 'start', 'status legend'],
-    sections: s(['purpose', 'Purpose'], ['how-to-use', 'How to use this guide'], ['status-legend', 'Status legend'], ['pages', 'All pages'], ['recent-changes', 'Recent changes']),
+    sections: s(['purpose', 'Purpose'], ['status-legend', 'Status legend'], ['recent-changes', 'Recent changes']),
     component: lazy(() => import('../pages/Overview')),
   },
   // Foundations
