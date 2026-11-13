@@ -1,5 +1,5 @@
 import type { CalendarEvent } from '../calendar/events'
-import { dayOf } from '../schedule/data'
+import { dayOf, segmentHours, segmentKind, type Chip } from '../schedule/data'
 
 /** One scheduled activity on the day, before leave is applied. Hours 0–24. */
 export interface DayActivity {
@@ -103,3 +103,45 @@ export const dayScenarios: DayScenario[] = [
 ]
 
 export const findScenario = (key: DayScenarioKey) => dayScenarios.find((scenario) => scenario.key === key)!
+
+/* ------------------------------------------------------------------ */
+/* From a schedule cell                                                */
+/* ------------------------------------------------------------------ */
+
+/**
+ * A rough day for one schedule cell, for demos. Each segment becomes a block at its hours. A partly overtime
+ * segment ends with a 2-hour holdover, and a cell that is partly leave turns its last segment's second half into leave.
+ */
+export function chipDayEvents(chip: Chip, day: number): CalendarEvent[] {
+  const activities: DayActivity[] = []
+  const extra: CalendarEvent[] = []
+  chip.segments.forEach((segment, index) => {
+    const { start, end } = segmentHours(segment)
+    const id = `s${index}`
+    const kind = segmentKind(segment)
+    if (kind === 'leave') {
+      extra.push({ id, day, kind: 'leave', title: segment.code, start, end, cancelled: segment.cancelled })
+      return
+    }
+    const otStart = segment.overtime === 'partial' ? Math.max(start + 1, end - 2) : end
+    activities.push({ id, title: segment.code, start, end: otStart, kind: kind === 'overtime' ? 'overtime' : 'activity' })
+    if (otStart < end) activities.push({ id: `${id}-ot`, title: segment.code, start: otStart, end, kind: 'overtime' })
+  })
+
+  const leaves: DayLeave[] = []
+  const last = activities.at(-1)
+  if (chip.partialKind === 'leave' && last) {
+    const middle = Math.round((last.start + last.end) / 2)
+    activities.push({ id: 'partial', title: last.title, start: middle, end: last.end })
+    last.end = middle
+    leaves.push({ type: 'Vacation', replaces: 'partial' })
+  }
+
+  const cancelled = new Set(chip.segments.flatMap((segment, index) => segment.cancelled ? [`s${index}`] : []))
+  const events = resolveDay(day, activities, leaves).map((event) => ({
+    ...event,
+    outOfUnit: chip.outOfUnit || undefined,
+    cancelled: cancelled.has(event.id.split('-')[0]) || undefined,
+  }))
+  return [...events, ...extra].sort((a, b) => (a.start ?? -1) - (b.start ?? -1))
+}

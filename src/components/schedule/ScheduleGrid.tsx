@@ -29,11 +29,13 @@ export interface ScheduleGridProps {
   onRowClick?: (row: ScheduleRow, section: ScheduleSection) => void
   /** Makes time-of-day cells buttons that open the coverage details for that day */
   onCoverageClick?: (section: ScheduleSection, day: number) => void
+  /** Makes shift cells open something for that person and day, e.g. the day details */
+  onChipClick?: (row: ScheduleRow, day: number, chip: Chip) => void
 }
 
 /** Rows down the side, days across. Row headers and the date row stay pinned while the grid scrolls. */
 export default function ScheduleGrid({
-  sections, days, density = 'comfortable', columnMin = 120, today, corner, showCoverage = true, empty, isMuted, label = 'Schedule', maxHeight, onRowClick, onCoverageClick,
+  sections, days, density = 'comfortable', columnMin = 120, today, corner, showCoverage = true, empty, isMuted, label = 'Schedule', maxHeight, onRowClick, onCoverageClick, onChipClick,
 }: ScheduleGridProps) {
   const compact = density === 'compact'
   const visible = sections.filter((section) => section.rows.length)
@@ -122,7 +124,7 @@ export default function ScheduleGrid({
                         data-muted={(chip && isMuted?.(chip)) || undefined}
                         key={day}
                       >
-                        {chip && <ShiftChip chip={chip} density={density} context={`${row.name}, ${formatHeader(day)}`} />}
+                        {chip && <ShiftChip chip={chip} density={density} context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}
                       </div>
                     )
                   })}

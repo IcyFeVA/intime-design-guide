@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/team-view',
+    summary: 'Shift cells open the day details.',
+    changes: [
+      'Clicking a cell in the desktop grid, a mobile week cell or a mobile day bar opens that person’s day on a timeline.',
+      'New onChipClick prop on ScheduleGrid and MobileSchedule, and chipDayEvents to build a rough day from a cell.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/patterns/day-details',
     summary: 'Day Details approved.',
   },

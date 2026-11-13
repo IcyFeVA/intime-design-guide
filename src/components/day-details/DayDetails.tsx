@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { ActionIcon, CloseButton, Modal, Tooltip } from '@mantine/core'
 import { X } from 'lucide-react'
 import { TimeGridView } from '../calendar/CalendarViews'
@@ -15,11 +16,25 @@ export interface DayDetailsProps {
   onClose: () => void
   onOpenEvent?: (event: CalendarEvent) => void
   variant?: 'desktop' | 'mobile'
+  /** Opens scrolled to an hour before the first timed event, instead of at 00:00 */
+  scrollToFirst?: boolean
 }
 
 /** Title row and a one-day timeline. The modal wraps it; demos can show it inline. */
-export function DayDetailsContent({ name, day, events, now, onClose, onOpenEvent, variant = 'desktop' }: DayDetailsProps) {
+export function DayDetailsContent({ name, day, events, now, onClose, onOpenEvent, variant = 'desktop', scrollToFirst = false }: DayDetailsProps) {
   const mobile = variant === 'mobile'
+  const timeline = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const scroller = timeline.current?.querySelector<HTMLElement>('[role="region"]')
+    const header = scroller?.firstElementChild?.firstElementChild
+    const blocks = scroller?.querySelectorAll<HTMLElement>('[role="group"] > *')
+    if (!scrollToFirst || !scroller || !header || !blocks?.length) return
+    const first = Math.min(...Array.from(blocks, (block) => block.getBoundingClientRect().top))
+    const top = scroller.getBoundingClientRect().top + header.getBoundingClientRect().height
+    scroller.scrollTop += first - top - (mobile ? 32 : 40)
+  }, [scrollToFirst, events, mobile])
+
   return (
     <div className={classes.root} data-variant={variant}>
       <div className={classes.header}>
@@ -32,7 +47,7 @@ export function DayDetailsContent({ name, day, events, now, onClose, onOpenEvent
           <CloseButton aria-label="Close" onClick={onClose} />
         )}
       </div>
-      <div className={classes.timeline}>
+      <div className={classes.timeline} ref={timeline}>
         <TimeGridView
           days={[day]}
           events={events}

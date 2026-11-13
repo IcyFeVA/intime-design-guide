@@ -13,6 +13,8 @@ export interface ShiftChipProps {
   density?: ChipDensity
   /** Who and when, for the tooltip and accessible name, e.g. "Marino, Thu, Jun 4" */
   context?: string
+  /** Makes the cell open something, e.g. the day details */
+  onClick?: () => void
 }
 
 const fillStyle = (chip: Chip) => {
@@ -57,7 +59,7 @@ function TooltipBody({ chip, context }: { chip: Chip; context?: string }) {
 }
 
 /** One cell in the schedule grid: one or more assignments, filled by kind, with OT and OU tags. */
-export default function ShiftChip({ chip, density = 'comfortable', context }: ShiftChipProps) {
+export default function ShiftChip({ chip, density = 'comfortable', context, onClick }: ShiftChipProps) {
   const overtime = chipHasOvertime(chip)
   const visible = density === 'compact' ? chip.segments.slice(0, 2) : chip.segments
   const cancelled = chip.segments.every((segment) => segment.cancelled)
@@ -70,7 +72,9 @@ export default function ShiftChip({ chip, density = 'comfortable', context }: Sh
         data-tagged={(chip.outOfUnit || overtime) || undefined}
         data-cancelled={(density === 'strip' && cancelled) || undefined}
         style={fillStyle(chip)}
-        aria-label={`${context ? `${context}: ` : ''}${describeChip(chip)}`}
+        aria-label={`${context ? `${context}: ` : ''}${describeChip(chip)}${onClick ? '. Show day details' : ''}`}
+        aria-haspopup={onClick ? 'dialog' : undefined}
+        onClick={onClick}
       >
         {density !== 'strip' && visible.map((segment, index) => (
           <span className={classes.segment} data-cancelled={segment.cancelled || undefined} data-last={index === visible.length - 1 || undefined} key={index}>

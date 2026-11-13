@@ -3,7 +3,7 @@ import { Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { Clock3 } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type ScheduleRow, type ScheduleSection,
+  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type Chip, type ScheduleRow, type ScheduleSection,
 } from './data'
 import ShiftChip from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
@@ -24,6 +24,8 @@ export interface MobileScheduleProps {
   onRowClick?: (row: ScheduleRow, section: ScheduleSection) => void
   /** Makes time-of-day bars buttons that open the coverage details for that day */
   onCoverageClick?: (section: ScheduleSection, day: number) => void
+  /** Makes shift cells and day bars open something for that person and day, e.g. the day details */
+  onChipClick?: (row: ScheduleRow, day: number, chip: Chip) => void
 }
 
 function TimeOfDay({ section, day, onCoverageClick }: { section: ScheduleSection; day: number; onCoverageClick?: MobileScheduleProps['onCoverageClick'] }) {
@@ -61,7 +63,7 @@ function useSwipe(onSwipe?: (direction: 1 | -1) => void) {
   }
 }
 
-function WeekView({ sections, days, today, onRowClick, onCoverageClick }: MobileScheduleProps) {
+function WeekView({ sections, days, today, onRowClick, onCoverageClick, onChipClick }: MobileScheduleProps) {
   return (
     <>
       <div className={classes.weekHeader}>
@@ -96,7 +98,7 @@ function WeekView({ sections, days, today, onRowClick, onCoverageClick }: Mobile
                   <div className={classes.strip} data-overflow={(overflow && line > 0) || undefined} data-positions={!overflow || undefined} key={line}>
                     {days.map((day, index) => {
                       const chip = chipsByDay[index][line]
-                      return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${row.name}, ${formatHeader(day)}`} />}</div>
+                      return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}</div>
                     })}
                   </div>
                 ))}
@@ -109,7 +111,7 @@ function WeekView({ sections, days, today, onRowClick, onCoverageClick }: Mobile
   )
 }
 
-function DayView({ sections, daySections, days, today, onRowClick, onCoverageClick }: MobileScheduleProps) {
+function DayView({ sections, daySections, days, today, onRowClick, onCoverageClick, onChipClick }: MobileScheduleProps) {
   const day = days[0]
   return (
     <>
@@ -156,7 +158,9 @@ function DayView({ sections, daySections, days, today, onRowClick, onCoverageCli
                             '--chip-a': `var(--schedule-${kind})`,
                             '--chip-b': `var(--schedule-${segment.overtime ? 'overtime' : chip.partialKind ?? kind})`,
                           } as CSSProperties}
-                          aria-label={`${row.name}: ${label}`}
+                          aria-label={`${row.name}: ${label}${onChipClick ? '. Show day details' : ''}`}
+                          aria-haspopup={onChipClick ? 'dialog' : undefined}
+                          onClick={onChipClick && (() => onChipClick(row, day, chip))}
                         >
                           <span className={classes.barLabel}>{name}</span>
                           {segment.overtime && <Clock3 className={classes.barIcon} size={13} strokeWidth={2} aria-hidden="true" />}

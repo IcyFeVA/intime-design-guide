@@ -17,6 +17,9 @@ import { teamSections } from '../../components/schedule/sections'
 import { EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
 import { memberProfile, type EmployeeProfile } from '../../components/schedule/profiles'
+import { DayDetailsModal } from '../../components/day-details/DayDetails'
+import { chipDayEvents } from '../../components/day-details/resolve'
+import type { CalendarEvent } from '../../components/calendar/events'
 import {
   MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleRow,
   type ScheduleSort,
@@ -39,18 +42,35 @@ function filterGroups(unitKey: string, query: string, sort: ScheduleSort): Sched
   }))
 }
 
-/** Coverage drawer and employee details, shared by both demos. */
+/** “Now” on the mock today, for the day details’ current-time line. */
+const MOCK_NOW = 10.5
+
+/** Coverage drawer, employee details and day details, shared by both demos. */
 function useScheduleDetails(variant: 'desktop' | 'mobile') {
   const coverage = useCoverageDrawer(variant)
   const [profile, setProfile] = useState<EmployeeProfile | null>(null)
+  const [dayDetails, setDayDetails] = useState<{ name: string; day: number; events: CalendarEvent[] } | null>(null)
+  const closeDay = () => setDayDetails(null)
   return {
     onCoverageClick: coverage.onCoverageClick,
     onRowClick: (row: ScheduleRow) => setProfile(memberProfile(row.id)),
-    close: () => { coverage.close(); setProfile(null) },
+    onChipClick: (row: ScheduleRow, day: number, chip: Chip) => setDayDetails({ name: row.name, day, events: chipDayEvents(chip, day) }),
+    close: () => { coverage.close(); setProfile(null); closeDay() },
     overlays: (
       <>
         {coverage.drawer}
         <EmployeeDetailsModal profile={profile} onClose={() => setProfile(null)} variant={variant} contained />
+        <DayDetailsModal
+          opened={!!dayDetails}
+          name={dayDetails?.name ?? ''}
+          day={dayDetails?.day ?? MOCK_TODAY}
+          events={dayDetails?.events ?? []}
+          now={dayDetails?.day === MOCK_TODAY ? MOCK_NOW : undefined}
+          onClose={closeDay}
+          variant={variant}
+          scrollToFirst
+          contained
+        />
       </>
     ),
   }
@@ -106,6 +126,7 @@ function DesktopDemo() {
           maxHeight="100%"
           onRowClick={details.onRowClick}
           onCoverageClick={details.onCoverageClick}
+          onChipClick={details.onChipClick}
         />
         {details.overlays}
       </DesktopDemoFrame>
@@ -148,7 +169,7 @@ function MobileDemo() {
         notes={
           <>
             <Text size="sm"><strong>Two views only.</strong> Phones show a week or a single day. Longer ranges need the desktop grid.</Text>
-            <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell for details.</Text>
+            <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell to open that day’s details.</Text>
             <Text size="sm"><strong>Day.</strong> Assignments sit on a 0–24 hour timeline, so gaps and overlaps are easy to spot.</Text>
             <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day come first, above each team’s members.</Text>
             <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. Team and sort live behind the sliders button.</Text>
@@ -163,6 +184,7 @@ function MobileDemo() {
           onSwipe={step}
           onRowClick={details.onRowClick}
           onCoverageClick={details.onCoverageClick}
+          onChipClick={details.onChipClick}
         />
         {details.overlays}
       </MobileDemoFrame>
@@ -320,6 +342,7 @@ export default function TeamView() {
           { prop: 'label', type: 'string', default: "'Schedule'", description: 'Accessible name of the grid.' },
           { prop: 'onRowClick', type: '(row, section) => void', description: 'Makes row headers buttons. Team View opens the employee details.' },
           { prop: 'onCoverageClick', type: '(section, day) => void', description: 'Makes time-of-day cells buttons. Team View opens the coverage drawer.' },
+          { prop: 'onChipClick', type: '(row, day, chip) => void', description: 'Makes shift cells buttons. Team View opens the day details for that person and day.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">MobileSchedule</Text>
         <PropsTable rows={[
@@ -331,6 +354,7 @@ export default function TeamView() {
           { prop: 'onSwipe', type: '(direction: 1 | -1) => void', description: 'Called on a horizontal swipe. 1 means forward.' },
           { prop: 'onRowClick', type: '(row, section) => void', description: 'Makes names buttons, as on desktop.' },
           { prop: 'onCoverageClick', type: '(section, day) => void', description: 'Makes time-of-day bars buttons, as on desktop.' },
+          { prop: 'onChipClick', type: '(row, day, chip) => void', description: 'Makes week cells and day bars buttons, as on desktop.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">CoverageDrawer and EmployeeDetailsModal</Text>
         <PropsTable rows={[
