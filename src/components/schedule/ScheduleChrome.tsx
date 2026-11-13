@@ -226,16 +226,16 @@ export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeCha
 
 /**
  * Phone mock: status bar and app header, then `header` (fixed) and `children` (scrolls).
- * `overlay` is pinned to the bottom of the screen.
+ * `overlay` is pinned to the bottom of the screen. `bare` leaves out the app header, e.g. for a full-screen modal.
  */
-export function PhoneFrame({ header, overlay, children }: { header?: ReactNode; overlay?: ReactNode; children: ReactNode }) {
+export function PhoneFrame({ header, overlay, bare, children }: { header?: ReactNode; overlay?: ReactNode; bare?: boolean; children: ReactNode }) {
   return (
     <div className={classes.phone}>
       <div className={classes.statusBar} aria-hidden="true">
         <span className="tabular">9:41</span>
         <Group gap={6}><Signal size={16} /><Wifi size={16} /><BatteryFull size={20} /></Group>
       </div>
-      <div className={classes.phoneHeader}>
+      {!bare && <div className={classes.phoneHeader}>
         <Group gap={20} wrap="nowrap">
           <Indicator size={8} offset={2} position="bottom-end" color="var(--background-info)">
             <MenuIcon size={24} strokeWidth={1.75} aria-label="Open navigation" />
@@ -243,7 +243,7 @@ export function PhoneFrame({ header, overlay, children }: { header?: ReactNode; 
           <UserRound size={24} strokeWidth={1.75} aria-label="Profile" />
         </Group>
         <Text size="sm" c="dimmed" truncate>Field Operations Division - ITME</Text>
-      </div>
+      </div>}
       {header}
       <div className={classes.phoneScroll}>{children}</div>
       {overlay && <div className={classes.phoneOverlay}>{overlay}</div>}

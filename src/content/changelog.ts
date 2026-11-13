@@ -11,6 +11,21 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
+    page: '/patterns/day-details',
+    summary: 'Day Details approved.',
+  },
+  {
+    date: '2026-11-13',
+    page: '/patterns/day-details',
+    summary: 'New Day Details page: one person’s day on a timeline, and how leave takes precedence.',
+    changes: [
+      'Three scenarios from the design: back-to-back activities, leave on one activity that overlaps another, and all-day leave.',
+      'New resolveDay helper and DayDetailsModal in src/components/day-details. A 600px modal on desktop, full screen on a phone.',
+      'PhoneFrame takes bare to leave out the app header.',
+    ],
+  },
+  {
+    date: '2026-11-13',
     page: '/components/status-badges',
     summary: 'Added Missed, dot badges (Live, Closed) and the outline role badge.',
   },

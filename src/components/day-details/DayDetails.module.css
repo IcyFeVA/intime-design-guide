@@ -1,0 +1,63 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: var(--mantine-color-body);
+}
+
+.root[data-variant='mobile'] {
+  height: 100%;
+  gap: 8px;
+  padding: 16px 0 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.root[data-variant='mobile'] .header {
+  padding: 0 12px 0 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--text-title);
+}
+
+.root[data-variant='mobile'] .title {
+  font-size: 26px;
+}
+
+/* The timeline scrolls inside a fixed height; the date and all-day row stay on top. */
+.timeline {
+  --calendar-hour-height: 40px;
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  min-height: 0;
+}
+
+.root[data-variant='mobile'] .timeline {
+  flex: 1;
+  height: auto;
+}
+
+.timeline > * {
+  flex: 1;
+}
+
+.modalContent {
+  overflow: hidden;
+}
+
+/* Keeps a contained modal inside its demo frame */
+.inner {
+  left: 0;
+}

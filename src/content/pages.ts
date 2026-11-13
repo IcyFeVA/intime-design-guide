@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarDays, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
+  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
   LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -132,6 +132,13 @@ export const pages: PageDef[] = [
     keywords: ['calendar', 'month', 'week', 'day', 'agenda', 'event', 'task', 'reminder', 'leave', 'vacation', 'pending', 'overtime', 'holiday', 'sign-ups', 'all-day', 'current time', 'legend', 'add task', 'mobile'],
     sections: s(['desktop', 'Desktop'], ['views', 'Views'], ['events', 'Event types'], ['details', 'Event details'], ['add-task', 'Adding a task'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/Calendar')),
+  },
+  {
+    path: '/patterns/day-details', title: 'Day Details', group: 'Patterns', icon: CalendarClock, status: 'confirmed', updated: '2026-11-13',
+    description: 'One person’s day on a timeline, opened from a shift cell, and how leave takes precedence over the activities it overlaps.',
+    keywords: ['day view', 'day details', 'modal', 'timeline', 'leave', 'vacation', 'overlap', 'overlapping activity', 'precedence', 'all-day leave', 'on leave', 'replaces', 'shift cell', 'mobile', 'full screen'],
+    sections: s(['back-to-back', 'Back-to-back activities'], ['partial-leave', 'Leave on one activity'], ['all-day-leave', 'All-day leave'], ['rules', 'Precedence rules'], ['component', 'Using the component'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/DayDetails')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12', hidden: true,

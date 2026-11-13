@@ -1,0 +1,97 @@
+.demoBar {
+  border-bottom: 1px solid var(--intime-border);
+  background: var(--intime-surface);
+}
+
+.stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 24px;
+  padding: 24px 16px;
+}
+
+.modalMock {
+  width: 520px;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-lg);
+  box-shadow: var(--mantine-shadow-lg);
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--intime-surface);
+}
+
+.compareArrow {
+  margin-top: 28px;
+  color: var(--text-dimmed);
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 10px;
+  border-left: 4px solid var(--schedule-regular);
+  border-radius: var(--mantine-radius-xs);
+  background: var(--background-default);
+  font-size: 14px;
+}
+
+.line[data-leave] {
+  border-left-color: var(--schedule-leave);
+}
+
+.lineTitle {
+  font-weight: 500;
+}
+
+.lineTime {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 13px;
+  color: var(--text-dimmed);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .compare {
+    grid-template-columns: 1fr;
+  }
+
+  .compareArrow {
+    margin-top: 0;
+    transform: rotate(90deg);
+  }
+}
+
+.figma {
+  display: block;
+  width: 100%;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--intime-border);
+}
+
+.figmaRow {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 600px) {
+  .figmaRow {
+    grid-template-columns: 1fr;
+  }
+}
