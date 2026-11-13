@@ -12,6 +12,26 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-13',
     page: null,
+    summary: 'Calendar and Overview approved and set to Confirmed.',
+    changes: [
+      'Patterns: Calendar. Its --calendar-* tokens are Confirmed too.',
+      'Getting started: Overview.',
+    ],
+  },
+  {
+    date: '2026-11-13',
+    page: '/patterns/calendar',
+    summary: 'New Calendar pattern, built from the Figma calendar frames.',
+    changes: [
+      'Month, week, day and agenda views on desktop and on a phone, with today, the current time and pay-period lines.',
+      'Event types: activity, overtime, leave and task fills, plus pending, out-of-unit and cancelled. Holidays and sign-ups sit in the all-day area.',
+      'Details dialogs for assignments, leave, tasks from a scheduler and sign-ups, and a form to add or edit your own tasks.',
+      'New --calendar-* CSS variables. The app frame (DesktopDemoFrame, PhoneFrame) is now shared with Team View.',
+    ],
+  },
+  {
+    date: '2026-11-13',
+    page: null,
     summary: 'Ten pages approved and set to Confirmed.',
     changes: [
       'Foundations: Typography, Icons, Spacing & Layout, Radius & Elevation and Motion. Their spacing, radius, shadow, breakpoint, z-index and motion tokens are Confirmed too.',

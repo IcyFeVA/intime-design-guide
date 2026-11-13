@@ -7,7 +7,7 @@ import {
   BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
   Search, SlidersHorizontal, UserRound, Wifi,
 } from 'lucide-react'
-import AppNav from '../app-nav/AppNav'
+import AppNav, { type AppNavProps } from '../app-nav/AppNav'
 import type { ScheduleRange } from '../../tokens/schedule'
 import { MOCK_TODAY, formatRange, shiftRange } from './data'
 import classes from './ScheduleChrome.module.css'
@@ -72,8 +72,14 @@ export function ViewTabs({ active }: { active: ScheduleView }) {
  * App-shell mock for the desktop demos: collapsed nav, top bar, title with view tabs, a toolbar and the grid.
  * Includes the demo bar (status, Full screen, Reset demo).
  */
-export function DesktopDemoFrame({ view, status, onReset, toolbar, children }: {
-  view: ScheduleView
+export function DesktopDemoFrame({ view, title = 'Team View', actions, nav, status, onReset, toolbar, children }: {
+  /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
+  view?: ScheduleView
+  title?: string
+  /** Right side of the title row, e.g. an Add button */
+  actions?: ReactNode
+  /** Navigation setup. Defaults to a scheduler on Team View. */
+  nav?: Pick<AppNavProps, 'roles' | 'defaultRole' | 'defaultActive'>
   status: ReactNode
   onReset: () => void
   toolbar: ReactNode
@@ -82,7 +88,7 @@ export function DesktopDemoFrame({ view, status, onReset, toolbar, children }: {
   const [fullScreen, setFullScreen] = useState(false)
   const shell = (
     <div className={classes.shell} data-full-screen={fullScreen || undefined}>
-      <AppNav roles={['employee', 'scheduler']} defaultRole="scheduler" defaultActive="team-view" defaultExpanded={false} defaultPinned={false} />
+      <AppNav roles={['employee', 'scheduler']} defaultRole="scheduler" defaultActive="team-view" {...nav} defaultExpanded={false} defaultPinned={false} />
       <div className={classes.main}>
         <div className={classes.topBar}>
           <Text size="md">Field Operations Division - ITME</Text>
@@ -93,8 +99,9 @@ export function DesktopDemoFrame({ view, status, onReset, toolbar, children }: {
           </Group>
         </div>
         <div className={classes.titleRow}>
-          <h3 className={classes.title}>Team View</h3>
-          <ViewTabs active={view} />
+          <h3 className={classes.title}>{title}</h3>
+          {view && <ViewTabs active={view} />}
+          {actions && <div className={classes.titleActions}>{actions}</div>}
         </div>
         <div className={classes.toolbar}>{toolbar}</div>
         {children}
@@ -111,7 +118,7 @@ export function DesktopDemoFrame({ view, status, onReset, toolbar, children }: {
         </Group>
       </Group>
       {!fullScreen && shell}
-      <Modal opened={fullScreen} onClose={() => setFullScreen(false)} fullScreen title={view === 'unit' ? 'Team View, desktop' : 'Location View, desktop'} padding={0} classNames={{ body: classes.modalBody, header: classes.modalHeader }}>
+      <Modal opened={fullScreen} onClose={() => setFullScreen(false)} fullScreen title={`${view === 'location' ? 'Location View' : title}, desktop`} padding={0} classNames={{ body: classes.modalBody, header: classes.modalHeader }}>
         {fullScreen && shell}
       </Modal>
     </>
@@ -184,59 +191,86 @@ export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeCha
 }) {
   return (
     <>
-      <Group justify="space-between" px="md" py="xs" className={classes.demoBar}>
-        <Group gap={6}>
-          <Button variant="default" size="compact-xs" leftSection={<ChevronLeft size={14} />} onClick={() => onStep(-1)}>Swipe right</Button>
-          <Button variant="default" size="compact-xs" rightSection={<ChevronRight size={14} />} onClick={() => onStep(1)}>Swipe left</Button>
-          <Text size="xs" c="dimmed" role="status">{status}</Text>
-        </Group>
-        <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={onReset}>Reset demo</Button>
-      </Group>
-      <div className={classes.mobileStage}>
-        <div className={classes.phone}>
-          <div className={classes.statusBar} aria-hidden="true">
-            <span className="tabular">9:41</span>
-            <Group gap={6}><Signal size={16} /><Wifi size={16} /><BatteryFull size={20} /></Group>
-          </div>
-          <div className={classes.phoneHeader}>
-            <Group gap={20} wrap="nowrap">
-              <Indicator size={8} offset={2} position="bottom-end" color="var(--background-info)">
-                <MenuIcon size={24} strokeWidth={1.75} aria-label="Open navigation" />
-              </Indicator>
-              <UserRound size={24} strokeWidth={1.75} aria-label="Profile" />
-            </Group>
-            <Text size="sm" c="dimmed" truncate>Field Operations Division - ITME</Text>
-          </div>
-          <div className={classes.phoneScroll}>
-            <div className={classes.phoneTitle}>
-              <h3 className={classes.title}>Team View</h3>
-              <Group justify="space-between" wrap="nowrap" mt="lg">
-                <ViewTabs active={view} />
-                <Group gap={8} wrap="nowrap">
-                  <SegmentedControl
-                    value={mode}
-                    onChange={(value) => onModeChange(value as 'week' | 'day')}
-                    aria-label="View"
-                    data={[
-                      { value: 'week', label: <Tooltip label="Week"><span className={classes.segmentIcon}><List size={18} aria-label="Week" /></span></Tooltip> },
-                      { value: 'day', label: <Tooltip label="Day"><span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span></Tooltip> },
-                    ]}
-                  />
-                  <Menu position="bottom-end" offset={4} withinPortal={false}>
-                    <Menu.Target>
-                      <Tooltip label="Filters"><ActionIcon variant="default" size={38} aria-label="Filters"><SlidersHorizontal size={18} /></ActionIcon></Tooltip>
-                    </Menu.Target>
-                    <Menu.Dropdown>{filters}</Menu.Dropdown>
-                  </Menu>
-                </Group>
+      <MobileDemoBar status={status} onStep={onStep} onReset={onReset} />
+      <MobileStage notes={notes}>
+        <PhoneFrame overlay={overlay}>
+          <div className={classes.phoneTitle}>
+            <h3 className={classes.title}>Team View</h3>
+            <Group justify="space-between" wrap="nowrap" mt="lg">
+              <ViewTabs active={view} />
+              <Group gap={8} wrap="nowrap">
+                <SegmentedControl
+                  value={mode}
+                  onChange={(value) => onModeChange(value as 'week' | 'day')}
+                  aria-label="View"
+                  data={[
+                    { value: 'week', label: <Tooltip label="Week"><span className={classes.segmentIcon}><List size={18} aria-label="Week" /></span></Tooltip> },
+                    { value: 'day', label: <Tooltip label="Day"><span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span></Tooltip> },
+                  ]}
+                />
+                <Menu position="bottom-end" offset={4} withinPortal={false}>
+                  <Menu.Target>
+                    <Tooltip label="Filters"><ActionIcon variant="default" size={38} aria-label="Filters"><SlidersHorizontal size={18} /></ActionIcon></Tooltip>
+                  </Menu.Target>
+                  <Menu.Dropdown>{filters}</Menu.Dropdown>
+                </Menu>
               </Group>
-            </div>
-            {children}
+            </Group>
           </div>
-          {overlay && <div className={classes.phoneOverlay}>{overlay}</div>}
-        </div>
-        <Stack gap="sm" maw={340} className={classes.mobileNotes}>{notes}</Stack>
-      </div>
+          {children}
+        </PhoneFrame>
+      </MobileStage>
     </>
+  )
+}
+
+/**
+ * Phone mock: status bar and app header, then `header` (fixed) and `children` (scrolls).
+ * `overlay` is pinned to the bottom of the screen.
+ */
+export function PhoneFrame({ header, overlay, children }: { header?: ReactNode; overlay?: ReactNode; children: ReactNode }) {
+  return (
+    <div className={classes.phone}>
+      <div className={classes.statusBar} aria-hidden="true">
+        <span className="tabular">9:41</span>
+        <Group gap={6}><Signal size={16} /><Wifi size={16} /><BatteryFull size={20} /></Group>
+      </div>
+      <div className={classes.phoneHeader}>
+        <Group gap={20} wrap="nowrap">
+          <Indicator size={8} offset={2} position="bottom-end" color="var(--background-info)">
+            <MenuIcon size={24} strokeWidth={1.75} aria-label="Open navigation" />
+          </Indicator>
+          <UserRound size={24} strokeWidth={1.75} aria-label="Profile" />
+        </Group>
+        <Text size="sm" c="dimmed" truncate>Field Operations Division - ITME</Text>
+      </div>
+      {header}
+      <div className={classes.phoneScroll}>{children}</div>
+      {overlay && <div className={classes.phoneOverlay}>{overlay}</div>}
+    </div>
+  )
+}
+
+/** Demo bar above a phone: swipe buttons, a status line and Reset demo. */
+export function MobileDemoBar({ status, onStep, onReset }: { status: ReactNode; onStep: (direction: 1 | -1) => void; onReset: () => void }) {
+  return (
+    <Group justify="space-between" px="md" py="xs" className={classes.demoBar}>
+      <Group gap={6}>
+        <Button variant="default" size="compact-xs" leftSection={<ChevronLeft size={14} />} onClick={() => onStep(-1)}>Swipe right</Button>
+        <Button variant="default" size="compact-xs" rightSection={<ChevronRight size={14} />} onClick={() => onStep(1)}>Swipe left</Button>
+        <Text size="xs" c="dimmed" role="status">{status}</Text>
+      </Group>
+      <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={onReset}>Reset demo</Button>
+    </Group>
+  )
+}
+
+/** Dotted stage that holds a phone and its notes. */
+export function MobileStage({ notes, children }: { notes: ReactNode; children: ReactNode }) {
+  return (
+    <div className={classes.mobileStage}>
+      {children}
+      <Stack gap="sm" maw={340} className={classes.mobileNotes}>{notes}</Stack>
+    </div>
   )
 }

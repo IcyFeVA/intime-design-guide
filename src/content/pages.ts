@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
+  Accessibility, BookOpen, Box, CalendarDays, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
   LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -12,7 +12,7 @@ const s = (...items: [string, string][]) => items.map(([id, title]) => ({ id, ti
 /** Single registry that drives the sidebar, search, TOC, overview cards and prev/next links. */
 export const pages: PageDef[] = [
   {
-    path: '/', title: 'Overview', group: 'Getting started', icon: BookOpen, status: 'draft', updated: '2026-11-12',
+    path: '/', title: 'Overview', group: 'Getting started', icon: BookOpen, status: 'confirmed', updated: '2026-11-12',
     description: 'What this guide is, how to use it, and how values move from Draft to Confirmed.',
     keywords: ['home', 'intro', 'start', 'status legend'],
     sections: s(['purpose', 'Purpose'], ['status-legend', 'Status legend'], ['recent-changes', 'Recent changes']),
@@ -125,6 +125,13 @@ export const pages: PageDef[] = [
     keywords: ['location', 'site', 'post', 'position', 'open position', 'breadcrumb', 'paid duty', 'event', 'coverage alert', 'shortfall', 'notification', 'toast', 'day view', 'mobile', 'schedule'],
     sections: s(['desktop', 'Desktop'], ['posts', 'Posts and positions'], ['locations', 'Location headers'], ['coverage', 'Coverage'], ['mobile', 'Mobile'], ['coverage-alert', 'Coverage alert'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/LocationView')),
+  },
+  {
+    path: '/patterns/calendar', title: 'Calendar', group: 'Patterns', icon: CalendarDays, status: 'confirmed', updated: '2026-11-13',
+    description: 'An employee’s own calendar in month, week, day and agenda views, with event details, sign-ups and adding tasks.',
+    keywords: ['calendar', 'month', 'week', 'day', 'agenda', 'event', 'task', 'reminder', 'leave', 'vacation', 'pending', 'overtime', 'holiday', 'sign-ups', 'all-day', 'current time', 'legend', 'add task', 'mobile'],
+    sections: s(['desktop', 'Desktop'], ['views', 'Views'], ['events', 'Event types'], ['details', 'Event details'], ['add-task', 'Adding a task'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/Calendar')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12', hidden: true,

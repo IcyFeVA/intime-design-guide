@@ -5,6 +5,7 @@ import { fontFamilies, fontSizes, headingScale } from './tokens/typography'
 import { radius, shadows, spacing } from './tokens/scales'
 import { navCssVariables } from './tokens/navigation'
 import { scheduleCssVariables, scheduleDarkVariables, scheduleLightVariables } from './tokens/schedule'
+import { calendarCssVariables, calendarDarkVariables, calendarLightVariables } from './tokens/calendar'
 
 const toRecord = <T extends { name: string; value: string }>(items: T[]) =>
   Object.fromEntries(items.map((item) => [item.name, item.value]))
@@ -78,7 +79,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: { ...navCssVariables, ...scheduleCssVariables },
-  light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables },
-  dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables },
+  variables: { ...navCssVariables, ...scheduleCssVariables, ...calendarCssVariables },
+  light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables, ...calendarLightVariables },
+  dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables, ...calendarDarkVariables },
 })

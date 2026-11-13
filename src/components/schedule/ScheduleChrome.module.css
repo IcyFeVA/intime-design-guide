@@ -183,3 +183,7 @@
   bottom: 16px;
   z-index: 3;
 }
+
+.titleActions {
+  margin-left: auto;
+}

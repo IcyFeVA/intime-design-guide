@@ -50,7 +50,8 @@ Typical section set for a component/pattern page: live demos, then `guidelines` 
 | `FigmaSlot` | Placeholder for a missing Figma frame: `title`, `notes`. |
 | `StatusBadge` | `status`. |
 | `app-nav/AppNav` | The real product sidebar (roles, collapsed rail, pin/overlay). Reuse it in app-shell mocks. Props are documented on the Navigation page. |
-| `schedule/ScheduleGrid`, `MobileSchedule`, `ShiftChip`, `Coverage`, `LocationPath` | Schedule grid (desktop, 1–4 weeks), mobile week/day, shift cells, coverage values and location breadcrumbs. Both take `sections`: build them with `teamSections` or `locationSections`/`locationPeopleSections` (`schedule/sections.tsx`). Mock data in `schedule/data.ts` (members, dates) and `schedule/locations.ts`. Demo shell (app frame, phone, pickers, Unit/Location tabs) in `schedule/ScheduleChrome.tsx`. Documented on the Team View and Location View pages. |
+| `schedule/ScheduleGrid`, `MobileSchedule`, `ShiftChip`, `Coverage`, `LocationPath` | Schedule grid (desktop, 1–4 weeks), mobile week/day, shift cells, coverage values and location breadcrumbs. Both take `sections`: build them with `teamSections` or `locationSections`/`locationPeopleSections` (`schedule/sections.tsx`). Mock data in `schedule/data.ts` (members, dates) and `schedule/locations.ts`. Demo shell (app frame, phone, pickers, Unit/Location tabs) in `schedule/ScheduleChrome.tsx`: `DesktopDemoFrame` takes `title`, `actions` and `nav` for other pages; `PhoneFrame`, `MobileDemoBar` and `MobileStage` build custom phone demos. Documented on the Team View and Location View pages. |
+| `calendar/CalendarViews` (`MonthView`, `TimeGridView`, `AgendaView`, `EventChip`, `CalendarLegend`), `CalendarToolbar`, `CalendarModals`, `useCalendarModals` | Employee calendar: month, week/day timeline and agenda, event details, sign-ups and the add/edit task form. Mock events and date helpers in `calendar/events.ts`. Documented on the Calendar page. |
 | `pages/foundations/TokenSwatch` | Color swatch used by the Colors page. |
 
 For tables, use `<Table.ScrollContainer minWidth={560} className="doc-table"><Table verticalSpacing="sm" horizontalSpacing="md">…`.
@@ -77,7 +78,7 @@ Plain, short sentences in sentence case. Explain behavior ("Pinning keeps the na
 ## Tokens map (`src/tokens`)
 
 - `themes/dark.css`, `themes/light.css`: raw Figma variable exports, pasted verbatim. `themes/index.ts` parses them and resolves `var(--primary-primary-color-N)`-style primitives to Mantine default ramps (primary = cyan). Watch for user pastes where the "dark" block is a copy of light. Compare against the existing file before overwriting.
-- `colors.ts` (palettes), `typography.ts` (Roboto + Cousine, heading/body scales), `scales.ts` (spacing, radius, shadows, breakpoints, z-index, motion, app-shell `layout`), `icons.ts` (curated Lucide set), `status.ts` (shift states, departments), `navigation.ts` (nav roles, items, variants, `--nav-*` vars), `schedule.ts` (shift kinds and codes, date ranges, `--schedule-*` vars).
+- `colors.ts` (palettes), `typography.ts` (Roboto + Cousine, heading/body scales), `scales.ts` (spacing, radius, shadows, breakpoints, z-index, motion, app-shell `layout`), `icons.ts` (curated Lucide set), `status.ts` (shift states, departments), `navigation.ts` (nav roles, items, variants, `--nav-*` vars), `schedule.ts` (shift kinds and codes, date ranges, `--schedule-*` vars), `calendar.ts` (event kinds and modifiers, calendar views, `--calendar-*` vars).
 - `src/theme.ts` builds the Mantine theme and `cssVariablesResolver` from these. Change token files, not the theme.
 
 ## Verifying UI in a browser

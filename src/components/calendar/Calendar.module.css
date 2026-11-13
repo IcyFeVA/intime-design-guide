@@ -1,0 +1,638 @@
+/* ---------- Event chip ---------- */
+
+.event {
+  --event-fill: var(--schedule-regular);
+  container: event / inline-size;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 4px 8px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: left;
+  color: var(--schedule-chip-text);
+  background: var(--event-fill);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.event:hover {
+  filter: brightness(1.12);
+}
+
+.event:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.event[data-kind='overtime'] { --event-fill: var(--schedule-overtime); }
+.event[data-kind='leave'] { --event-fill: var(--schedule-leave); }
+.event[data-kind='task'] { --event-fill: var(--calendar-task); }
+
+.event[data-out-of-unit] {
+  background:
+    repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px),
+    var(--event-fill);
+}
+
+.event[data-pending] {
+  background:
+    repeating-linear-gradient(135deg, var(--calendar-pending-stripe) 0 6px, transparent 6px 14px),
+    var(--calendar-pending-bg);
+  outline: 1px dashed var(--calendar-pending-border);
+  outline-offset: -1px;
+}
+
+.event[data-cancelled] .eventText {
+  text-decoration: line-through;
+}
+
+.eventText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.eventTitle {
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eventTime {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eventMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.eventIcons {
+  flex: none;
+  display: flex;
+  gap: 6px;
+}
+
+@container event (max-width: 104px) {
+  .eventIcons {
+    display: none;
+  }
+}
+
+/* Time-grid block */
+.event[data-variant='block'] {
+  position: absolute;
+  padding: 6px 8px;
+  font-size: 13px;
+  box-shadow: 0 0 0 1px var(--mantine-color-body);
+}
+
+.event[data-variant='block'] .eventMeta {
+  align-items: flex-start;
+}
+
+.event[data-variant='block'] .eventTime {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+  white-space: normal;
+}
+
+.timeGrid[data-compact] .event[data-variant='block'] {
+  padding: 4px;
+  font-size: 12px;
+}
+
+.timeGrid[data-compact] .event[data-variant='block'] .eventTitle {
+  text-overflow: clip;
+}
+
+.timeGrid[data-compact] .event[data-variant='block'] .eventTime {
+  font-size: 11px;
+}
+
+/* Agenda row */
+.event[data-variant='agenda'] {
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+/* Phone month: title only */
+.event[data-variant='mini'] {
+  padding: 4px 6px;
+  font-size: 13px;
+  min-height: 32px;
+}
+
+.event[data-variant='mini'] .eventTitle {
+  text-overflow: clip;
+}
+
+/* ---------- All-day items ---------- */
+
+.holiday {
+  display: block;
+  padding: 2px 8px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--calendar-holiday-text);
+  background: var(--calendar-holiday-bg);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.signUps {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 2px solid var(--calendar-signup-border);
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--calendar-signup-text);
+  background: var(--calendar-signup-bg);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.signUps:hover {
+  background: var(--background-primary-light-hover);
+}
+
+.allDayBar {
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+/* ---------- Add button (shown on hover or focus) ---------- */
+
+.add {
+  opacity: 0;
+  transition: opacity 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.add:focus-visible,
+[data-hover] .add {
+  opacity: 1;
+}
+
+/* ---------- Month ---------- */
+
+.month {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  background: var(--mantine-color-body);
+}
+
+.monthHead,
+.monthWeek {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(var(--month-col-min, 110px), 1fr));
+}
+
+.monthHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.monthHead > div {
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-dimmed);
+}
+
+.monthWeek {
+  flex: 1 0 auto;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.monthDay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 132px;
+  padding: 8px;
+  border-right: 1px solid var(--border-default);
+}
+
+.monthDay:last-child {
+  border-right: 0;
+}
+
+.monthDay[data-hover] {
+  box-shadow: inset 0 0 0 1px var(--calendar-hover-border);
+}
+
+.monthDay[data-period] {
+  box-shadow: inset 4px 0 0 var(--schedule-boundary);
+}
+
+.monthDay[data-period][data-hover] {
+  box-shadow: inset 4px 0 0 var(--schedule-boundary), inset 0 0 0 1px var(--calendar-hover-border);
+}
+
+.dayTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 24px;
+}
+
+.dayNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding-inline: 4px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dayNumber[data-today] {
+  color: var(--schedule-today-text);
+  background: var(--schedule-today-bg);
+}
+
+.dayNumber[data-outside] {
+  color: var(--text-dimmed);
+  font-weight: 400;
+}
+
+.month[data-compact] {
+  --month-col-min: 44px;
+}
+
+.month[data-compact] .monthHead > div {
+  padding: 6px 2px;
+  font-size: 13px;
+}
+
+.month[data-compact] .monthDay {
+  min-height: 150px;
+  padding: 6px 4px;
+  gap: 6px;
+}
+
+/* ---------- Time grid (week, day) ---------- */
+
+.timeGrid {
+  --hour: var(--calendar-hour-height);
+  --gutter: 80px;
+  --col-min: 96px;
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+  background: var(--mantine-color-body);
+}
+
+.timeGrid[data-compact] {
+  --hour: 40px;
+  --gutter: 64px;
+  --col-min: 40px;
+}
+
+.timeGrid[data-single] {
+  --col-min: 0px;
+}
+
+.tgHead,
+.tgAllDay,
+.tgBody {
+  display: grid;
+  grid-template-columns: var(--gutter) repeat(var(--cols), minmax(var(--col-min), 1fr));
+  min-width: min-content;
+}
+
+.tgSticky {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.tgCorner {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dimmed);
+}
+
+.tgDayHead {
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dimmed);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.tgDayHead[data-today] {
+  color: var(--schedule-today-text);
+  background: var(--schedule-today-bg);
+}
+
+.timeGrid[data-compact] .tgDayHead {
+  padding: 6px 2px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.tgAllDayLabel {
+  padding: 10px 8px;
+  white-space: nowrap;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 14px;
+  color: var(--text-dimmed);
+  text-align: right;
+}
+
+.timeGrid[data-compact] .tgAllDayLabel {
+  padding: 8px 6px;
+  font-size: 12px;
+}
+
+.timeGrid[data-compact] .tgCorner {
+  padding: 6px;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.tgAllDayCell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 4px;
+}
+
+.tgAllDayCell[data-hover] {
+  box-shadow: inset 0 0 0 1px var(--calendar-hover-border);
+}
+
+.tgAllDayCell .add {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.tgGutter {
+  position: relative;
+  height: calc(var(--hour) * 24);
+}
+
+.tgHour {
+  position: absolute;
+  right: 10px;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--text-dimmed);
+  transform: translateY(4px);
+}
+
+.timeGrid[data-compact] .tgHour {
+  right: 6px;
+  font-size: 12px;
+}
+
+.tgColumn {
+  position: relative;
+  height: calc(var(--hour) * 24);
+  border-left: 1px solid var(--border-default);
+  background-image:
+    linear-gradient(to bottom, var(--border-default) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border-default) 45%, transparent) 1px, transparent 1px);
+  background-size: 100% var(--hour), 100% var(--hour);
+  background-position: 0 0, 0 calc(var(--hour) / 2);
+}
+
+.tgColumn[data-hover] {
+  box-shadow: inset 0 0 0 1px var(--calendar-hover-border);
+}
+
+.tgColumn[data-period] {
+  box-shadow: inset 4px 0 0 var(--schedule-boundary);
+}
+
+.nowLine {
+  position: absolute;
+  left: var(--gutter);
+  right: 0;
+  z-index: 3;
+  height: 0;
+  border-top: 1px solid var(--calendar-now);
+  pointer-events: none;
+}
+
+.nowLabel {
+  position: absolute;
+  z-index: 3;
+  left: 4px;
+  width: calc(var(--gutter) - 8px);
+  padding: 2px 0;
+  border-radius: var(--mantine-radius-sm);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+  color: var(--neutral-white);
+  background: var(--calendar-now);
+  transform: translateY(-50%);
+}
+
+.timeGrid[data-compact] .nowLabel {
+  font-size: 12px;
+}
+
+/* ---------- Agenda ---------- */
+
+.agenda {
+  min-height: 0;
+  overflow: auto;
+  background: var(--mantine-color-body);
+}
+
+.agendaInner {
+  max-width: 900px;
+  margin-inline: auto;
+  padding: 0 24px 24px;
+}
+
+.agenda[data-compact] .agendaInner {
+  padding: 0 0 16px;
+}
+
+.agendaDay {
+  position: relative;
+  padding: 16px 0 12px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.agendaDay[data-hover] {
+  box-shadow: inset 0 1px 0 var(--calendar-hover-border);
+}
+
+.agenda[data-compact] .agendaDay {
+  padding: 12px 16px 10px;
+}
+
+.agendaHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding-inline: 20px;
+}
+
+.agenda[data-compact] .agendaHead {
+  padding-inline: 0;
+}
+
+.agendaHead .add {
+  margin-left: auto;
+}
+
+.agendaTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.agendaDay[data-today] .agendaTitle,
+.agendaDay[data-today] .agendaRelative {
+  color: var(--text-primary-default);
+}
+
+.agendaRelative {
+  font-size: 22px;
+  line-height: 1.3;
+}
+
+.agendaEmpty {
+  padding: 0 20px;
+  color: var(--text-dimmed);
+}
+
+.agenda[data-compact] .agendaEmpty {
+  padding: 0;
+}
+
+.agendaList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.agendaAllDay {
+  padding-inline: 0;
+}
+
+.agendaRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding-left: 20px;
+}
+
+.agenda[data-compact] .agendaRow {
+  grid-template-columns: 76px 1fr;
+  padding-left: 0;
+}
+
+.agendaTime {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+/* ---------- Legend ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.legendSwatch {
+  width: 28px;
+  height: 16px;
+  padding: 0;
+  pointer-events: none;
+}
+
+/* ---------- Toolbar ---------- */
+
+.toolbarSpacer {
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .event,
+  .signUps,
+  .add {
+    transition: none;
+  }
+}
+
+.tgInner {
+  position: relative;
+  min-width: min-content;
+}
+
+.timeGrid[data-single]:not([data-compact]) .tgInner {
+  max-width: 900px;
+  margin-inline: auto;
+  border-inline: 1px solid var(--border-default);
+}
+
+.tgBody {
+  position: relative;
+}
+
+.tgColumn[data-period][data-hover] {
+  box-shadow: inset 4px 0 0 var(--schedule-boundary), inset 0 0 0 1px var(--calendar-hover-border);
+}
