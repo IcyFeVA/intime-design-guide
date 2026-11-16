@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
     page: null,
+    summary: 'On phones, the sliders button on Team View and Location View opens a filter sheet.',
+    changes: [
+      'Team View: start date, team, and sort (ascending or descending by team order, name or rank).',
+      'Location View: date and location. Posts keep the location’s setup order, so there is no sort.',
+      'Changes apply on Done. Cancel or the handle keeps the previous filters.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    page: null,
     summary: 'The date buttons on Team View, Location View, Calendar and Approvals open a date picker.',
     changes: [
       'Team View and Location View: one to three weeks pick a start week, and the whole range highlights as you hover. One month picks a month.',

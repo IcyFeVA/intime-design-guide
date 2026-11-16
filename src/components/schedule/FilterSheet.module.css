@@ -1,0 +1,62 @@
+/* Mantine leaves `left` unset. Inside the phone frame that would place the sheet where it sits in the markup. */
+.inner {
+  left: 0;
+}
+
+.content {
+  height: auto;
+  max-height: 92%;
+  border-radius: 16px 16px 0 0;
+  background: var(--background-body-alt);
+}
+
+.header {
+  padding: 12px 24px 4px;
+  background: var(--background-body-alt);
+}
+
+.title {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.body {
+  padding: 12px 24px 32px;
+}
+
+.handle {
+  align-self: center;
+  width: 40px;
+  height: 5px;
+  margin-bottom: 14px;
+  border-radius: 3px;
+  background: var(--border-default);
+}
+
+.handle:hover {
+  background: var(--text-dimmed);
+}
+
+.label {
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.groupLabel {
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--background-default);
+}
+
+.card[data-checked] {
+  border-color: var(--text-primary-default);
+}

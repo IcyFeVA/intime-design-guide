@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Anchor, Group, Menu, Stack, Table, Text } from '@mantine/core'
-import { ArrowUpDown, Check } from 'lucide-react'
+import { Anchor, Group, Stack, Table, Text } from '@mantine/core'
+import { ArrowUpDown } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
@@ -13,6 +13,7 @@ import MobileSchedule from '../../components/schedule/MobileSchedule'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
+import { FilterSheet, type MobileFilters, type SortDirection } from '../../components/schedule/FilterSheet'
 import { teamSections } from '../../components/schedule/sections'
 import { EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
@@ -21,7 +22,7 @@ import { DayDetailsModal } from '../../components/day-details/DayDetails'
 import { chipDayEvents } from '../../components/day-details/resolve'
 import type { CalendarEvent } from '../../components/calendar/events'
 import {
-  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleRow,
+  MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleMember, type ScheduleRow,
   type ScheduleSort,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
@@ -33,12 +34,13 @@ const sortOptions: { key: ScheduleSort; label: string }[] = [
   { key: 'rank', label: 'Rank' },
 ]
 
-function filterGroups(unitKey: string, query: string, sort: ScheduleSort): ScheduleGroup[] {
+function filterGroups(unitKey: string, query: string, sort: ScheduleSort, direction: SortDirection = 'asc'): ScheduleGroup[] {
   const unit = scheduleUnits.find((item) => item.key === unitKey) ?? scheduleUnits[0]
   const q = query.trim().toLowerCase()
   return unit.groups.map((group) => ({
     ...group,
-    members: sortMembers(group.members.filter((member) => !q || `${member.name} ${member.initials} ${member.rank}`.toLowerCase().includes(q)), sort),
+    members: (direction === 'desc' ? (members: ScheduleMember[]) => [...members].reverse() : (members: ScheduleMember[]) => members)(
+      sortMembers(group.members.filter((member) => !q || `${member.name} ${member.initials} ${member.rank}`.toLowerCase().includes(q)), sort)),
   }))
 }
 
@@ -143,10 +145,15 @@ function MobileDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [unit, setUnit] = useState(scheduleUnits[0].key)
   const [sort, setSort] = useState<ScheduleSort>('team')
+  const [direction, setDirection] = useState<SortDirection>('asc')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
   const details = useScheduleDetails('mobile')
-  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team'); details.close() }
+  const reset = () => { setMode('week'); setAnchor(MOCK_TODAY); setUnit(scheduleUnits[0].key); setSort('team'); setDirection('asc'); setFiltersOpen(false); details.close() }
+  const applyFilters = (value: MobileFilters<ScheduleSort>) => {
+    setAnchor(value.anchor); setUnit(value.scope); setSort(value.sort ?? 'team'); setDirection(value.direction ?? 'asc')
+  }
 
   return (
     <Preview flush title="Team View, mobile">
@@ -157,27 +164,19 @@ function MobileDemo() {
         onStep={step}
         mode={mode}
         onModeChange={setMode}
-        filters={
-          <>
-            <Menu.Label>Team</Menu.Label>
-            {scheduleUnits.map((item) => <Menu.Item key={item.key} onClick={() => setUnit(item.key)} rightSection={item.key === unit ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
-            <Menu.Divider />
-            <Menu.Label>Sort by</Menu.Label>
-            {sortOptions.map((item) => <Menu.Item key={item.key} onClick={() => setSort(item.key)} rightSection={item.key === sort ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
-          </>
-        }
+        onFilters={() => setFiltersOpen(true)}
         notes={
           <>
             <Text size="sm"><strong>Two views only.</strong> Phones show a week or a single day. Longer ranges need the desktop grid.</Text>
             <Text size="sm"><strong>Week.</strong> Each member gets a name row and a strip of seven cells. Codes are left out to save space; fills, tags and the cancelled line stay. Tap a cell to open that day’s details.</Text>
             <Text size="sm"><strong>Day.</strong> Assignments sit on a 0–24 hour timeline, so gaps and overlaps are easy to spot.</Text>
             <Text size="sm"><strong>Coverage per team.</strong> Bodies, hours and time of day come first, above each team’s members.</Text>
-            <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. Team and sort live behind the sliders button.</Text>
+            <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. The sliders button opens a sheet with the start date, team and sort.</Text>
           </>
         }
       >
         <MobileSchedule
-          sections={teamSections(filterGroups(unit, '', sort))}
+          sections={teamSections(filterGroups(unit, '', sort, direction))}
           mode={mode}
           days={days}
           today={MOCK_TODAY}
@@ -187,6 +186,16 @@ function MobileDemo() {
           onChipClick={details.onChipClick}
         />
         {details.overlays}
+        <FilterSheet
+          opened={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          value={{ anchor, scope: unit, sort, direction }}
+          onApply={applyFilters}
+          mode={mode}
+          scopeLabel="Team"
+          scopeOptions={scheduleUnits}
+          sortOptions={sortOptions}
+        />
       </MobileDemoFrame>
     </Preview>
   )

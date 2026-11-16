@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Anchor, Menu, Notification, Stack, Table, Text } from '@mantine/core'
-import { Check } from 'lucide-react'
+import { Anchor, Notification, Stack, Table, Text } from '@mantine/core'
 import { Link } from 'react-router'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -13,6 +12,7 @@ import ShiftChip from '../../components/schedule/ShiftChip'
 import LocationPath from '../../components/schedule/LocationPath'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
+import { FilterSheet } from '../../components/schedule/FilterSheet'
 import { locationPeopleSections, locationSections, postTime } from '../../components/schedule/sections'
 import { MOCK_TODAY, formatFullDate, formatRange, rangeDays, type Chip } from '../../components/schedule/data'
 import { fullName, locationSites, personForChip, scheduleLocations, type ScheduleLocation } from '../../components/schedule/locations'
@@ -125,11 +125,12 @@ function MobileDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [site, setSite] = useState('all')
   const [dismissed, setDismissed] = useState<number[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const days = mode === 'week' ? rangeDays('week', anchor) : [anchor]
   const locations = locationsForSite(site)
   const step = (direction: 1 | -1) => setAnchor((value) => value + direction * (mode === 'week' ? 7 : 1))
   const coverage = useCoverageDrawer('mobile')
-  const reset = () => { setMode('day'); setAnchor(MOCK_TODAY); setSite('all'); setDismissed([]); coverage.close() }
+  const reset = () => { setMode('day'); setAnchor(MOCK_TODAY); setSite('all'); setDismissed([]); setFiltersOpen(false); coverage.close() }
   const shortfall = mode === 'day' && !dismissed.includes(anchor) ? worstShortfall(locations, anchor) : null
 
   return (
@@ -141,19 +142,14 @@ function MobileDemo() {
         onStep={step}
         mode={mode}
         onModeChange={setMode}
-        filters={
-          <>
-            <Menu.Label>Location</Menu.Label>
-            {locationSites.map((item) => <Menu.Item key={item.key} onClick={() => setSite(item.key)} rightSection={item.key === site ? <Check size={14} /> : null}>{item.label}</Menu.Item>)}
-          </>
-        }
+        onFilters={() => setFiltersOpen(true)}
         overlay={shortfall && <CoverageAlert {...shortfall} day={anchor} onClose={() => setDismissed((value) => [...value, anchor])} />}
         notes={
           <>
             <Text size="sm"><strong>Week.</strong> Each post gets a label row (post and time) and one strip per position. Empty cells are open positions.</Text>
             <Text size="sm"><strong>Day.</strong> Rows are the people on duty at each location, with their posts on a 0–24 hour timeline. Locations with nobody on duty keep their header, so the list does not jump around.</Text>
             <Text size="sm"><strong>Coverage alert.</strong> When a location is below target on the shown day, an alert names it and the shortfall. Dismissing it hides it for that day.</Text>
-            <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. The location filter lives behind the sliders button.</Text>
+            <Text size="sm"><strong>Swipe</strong> left or right to move a week or a day. The sliders button opens a sheet with the date and location.</Text>
           </>
         }
       >
@@ -167,6 +163,15 @@ function MobileDemo() {
           onCoverageClick={coverage.onCoverageClick}
         />
         {coverage.drawer}
+        <FilterSheet
+          opened={filtersOpen}
+          onClose={() => setFiltersOpen(false)}
+          value={{ anchor, scope: site }}
+          onApply={(value) => { setAnchor(value.anchor); setSite(value.scope) }}
+          mode={mode}
+          scopeLabel="Location"
+          scopeOptions={locationSites}
+        />
       </MobileDemoFrame>
     </Preview>
   )

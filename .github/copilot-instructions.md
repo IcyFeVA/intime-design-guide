@@ -15,7 +15,7 @@
 
 ## UI Conventions
 - Keep the Mantine core, dates and spotlight stylesheets imported in `src/main.tsx`, and keep the app wrapped in `MantineProvider` and `DatesProvider` (weeks start on Monday). The default scheme is dark.
-- Date buttons open `PeriodPicker` (month, day or a block of days) or `RangePicker` (start and end day) from `src/components/date-picker/DatePickers.tsx`.
+- Date buttons open `PeriodPicker` (month, day or a block of days) or `RangePicker` (start and end day) from `src/components/date-picker/DatePickers.tsx`. On phones, the schedule's sliders button opens `FilterSheet` (`src/components/schedule/FilterSheet.tsx`).
 - Prefer Mantine components and theme tokens over hand-built equivalents.
 - Use CSS variables (`--intime-surface`, `--intime-surface-raised`, `--intime-border`, `--mantine-color-*`) so both color schemes work.
 - Show shift states with an icon and a label, never color alone.

@@ -183,18 +183,19 @@ export function CoWorkerSearch({ value, onChange }: { value: string; onChange: (
 /* ------------------------------------------------------------------ */
 
 /**
- * Phone mock for the mobile demos: status bar, header, title with view tabs, Week/Day switch and a filter menu.
+ * Phone mock for the mobile demos: status bar, header, title with view tabs, Week/Day switch and a filters button.
+ * The filters button calls `onFilters`; render the `FilterSheet` in `children` so it opens inside the phone.
  * Includes the demo bar (swipe buttons, status, Reset demo) and notes beside the phone.
  */
-export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeChange, filters, overlay, notes, children }: {
+export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeChange, onFilters, overlay, notes, children }: {
   view: ScheduleView
   status: ReactNode
   onReset: () => void
   onStep: (direction: 1 | -1) => void
   mode: 'week' | 'day'
   onModeChange: (mode: 'week' | 'day') => void
-  /** Content of the filter menu (Menu.Label / Menu.Item) */
-  filters: ReactNode
+  /** Opens the filter sheet */
+  onFilters: () => void
   /** Pinned to the bottom of the screen, e.g. a coverage alert */
   overlay?: ReactNode
   notes: ReactNode
@@ -219,12 +220,9 @@ export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeCha
                     { value: 'day', label: <Tooltip label="Day"><span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span></Tooltip> },
                   ]}
                 />
-                <Menu position="bottom-end" offset={4} withinPortal={false}>
-                  <Menu.Target>
-                    <Tooltip label="Filters"><ActionIcon variant="default" size={38} aria-label="Filters"><SlidersHorizontal size={18} /></ActionIcon></Tooltip>
-                  </Menu.Target>
-                  <Menu.Dropdown>{filters}</Menu.Dropdown>
-                </Menu>
+                <Tooltip label="Filters">
+                  <ActionIcon variant="default" size={38} aria-label="Filters" aria-haspopup="dialog" onClick={onFilters}><SlidersHorizontal size={18} /></ActionIcon>
+                </Tooltip>
               </Group>
             </Group>
           </div>
