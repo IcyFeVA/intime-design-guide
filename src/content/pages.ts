@@ -4,10 +4,12 @@ import {
   LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
+import { isHiddenSection } from './flags'
 
 export const pageGroups: PageGroup[] = ['Getting started', 'Foundations', 'Components', 'Patterns', 'Resources']
 
-const s = (...items: [string, string][]) => items.map(([id, title]) => ({ id, title }))
+const s = (...items: [string, string][]) =>
+  items.filter(([id]) => !isHiddenSection(id)).map(([id, title]) => ({ id, title }))
 
 /** Single registry that drives the sidebar, search, TOC, overview cards and prev/next links. */
 export const pages: PageDef[] = [

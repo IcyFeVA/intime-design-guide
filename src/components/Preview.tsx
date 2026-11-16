@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Button, Collapse, Group, Text } from '@mantine/core'
 import { Code2 } from 'lucide-react'
 import CodeBlock from './CodeBlock'
+import { SHOW_CODE } from '../content/flags'
 
 interface PreviewProps {
   children: ReactNode
@@ -16,8 +17,9 @@ interface PreviewProps {
 }
 
 /** Framed live demo area with optional code toggle. */
-export default function Preview({ children, title, code, align = 'center', flush = false }: PreviewProps) {
+export default function Preview({ children, title, code: codeProp, align = 'center', flush = false }: PreviewProps) {
   const [showCode, setShowCode] = useState(false)
+  const code = SHOW_CODE ? codeProp : undefined
 
   return (
     <div className="preview">

@@ -32,6 +32,10 @@ Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 
 
 Typical section set for a component/pattern page: live demos, then `guidelines` (DoDont), then `figma` (Figma reference). Look at `src/pages/patterns/Navigation.tsx` as the most complete example.
 
+**Code is hidden for now.** `SHOW_CODE = false` in `src/content/flags.ts` hides every section whose id is in `CODE_SECTION_IDS` (`component` = "Using the components", `usage` = "Usage in code") from the page, TOC and search, and hides the `Preview` "Show code" toggle. Keep writing these sections and `code` props as usual (use those ids for developer-facing sections) so they come back when the flag is turned on. Don't remove them or add other visible code UI.
+
+**Figma references are hidden for now.** `SHOW_FIGMA = false` in the same file hides sections with ids in `FIGMA_SECTION_IDS` (`figma` = "Figma reference") the same way. Keep adding `figma` sections and screenshots as usual (checklist step 6); they come back when the flag is on.
+
 ## Status lifecycle
 
 `TokenStatus = 'draft' | 'review' | 'confirmed'` (`src/tokens/types.ts`), shown as Draft / Needs review / Confirmed. There is no "approved". When the user says a page is approved, set the page (and its tokens) to `confirmed` **and add a changelog entry** at the top of `src/content/changelog.ts` (`page` is the page path, or `null` for several pages at once). Do both in the same change, without being asked. Pages start as `draft` unless matched to a Figma frame.

@@ -3,6 +3,7 @@ import { ActionIcon, CopyButton, Group, Stack, Text, Title, Tooltip } from '@man
 import { Check, Link2 } from 'lucide-react'
 import { useLocation } from 'react-router'
 import { absoluteSectionUrl } from '../lib/links'
+import { isHiddenSection } from '../content/flags'
 
 interface SectionProps {
   /** Must match a section id in `src/content/pages.ts` for TOC + search */
@@ -16,6 +17,8 @@ interface SectionProps {
 
 export default function Section({ id, title, description, children, size = 'default' }: SectionProps) {
   const { pathname } = useLocation()
+
+  if (isHiddenSection(id)) return null
 
   return (
     <section id={id} data-section data-size={size} className="doc-section" aria-labelledby={`${id}-title`}>

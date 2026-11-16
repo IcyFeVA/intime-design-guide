@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-16',
+    page: null,
+    summary: 'Code and Figma references are hidden across the guide for now.',
+    changes: [
+      'The "Using the components" and "Usage in code" sections and the "Show code" toggles are hidden. They can be turned back on with one flag.',
+      'The "Figma reference" sections are hidden. They have their own flag.',
+    ],
+  },
+  {
     date: '2026-11-13',
     page: '/patterns/calendar',
     summary: 'The map button toggles the legend, on desktop and on the phone.',

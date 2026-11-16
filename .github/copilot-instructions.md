@@ -8,6 +8,8 @@
 ## Content Model
 - Token values live only in `src/tokens/*`. `src/theme.ts` derives the Mantine theme from them.
 - `src/content/pages.ts` registers every page and its sections. Section ids must match the `<Section id>` values on the page.
+- Code is hidden for now: `SHOW_CODE = false` in `src/content/flags.ts` hides sections with ids in `CODE_SECTION_IDS` (`component` "Using the components", `usage` "Usage in code") from the page, TOC and search, and hides the `Preview` "Show code" toggle. Keep writing them with those ids so they return when the flag is on.
+- Figma references are hidden for now: `SHOW_FIGMA = false` in `src/content/flags.ts` hides sections with ids in `FIGMA_SECTION_IDS` (`figma` "Figma reference") the same way. Keep adding them as usual.
 - Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry. The same applies when the user approves a page: set the page and its tokens to `confirmed` and add the changelog entry in the same change, without being asked.
 
 ## UI Conventions
