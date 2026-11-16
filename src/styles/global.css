@@ -116,6 +116,18 @@ time {
   padding: 40px clamp(16px, 4vw, 48px) 64px;
 }
 
+/* Lets wide demos measure the main column (between the sidebar and the TOC). */
+#main-content {
+  container-type: inline-size;
+}
+
+/* Breaks a demo out of the 1000px page column: as wide as the main column allows, up to 1920px. */
+.page-wide {
+  --page-wide-width: max(100%, min(1920px, 100cqw - 48px));
+  width: var(--page-wide-width);
+  margin-inline: calc((100% - var(--page-wide-width)) / 2);
+}
+
 .page-header {
   padding-bottom: 32px;
   margin-bottom: 40px;

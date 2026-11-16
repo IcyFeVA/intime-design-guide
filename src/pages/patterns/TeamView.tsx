@@ -239,7 +239,7 @@ export default function TeamView() {
       <PageHeader />
 
       <Section id="desktop" title="Desktop" description="Members down the side, days across. Pick a team and a range, then step through time. Names and the date row stay in place while the grid scrolls.">
-        <DesktopDemo />
+        <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
           <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team starts with its coverage.</Text>
           <Text size="sm">A member with more than one cell on a day gets an extra row without a name, on a lighter background.</Text>

@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
     page: null,
+    summary: 'The desktop demos on Team View, Location View and Calendar use the full width of the page, up to 1920px.',
+  },
+  {
+    date: '2026-11-16',
+    page: null,
     summary: 'Code and Figma references are hidden across the guide for now.',
     changes: [
       'The "Using the components" and "Usage in code" sections and the "Show code" toggles are hidden. They can be turned back on with one flag.',

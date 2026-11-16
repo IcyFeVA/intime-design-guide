@@ -197,7 +197,7 @@ export default function LocationView() {
       <PageHeader />
 
       <Section id="desktop" title="Desktop" description="Posts down the side, days across, grouped by location. Each cell shows who holds the post that day. Pick a location and a range, or search for a co-worker.">
-        <DesktopDemo />
+        <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
           <Text size="sm">Location View is the second tab of Team View. It shares the grid, the ranges, the period lines and the today header; see <Anchor component={Link} to="/patterns/team-view?section=ranges">Team View date ranges</Anchor>.</Text>
           <Text size="sm">Searching dims everyone else and hides posts the person is not on in the visible range.</Text>

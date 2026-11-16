@@ -245,7 +245,7 @@ export default function Calendar() {
       <PageHeader />
 
       <Section id="desktop" title="Desktop" description="An employee’s own calendar: shifts, overtime, leave, tasks, holidays and open sign-ups. Pick a view, then step through time.">
-        <DesktopDemo />
+        <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
           <Text size="sm">Click any item to open its details. Point at a day and press + to add a task there, or use Add for today.</Text>
           <Text size="sm">Tasks you added yourself open in the edit form. Everything else opens read-only.</Text>
