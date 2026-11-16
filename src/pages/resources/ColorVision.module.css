@@ -11,6 +11,7 @@
   --schedule-over-bg: color-mix(in srgb, var(--cv-over) 16%, transparent);
   --schedule-met-text: var(--cv-met);
   --schedule-met-bg: color-mix(in srgb, var(--cv-met) 12%, transparent);
+  --schedule-hatch: var(--cv-hatch);
   --calendar-task: transparent;
 }
 
@@ -153,11 +154,11 @@
 }
 
 .pattern[data-kind='leave'] {
-  background: radial-gradient(var(--cv-pattern) 1.3px, transparent 1.7px) 0 0 / 7px 7px;
+  background: radial-gradient(var(--cv-pattern) 1.2px, transparent 1.6px) 0 0 / 6px 6px;
 }
 
 .pattern[data-kind='overtime'] {
-  background: repeating-linear-gradient(0deg, var(--cv-pattern) 0 1.5px, transparent 1.5px 6px);
+  background: repeating-linear-gradient(0deg, var(--cv-pattern) 0 1.5px, transparent 1.5px 7px);
 }
 
 .pattern[data-half='a'] { clip-path: polygon(0 0, 0 100%, 100% 100%); }
@@ -167,7 +168,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px);
+  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 1.5px, transparent 1.5px 8px);
 }
 
 .segment {
@@ -189,6 +190,21 @@
 
 .chip:not([data-tagged]) .segment {
   padding-top: 0;
+}
+
+/* Halo in the fill color, so patterns stop short of the letters. */
+.segment {
+  --halo: var(--chip-a);
+}
+
+.segment[data-last],
+.tags {
+  --halo: var(--chip-b);
+}
+
+.code,
+.tags {
+  text-shadow: 0 0 2px var(--halo), 0 0 3px var(--halo), 0 0 5px var(--halo);
 }
 
 .code {
@@ -377,9 +393,20 @@
   text-decoration: line-through;
 }
 
+/* Halo in the fill color, so patterns stop short of the letters. */
+.event:not([data-pending]) .eventText,
+.event:not([data-pending]) .eventTag {
+  text-shadow: 0 0 2px var(--event-fill), 0 0 3px var(--event-fill), 0 0 5px var(--event-fill);
+}
+
 .eventIcon {
   flex: none;
   margin-top: 1px;
+}
+
+.event:not([data-pending]) .eventText,
+.event:not([data-pending]) .eventTag {
+  text-shadow: 0 0 2px var(--event-fill), 0 0 3px var(--event-fill), 0 0 5px var(--event-fill);
 }
 
 .eventText {
@@ -402,7 +429,7 @@
   flex: none;
   display: inline-flex;
   align-items: flex-start;
-  gap: 2px;
+  gap: 6px;
   font-size: 11px;
   font-weight: 500;
 }

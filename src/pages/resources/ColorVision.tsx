@@ -78,7 +78,7 @@ function Chip({ cell, tags = true, patterns = true }: { cell: Cell; tags?: boole
   const tagged = tags && (cell.ot || cell.ou)
   return (
     <div className={classes.chip} data-a={a} data-b={b} data-tagged={tagged || undefined}>
-      {patterns && <Patterns kinds={cell.kinds} />}
+      {patterns && !cell.ou && <Patterns kinds={cell.kinds} />}
       {cell.ou && <span className={classes.hatch} />}
       {cell.codes.map((code, index) => (
         <span key={code} className={classes.segment} data-last={index === cell.codes.length - 1 || undefined}>
@@ -107,7 +107,7 @@ function Coverage({ level, label, children, icon = true }: { level: Level; label
 function Swatch({ kinds, ou }: { kinds: Cell['kinds']; ou?: boolean }) {
   return (
     <span className={`${classes.chip} ${classes.legendSwatch}`} data-a={kinds[0]} data-b={kinds[1]}>
-      <Patterns kinds={kinds} />
+      {!ou && <Patterns kinds={kinds} />}
       {ou && <span className={classes.hatch} />}
     </span>
   )
@@ -221,7 +221,7 @@ function EventMock({ event }: { event: MockEvent }) {
   const kinds: Cell['kinds'] = [event.kind === 'task' ? 'regular' : event.kind]
   return (
     <div className={classes.event} data-kind={event.kind} data-pending={event.pending || undefined} data-cancelled={event.cancelled || undefined}>
-      {!event.pending && event.kind !== 'task' && <Patterns kinds={kinds} />}
+      {!event.pending && !event.ou && !event.cancelled && event.kind !== 'task' && <Patterns kinds={kinds} />}
       {event.ou && <span className={classes.hatch} />}
       {event.kind === 'task' && <SquareCheck size={15} className={classes.eventIcon} aria-hidden="true" />}
       <span className={classes.eventText}>
@@ -230,8 +230,8 @@ function EventMock({ event }: { event: MockEvent }) {
       </span>
       {(event.ot || event.ou || event.reminder) && (
         <span className={classes.eventTag} aria-hidden="true">
-          {event.ou && <><ArrowUpRight size={12} strokeWidth={2} />OU</>}
-          {event.ot && <><Clock3 size={12} strokeWidth={2} />OT</>}
+          {event.ou && <span className={classes.tag}><ArrowUpRight size={12} strokeWidth={2} />OU</span>}
+          {event.ot && <span className={classes.tag}><Clock3 size={12} strokeWidth={2} />OT</span>}
           {event.reminder && <AlarmClock size={14} />}
         </span>
       )}
@@ -375,17 +375,38 @@ const chipCss = `/* Pattern layers sit between the fill and the text, one per ha
   pointer-events: none;
 }
 .pattern[data-kind='leave'] {
-  background: radial-gradient(var(--cv-pattern) 1.3px, transparent 1.7px) 0 0 / 7px 7px;
+  background: radial-gradient(var(--cv-pattern) 1.2px, transparent 1.6px) 0 0 / 6px 6px;
 }
 .pattern[data-kind='overtime'] {
-  background: repeating-linear-gradient(0deg, var(--cv-pattern) 0 1.5px, transparent 1.5px 6px);
+  background: repeating-linear-gradient(0deg, var(--cv-pattern) 0 1.5px, transparent 1.5px 7px);
 }
 /* Split cell: the fill runs "to top right", so the line joins top-left and bottom-right. */
 .pattern[data-half='a'] { clip-path: polygon(0 0, 0 100%, 100% 100%); }
 .pattern[data-half='b'] { clip-path: polygon(0 0, 100% 0, 100% 100%); }
 
-/* Only with the setting on. Regular shifts never get a pattern. */
-:root:not([data-fill-patterns='on']) .pattern { display: none; }
+/* Out-of-unit stripes: same weight as the dots and lines. */
+:root[data-color-vision='safe'] .chip[data-out-of-unit]::before {
+  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 1.5px, transparent 1.5px 8px);
+}
+
+/* Only with the setting on. Regular shifts never get a pattern,
+   and out-of-unit stripes replace the dots or lines: one pattern per cell. */
+:root:not([data-fill-patterns='on']) .pattern,
+.chip[data-out-of-unit] .pattern { display: none; }
+
+/* A halo in the fill color keeps the patterns away from the letters.
+   Split cell: the first code sits on half a, the last on half b. */
+:root[data-fill-patterns='on'] .chip .segment { --halo: var(--chip-a); }
+:root[data-fill-patterns='on'] .chip .segment:last-child,
+:root[data-fill-patterns='on'] .chip .tags { --halo: var(--chip-b); }
+:root[data-fill-patterns='on'] .chip :is(.code, .tags),
+:root[data-fill-patterns='on'] .event:not([data-pending]) :is(.eventText, .eventTag) {
+  text-shadow: 0 0 2px var(--halo, var(--event-fill)), 0 0 3px var(--halo, var(--event-fill)),
+    0 0 5px var(--halo, var(--event-fill));
+}
+
+/* Cancelled events: no pattern, so the line through the text stays clear. */
+.event[data-cancelled] .pattern { display: none; }
 
 /* Calendar tasks: an outline, so they never match a gray overtime fill. */
 .event[data-kind='task'] {
@@ -446,7 +467,8 @@ const cues: { meaning: string; now: string; always: string; patterns: string }[]
   { meaning: 'Leave', now: 'Yellow fill and the code (Sick, PTO, Vac)', always: 'Code', patterns: 'Yellow with dots' },
   { meaning: 'Overtime', now: 'Red fill and the OT tag', always: 'OT tag, in the calendar too', patterns: 'Graphite with lines' },
   { meaning: 'Split cell (two kinds)', now: 'Two colors on a diagonal', always: 'Both codes', patterns: 'Each half gets its own pattern' },
-  { meaning: 'Out of unit', now: 'Stripes and the OU tag', always: 'Stripes and the OU tag, in the calendar too', patterns: 'No change' },
+  { meaning: 'Out of unit', now: 'Stripes and the OU tag', always: 'Stripes and the OU tag, in the calendar too', patterns: 'Text-colored stripes, so they show on the blue fill. They replace the dots or lines: never two patterns on one cell.' },
+  { meaning: 'Cancelled', now: 'Struck through', always: 'No change', patterns: 'No pattern, so the line through the text stays clear' },
   { meaning: 'Calendar task', now: 'Gray fill', always: 'Checkbox icon and an outline', patterns: 'No fill' },
   { meaning: 'Pending', now: 'Dashed outline, stripes and “Pending:”', always: 'No change', patterns: 'No change' },
   { meaning: 'Today', now: 'Blue tint', always: 'A bar under the header and a “Today” label. In the calendar, a ring.', patterns: 'No change' },

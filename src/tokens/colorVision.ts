@@ -27,7 +27,7 @@ export const colorVisionSettings: ColorVisionSetting[] = [
     label: 'Patterns on shift fills',
     attribute: 'data-fill-patterns="on"',
     defaultValue: 'Off. Turns on with the setting above.',
-    effect: 'Adds dots to leave and lines to overtime, in both halves of a split cell. Out-of-unit stripes stay as they are.',
+    effect: 'Adds dots to leave and lines to overtime, in both halves of a split cell. Out-of-unit stripes switch to the text color and replace the dots or lines. A halo in the fill color keeps the codes readable.',
   },
 ]
 
@@ -60,7 +60,8 @@ export const colorVisionTokens: ColorVisionToken[] = [
   t('--cv-under', '#f08c3a', 'Coverage below target: orange.', '#c25400', '--schedule-under-text'),
   t('--cv-over', '#5aa9f0', 'Coverage above target: blue.', '#1a6fc4', '--schedule-over-text'),
   t('--cv-met', 'var(--text-dimmed)', 'Coverage on target: neutral, so only the gaps draw the eye.', undefined, '--schedule-met-text'),
-  t('--cv-pattern', 'color-mix(in srgb, var(--schedule-chip-text) 24%, transparent)', 'Dots and lines laid over a shift fill.'),
+  t('--cv-hatch', 'color-mix(in srgb, var(--schedule-chip-text) 30%, transparent)', 'Out-of-unit stripes. Text-colored, so they show on blue as well as on the other fills.', undefined, '--schedule-hatch'),
+  t('--cv-pattern', 'color-mix(in srgb, var(--schedule-chip-text) 30%, transparent)', 'Dots and lines laid over a shift fill. Same strength as the out-of-unit stripes.'),
 ]
 
 export const colorVisionCssVariables: Record<string, string> = Object.fromEntries(

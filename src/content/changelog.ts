@@ -12,6 +12,23 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
     page: '/resources/color-vision',
+    summary: 'Patterns are quieter and no longer cover the text.',
+    changes: [
+      'Dots, lines and out-of-unit stripes now have the same strength, so overtime lines no longer look fainter.',
+      'A halo in the fill color keeps codes and titles readable on top of a pattern.',
+      'One pattern per cell: out-of-unit stripes replace the dots or lines.',
+      'Cancelled events have no pattern, so the line through the text stays clear.',
+      'OU and OT tags in the calendar have space between them.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    page: '/resources/color-vision',
+    summary: 'Out-of-unit stripes use a tint of the text color with color-blind friendly colors on, so they show on the blue regular fill.',
+  },
+  {
+    date: '2026-11-16',
+    page: '/resources/color-vision',
     summary: 'Color Vision approved.',
   },
   {
