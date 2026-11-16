@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
+  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Eye, FileClock, FormInput, Layers,
   LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -170,6 +170,13 @@ export const pages: PageDef[] = [
     keywords: ['a11y', 'wcag', 'contrast', 'focus', 'keyboard', 'screen reader', 'touch target'],
     sections: s(['contrast', 'Contrast'], ['focus', 'Focus states'], ['keyboard', 'Keyboard'], ['color-independence', 'Beyond color'], ['touch-targets', 'Touch targets']),
     component: lazy(() => import('../pages/resources/AccessibilityPage')),
+  },
+  {
+    path: '/resources/color-vision', title: 'Color Vision', group: 'Resources', icon: Eye, status: 'confirmed', updated: '2026-11-16',
+    description: 'How Team View, Location View and Calendar work for people who are color blind.',
+    keywords: ['color blind', 'colour blind', 'cvd', 'deuteranopia', 'protanopia', 'patterns', 'agency colors', 'wcag 1.4.1'],
+    sections: s(['approach', 'Approach'], ['settings', 'Settings'], ['agency-colors', 'Agency colors'], ['cues', 'Cues beyond color'], ['team-view', 'Team View'], ['calendar', 'Calendar'], ['simulation', 'Side by side'], ['developers', 'For developers'], ['guidelines', 'Guidelines']),
+    component: lazy(() => import('../pages/resources/ColorVision')),
   },
   {
     path: '/resources/tokens', title: 'Tokens & Code', group: 'Resources', icon: Code, status: 'draft', updated: '2026-11-12',

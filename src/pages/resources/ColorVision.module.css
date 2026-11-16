@@ -1,0 +1,451 @@
+/* ---------- Color-blind friendly scope ---------- */
+
+/* Same overrides the product applies on <html data-color-vision="safe">. */
+.safe {
+  --schedule-regular: var(--cv-regular);
+  --schedule-leave: var(--cv-leave);
+  --schedule-overtime: var(--cv-overtime);
+  --schedule-under-text: var(--cv-under);
+  --schedule-under-bg: color-mix(in srgb, var(--cv-under) 18%, transparent);
+  --schedule-over-text: var(--cv-over);
+  --schedule-over-bg: color-mix(in srgb, var(--cv-over) 16%, transparent);
+  --schedule-met-text: var(--cv-met);
+  --schedule-met-bg: color-mix(in srgb, var(--cv-met) 12%, transparent);
+  --calendar-task: transparent;
+}
+
+/* ---------- Team View mock ---------- */
+
+.scroller {
+  overflow-x: auto;
+  background: var(--mantine-color-body);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 200px repeat(7, minmax(120px, 1fr));
+  min-width: min-content;
+}
+
+.corner,
+.dayHeader {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.corner {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text-dimmed);
+}
+
+.dayHeader {
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  font-weight: 600;
+  color: var(--text-default);
+}
+
+.dayHeader[data-today] {
+  color: var(--schedule-today-text);
+  background: var(--schedule-today-bg);
+  box-shadow: inset 0 -3px 0 var(--schedule-today-text);
+}
+
+.todayLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.groupHeader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-default);
+  background: var(--schedule-group-bg);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: var(--schedule-row-height);
+  padding: 6px 12px 6px 18px;
+  border-bottom: 1px solid var(--border-default);
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.initials {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  background: var(--background-default);
+  color: var(--text-default);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: var(--schedule-row-height);
+  padding: 6px 7px;
+  border-bottom: 1px solid var(--border-default);
+  border-inline-start: 1px solid color-mix(in srgb, var(--border-default) 60%, transparent);
+}
+
+.cell[data-coverage] {
+  min-height: 34px;
+  padding-block: 4px;
+}
+
+.label[data-coverage] {
+  min-height: 34px;
+  padding-inline-start: 24px;
+  font-size: 14px;
+}
+
+/* ---------- Shift chip ---------- */
+
+.chip {
+  --chip-a: var(--schedule-regular);
+  --chip-b: var(--chip-a);
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: var(--schedule-chip-height);
+  overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--schedule-chip-text);
+  background: linear-gradient(to top right, var(--chip-a) 50%, var(--chip-b) 50%);
+}
+
+.chip[data-a='leave'] { --chip-a: var(--schedule-leave); }
+.chip[data-a='overtime'] { --chip-a: var(--schedule-overtime); }
+.chip[data-b='regular'] { --chip-b: var(--schedule-regular); }
+.chip[data-b='leave'] { --chip-b: var(--schedule-leave); }
+.chip[data-b='overtime'] { --chip-b: var(--schedule-overtime); }
+
+/* Pattern layers: one per half. A split cell clips each to its triangle. */
+.pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pattern[data-kind='leave'] {
+  background: radial-gradient(var(--cv-pattern) 1.3px, transparent 1.7px) 0 0 / 7px 7px;
+}
+
+.pattern[data-kind='overtime'] {
+  background: repeating-linear-gradient(0deg, var(--cv-pattern) 0 1.5px, transparent 1.5px 6px);
+}
+
+.pattern[data-half='a'] { clip-path: polygon(0 0, 0 100%, 100% 100%); }
+.pattern[data-half='b'] { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+
+.hatch {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px);
+}
+
+.segment {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 14px 8px 0;
+}
+
+.segment[data-last] {
+  flex: 1;
+}
+
+.segment + .segment {
+  border-inline-start: 1px solid var(--schedule-chip-divider);
+}
+
+.chip:not([data-tagged]) .segment {
+  padding-top: 0;
+}
+
+.code {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tags {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* ---------- Coverage ---------- */
+
+.coverage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--schedule-met-text);
+  background: var(--schedule-met-bg);
+}
+
+.coverage[data-level='under'] {
+  color: var(--schedule-under-text);
+  background: var(--schedule-under-bg);
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.coverage[data-level='over'] {
+  color: var(--schedule-over-text);
+  background: var(--schedule-over-bg);
+}
+
+.timeOfDay {
+  position: relative;
+  width: 100%;
+  height: 24px;
+  background: var(--schedule-met-bg);
+}
+
+/* Below target: solid outline and stripes. Above target: dashed outline, no fill. */
+.todSegment {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.todSegment[data-level='under'] {
+  color: var(--schedule-under-text);
+  border: 2px solid currentColor;
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, currentColor 45%, transparent) 0 2px, transparent 2px 6px);
+}
+
+.todSegment[data-level='over'] {
+  color: var(--schedule-over-text);
+  border: 2px dashed currentColor;
+}
+
+/* ---------- Legend ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text-dimmed);
+  border-top: 1px solid var(--border-default);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendSwatch {
+  position: relative;
+  width: 28px;
+  height: 18px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-xs);
+}
+
+/* ---------- Calendar mock ---------- */
+
+.month {
+  min-width: 760px;
+}
+
+.monthHead,
+.monthWeek {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(100px, 1fr));
+}
+
+.monthHead > div {
+  padding: 10px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dimmed);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.monthDay {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 132px;
+  padding: 6px;
+  border-bottom: 1px solid var(--border-default);
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.monthDay:last-child {
+  border-inline-end: 0;
+}
+
+.dayNumber {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-default);
+}
+
+.dayNumber[data-today] {
+  color: var(--schedule-today-text);
+  background: var(--schedule-today-bg);
+  box-shadow: inset 0 0 0 2px var(--schedule-today-text);
+}
+
+.event {
+  --event-fill: var(--schedule-regular);
+  position: relative;
+  display: flex;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 8px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--schedule-chip-text);
+  background: var(--event-fill);
+}
+
+.event[data-kind='overtime'] { --event-fill: var(--schedule-overtime); }
+.event[data-kind='leave'] { --event-fill: var(--schedule-leave); }
+.event[data-kind='task'] { --event-fill: var(--calendar-task); }
+
+/* Tasks: outline instead of a fill, so they never match a graphite overtime fill. */
+.event[data-kind='task'] {
+  box-shadow: inset 0 0 0 1px var(--border-default);
+}
+
+.event[data-pending] {
+  background:
+    repeating-linear-gradient(135deg, var(--calendar-pending-stripe) 0 6px, transparent 6px 14px),
+    var(--calendar-pending-bg);
+  outline: 1px dashed var(--calendar-pending-border);
+  outline-offset: -1px;
+}
+
+.event[data-cancelled] .eventText {
+  text-decoration: line-through;
+}
+
+.eventIcon {
+  flex: none;
+  margin-top: 1px;
+}
+
+.eventText {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.eventTitle {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.eventTag {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ---------- Simulation ---------- */
+
+.simGrid {
+  display: grid;
+  grid-template-columns: 160px repeat(3, minmax(220px, 1fr));
+  gap: 12px 16px;
+  align-items: center;
+  min-width: 860px;
+}
+
+.simHead {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+}
+
+.simStrip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.simStrip .chip {
+  height: 32px;
+  font-size: 13px;
+}
+
+.simStrip .segment {
+  padding: 0 8px;
+}
+
+.simStrip .coverage {
+  box-shadow: none;
+}
+
+.svgDefs {
+  position: absolute;
+  width: 0;
+  height: 0;
+}

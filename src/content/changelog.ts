@@ -11,6 +11,22 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
+    page: '/resources/color-vision',
+    summary: 'Color Vision approved.',
+  },
+  {
+    date: '2026-11-16',
+    page: '/resources/color-vision',
+    summary: 'New Color Vision page: how Team View, Location View and Calendar work for people who are color blind.',
+    changes: [
+      'Two user settings on top of all themes: color-blind friendly colors and patterns on shift fills.',
+      'The user’s setting wins over agency colors. Icons, tags and line styles carry the meaning in every case.',
+      'Static Team View and Calendar mocks with the changes applied, and a simulated side-by-side comparison.',
+      'Steps, tokens and suggested CSS for developers. Current pages are unchanged.',
+    ],
+  },
+  {
+    date: '2026-11-16',
     page: null,
     summary: 'On phones, the sliders button on Team View and Location View opens a filter sheet.',
     changes: [

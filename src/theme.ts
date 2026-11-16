@@ -6,6 +6,7 @@ import { radius, shadows, spacing } from './tokens/scales'
 import { navCssVariables } from './tokens/navigation'
 import { scheduleCssVariables, scheduleDarkVariables, scheduleLightVariables } from './tokens/schedule'
 import { calendarCssVariables, calendarDarkVariables, calendarLightVariables } from './tokens/calendar'
+import { colorVisionCssVariables, colorVisionDarkVariables, colorVisionLightVariables } from './tokens/colorVision'
 
 const toRecord = <T extends { name: string; value: string }>(items: T[]) =>
   Object.fromEntries(items.map((item) => [item.name, item.value]))
@@ -79,7 +80,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: { ...navCssVariables, ...scheduleCssVariables, ...calendarCssVariables },
-  light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables, ...calendarLightVariables },
-  dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables, ...calendarDarkVariables },
+  variables: { ...navCssVariables, ...scheduleCssVariables, ...calendarCssVariables, ...colorVisionCssVariables },
+  light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables, ...calendarLightVariables, ...colorVisionLightVariables },
+  dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables, ...calendarDarkVariables, ...colorVisionDarkVariables },
 })
