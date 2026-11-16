@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
+    page: '/patterns/approvals',
+    summary: 'New Approvals page: timesheet, leave, trade and activity approvals on desktop and on a phone.',
+    changes: [
+      'Desktop demo with a list, the open request and an action panel in a Mantine Splitter, so each pane can be resized.',
+      'Pending, approved, rejected and unsubmitted states, required approvals, alerts, multi-select with bulk actions, visibility and sort.',
+      'Phone demo: list, full-screen details and the actions in a bottom sheet.',
+      'New components in src/components/approvals and tokens in src/tokens/approvals.ts. DesktopDemoFrame takes tabs.',
+    ],
+  },
+  {
+    date: '2026-11-16',
     page: null,
     summary: 'The desktop demos on Team View, Location View and Calendar use the full width of the page, up to 1920px.',
   },

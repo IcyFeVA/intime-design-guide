@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, FileClock, FormInput, Layers,
-  LayoutGrid, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
+  LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 import { isHiddenSection } from './flags'
@@ -141,6 +141,13 @@ export const pages: PageDef[] = [
     keywords: ['day view', 'day details', 'modal', 'timeline', 'leave', 'vacation', 'overlap', 'overlapping activity', 'precedence', 'all-day leave', 'on leave', 'replaces', 'shift cell', 'mobile', 'full screen'],
     sections: s(['back-to-back', 'Back-to-back activities'], ['partial-leave', 'Leave on one activity'], ['all-day-leave', 'All-day leave'], ['rules', 'Precedence rules'], ['component', 'Using the component'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/DayDetails')),
+  },
+  {
+    path: '/patterns/approvals', title: 'Approvals', group: 'Patterns', icon: ListCheck, status: 'review', updated: '2026-11-16',
+    description: 'How schedulers approve timesheets, leave, trades and activity: a list, the open request and a resizable action panel, with multi-select and a phone layout.',
+    keywords: ['approvals', 'approve', 'reject', 'clear status', 'timesheet', 'unsubmitted', 'submit', 'leave', 'trade', 'activity', 'hold over', 'overtime', 'multi-select', 'bulk', 'select all', 'required approvals', 'approval level', 'scheduler note', 'alerts', 'prevent', 'warnings', 'payout', 'comp time', 'visibility', 'sort', 'splitter', 'resize', 'panel', 'bottom sheet', 'mobile'],
+    sections: s(['desktop', 'Desktop'], ['types', 'Request types'], ['statuses', 'Statuses and actions'], ['required-approvals', 'Required approvals'], ['visibility', 'Visibility and sort'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/Approvals')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12', hidden: true,

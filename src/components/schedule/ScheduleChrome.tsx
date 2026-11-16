@@ -72,10 +72,12 @@ export function ViewTabs({ active }: { active: ScheduleView }) {
  * App-shell mock for the desktop demos: collapsed nav, top bar, title with view tabs, a toolbar and the grid.
  * Includes the demo bar (status, Full screen, Reset demo).
  */
-export function DesktopDemoFrame({ view, title = 'Team View', actions, nav, status, onReset, toolbar, children }: {
+export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, children }: {
   /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
   view?: ScheduleView
   title?: string
+  /** Other tabs beside the title, e.g. the approval types */
+  tabs?: ReactNode
   /** Right side of the title row, e.g. an Add button */
   actions?: ReactNode
   /** Navigation setup. Defaults to a scheduler on Team View. */
@@ -101,6 +103,7 @@ export function DesktopDemoFrame({ view, title = 'Team View', actions, nav, stat
         <div className={classes.titleRow}>
           <h3 className={classes.title}>{title}</h3>
           {view && <ViewTabs active={view} />}
+          {tabs}
           {actions && <div className={classes.titleActions}>{actions}</div>}
         </div>
         <div className={classes.toolbar}>{toolbar}</div>
