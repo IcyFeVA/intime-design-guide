@@ -12,6 +12,34 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
     page: '/patterns/approvals',
+    summary: 'Approvals approved.',
+  },
+  {
+    date: '2026-11-16',
+    page: '/patterns/approvals',
+    summary: 'Activity and trade approvals follow their frames, and Sort is a dialog.',
+    changes: [
+      'Activity: “Surname · Activity” with the location in the list, and one details list with hours modifier, time bank and banked time. Visibility adds Premium and Time Bank.',
+      'Trades: “Surname ⇄ Surname” with both shifts in the list, sender and receiver cards with their own tags and assets, and a notes thread from both employees and the approvers.',
+      'A warning icon marks activity and trade requests with alerts. Approvers read “Approved · date”, and your own approval is marked “(you)”.',
+      'Sort opens a dialog with ascending or descending and one field. Hidden properties cannot be sorted by. Visibility is kept per tab.',
+      'Tabs are in the order Activity, Leave, Timesheets, Trade.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    page: '/patterns/approvals',
+    summary: 'Leave approvals follow the leave frames.',
+    changes: [
+      'List items read “Type · Surname” and show the rank. Visibility adds Precedence, and the toolbar adds All Leave Types.',
+      'Details: leave request (ID, type, date, hours), employee (unit, branch, rank, precedence), Critical and Warnings alerts, and tracking tags, flat or grouped by label.',
+      'Rejected requests show the rejection reason in red at the top. A note written while rejecting becomes the reason.',
+      'Pending leave offers Approve and Reject, without Clear.',
+    ],
+  },
+  {
+    date: '2026-11-16',
+    page: '/patterns/approvals',
     summary: 'New Approvals page: timesheet, leave, trade and activity approvals on desktop and on a phone.',
     changes: [
       'Desktop demo with a list, the open request and an action panel in a Mantine Splitter, so each pane can be resized.',

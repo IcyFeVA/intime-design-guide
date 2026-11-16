@@ -1,17 +1,22 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import {
-  ActionIcon, Anchor, Button, Checkbox, Drawer, Group, Menu, Modal, Pill, SegmentedControl, Stack, Text, Textarea, TextInput, Tooltip, UnstyledButton,
+  ActionIcon, Alert, Anchor, Button, Checkbox, Drawer, Group, Modal, Pill, Radio, SegmentedControl, Stack, Text, Textarea, TextInput, Tooltip, UnstyledButton,
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
 import {
-  ArrowDownUp, Ban, CalendarDays, Check, ChevronLeft, Circle, CircleCheck, ExternalLink, Eye, Inbox, MapPin, Plus, Search, StickyNote, X,
+  ArrowDownUp, ArrowLeftRight, Award, Ban, CalendarDays, ChevronLeft, ChevronsDown, ChevronsUp, Circle, CircleCheck, ExternalLink, Eye, Inbox, Info, MapPin, Plus,
+  Search, StickyNote, TriangleAlert, X,
 } from 'lucide-react'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import {
-  approvalKinds, approvalProperties, approvalSorts, approvalStatusBadge, type ApprovalKind, type ApprovalProperty, type ApprovalSort,
+  approvalKind, approvalKinds, approvalProperties, approvalSortFields, approvalStatusBadge, type ApprovalKind, type ApprovalProperty, type ApprovalSort,
+  type ApprovalSortField,
 } from '../../tokens/approvals'
-import { approvedCount, openCount, propertyLines, groupRequests, requestHeading, type ApprovalRequest, type Approver } from './data'
+import {
+  CURRENT_USER, approvedCount, groupRequests, hasNotes, openCount, propertyLines, requestHeading, surname,
+  type ApprovalRequest, type Approver, type TagGroup, type TradeSide,
+} from './data'
 import type { ApprovalList, ApprovalsState, StatusFilter } from './useApprovals'
 import classes from './Approvals.module.css'
 
@@ -60,6 +65,8 @@ export function ApprovalFilters({ state }: { state: ApprovalsState }) {
   const [employeeFilter, setEmployeeFilter] = useState('none')
   const [unit, setUnit] = useState('all')
   const [employees, setEmployees] = useState('all')
+  const [leaveType, setLeaveType] = useState('all')
+  const [activityType, setActivityType] = useState('all')
   const previewOnly = (what: string) => state.setHint(`${what} is not filtered in this demo.`)
   return (
     <>
@@ -74,11 +81,21 @@ export function ApprovalFilters({ state }: { state: ApprovalsState }) {
       <Button variant="default" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => state.setHint('The date picker is not part of this demo.')}>
         <span className="tabular">June 1 – June 18, 2026</span>
       </Button>
-      <PickerMenu label="Employee filter" value={employeeFilter} onChange={(value) => { setEmployeeFilter(value); previewOnly('The employee filter') }}
-        options={[{ key: 'none', label: 'Employee Filter' }, { key: 'reports', label: 'My direct reports' }, { key: 'overtime', label: 'Over 40 hours' }]} />
+      {state.kind !== 'trade' && (
+        <PickerMenu label="Employee filter" value={employeeFilter} onChange={(value) => { setEmployeeFilter(value); previewOnly('The employee filter') }}
+          options={[{ key: 'none', label: 'Employee Filter' }, { key: 'reports', label: 'My direct reports' }, { key: 'overtime', label: 'Over 40 hours' }]} />
+      )}
       <PickerMenu label="Status" value={state.status} onChange={state.setStatus} options={statusOptions} />
+      {(state.kind === 'activity' || state.kind === 'trade') && (
+        <PickerMenu label="Activity" value={activityType} onChange={(value) => { setActivityType(value); previewOnly('Activity') }}
+          options={[{ key: 'all', label: 'All Activities' }, { key: 'event', label: 'Special Event' }, { key: 'patrol', label: 'Patrol' }, { key: 'security', label: 'Security' }]} />
+      )}
       <PickerMenu label="Unit" value={unit} onChange={(value) => { setUnit(value); previewOnly('Unit') }}
         options={[{ key: 'all', label: 'All Units' }, { key: 'd4', label: 'Patrol D4' }, { key: 'gate', label: 'Gate Security' }]} />
+      {state.kind === 'leave' && (
+        <PickerMenu label="Leave type" value={leaveType} onChange={(value) => { setLeaveType(value); previewOnly('Leave type') }}
+          options={[{ key: 'all', label: 'All Leave Types' }, { key: 'vacation', label: 'Vacation' }, { key: 'comp', label: 'Comp Time' }, { key: 'sick', label: 'Sick' }]} />
+      )}
       <PickerMenu label="Employees" value={employees} onChange={(value) => { setEmployees(value); previewOnly('Employees') }}
         options={[{ key: 'all', label: 'All Employees' }, { key: 'officers', label: 'Officers' }, { key: 'sergeants', label: 'Sergeants' }]} />
     </>
@@ -111,6 +128,24 @@ export function ApprovalChain({ approvers }: { approvers: Approver[] }) {
   )
 }
 
+/** The request’s heading. Trades show the two surnames with a swap icon between them. */
+export function RequestHeading({ request }: { request: ApprovalRequest }) {
+  if (!request.trade) return <>{request.kind === 'timesheet' && request.list === 'unsubmitted' ? request.employee : requestHeading(request)}</>
+  return (
+    <span className={classes.tradeHeading} aria-label={`${request.trade.sender.name} trades with ${request.trade.receiver.name}`}>
+      {surname(request.trade.sender.name)}<ArrowLeftRight size="0.9em" aria-hidden="true" />{surname(request.trade.receiver.name)}
+    </span>
+  )
+}
+
+function AlertIcon() {
+  return (
+    <Tooltip label="Has alerts">
+      <span className={classes.noteIcon} role="img" aria-label="Has alerts"><TriangleAlert size={16} strokeWidth={1.75} /></span>
+    </Tooltip>
+  )
+}
+
 function NoteIcon() {
   return (
     <Tooltip label="Has an employee note">
@@ -134,8 +169,11 @@ export function ApprovalItem({ request, visible, active, checked, selecting, car
 }) {
   const unsubmitted = request.list === 'unsubmitted'
   const heading = unsubmitted ? request.employee : requestHeading(request)
-  const subtitle = unsubmitted ? request.title : request.when
+  // Leave and activity items show the submitted date instead; trades show both shifts
+  const subtitle = unsubmitted ? request.title : request.kind === 'leave' || request.kind === 'activity' ? undefined : request.when
   const lines = propertyLines(request, visible)
+  const kind = approvalKind(request.kind)
+  const showLocation = request.location && (request.kind === 'activity' || visible.includes('location'))
   return (
     <div className={classes.item} data-active={active || undefined} data-checked={checked || undefined} data-card={card || undefined}>
       {selecting && (
@@ -147,17 +185,22 @@ export function ApprovalItem({ request, visible, active, checked, selecting, car
         aria-current={active ? 'true' : undefined}
         tabIndex={selecting ? -1 : 0}
       >
-        <Text fw={600} className={classes.itemHeading}>{heading}</Text>
-        {subtitle && <Text size="sm" className="tabular">{subtitle}</Text>}
-        {request.location && visible.includes('location') && (
+        <Text fw={600} className={classes.itemHeading}><RequestHeading request={request} /></Text>
+        {subtitle?.split('\n').map((line) => <Text key={line} size="sm" className="tabular">{line}</Text>)}
+        {lines.map((line) => <Text key={line} size="sm" className="tabular">{line}</Text>)}
+        {showLocation && (
           <Group gap={6} wrap="nowrap"><MapPin size={16} strokeWidth={1.75} aria-hidden="true" className={classes.dimIcon} /><Text size="sm">{request.location}</Text></Group>
         )}
-        {lines.map((line) => <Text key={line} size="sm" className="tabular">{line}</Text>)}
+        {kind.showRank && (
+          <Group gap={6} wrap="nowrap" mt={4}><Award size={16} strokeWidth={1.75} aria-hidden="true" className={classes.dimIcon} /><Text size="sm">{request.rank}</Text></Group>
+        )}
       </UnstyledButton>
       <div className={classes.itemSide}>
         {request.status !== 'unsubmitted' && <RequestStatusBadge stateKey={approvalStatusBadge[request.status]} size="sm" />}
         {request.status !== 'unsubmitted' && request.list === 'submitted' && visible.includes('approvalLevel') && <ApprovalChain approvers={request.approvers} />}
-        {request.employeeNote && <NoteIcon />}
+        {(kind.showAlertIcon && request.alerts || hasNotes(request)) && (
+          <Group gap={6} wrap="nowrap">{kind.showAlertIcon && request.alerts && <AlertIcon />}{hasNotes(request) && <NoteIcon />}</Group>
+        )}
       </div>
     </div>
   )
@@ -183,7 +226,7 @@ export function ApprovalListToolbar({ state, wide, compact, onVisibility }: {
           disabled={!state.items.length}
           aria-label={all ? 'Clear selection' : 'Select all'}
         />
-        {count > 0 && <Text size="sm" className="tabular">{count} selected</Text>}
+        {count > 0 ? <Text size="sm" className="tabular">{count} selected</Text> : state.kind !== 'timesheet' && !compact && <Text size="sm">Select all</Text>}
       </Group>
       {state.kind === 'timesheet' && !compact && <ListSwitch state={state} />}
       <Group gap={8} wrap="nowrap" className={classes.listTools}>
@@ -192,7 +235,7 @@ export function ApprovalListToolbar({ state, wide, compact, onVisibility }: {
         ) : (
           <Tooltip label="Visibility"><ActionIcon variant="default" size={30} aria-label="Visibility" onClick={onVisibility}><Eye size={16} /></ActionIcon></Tooltip>
         )}
-        <SortMenu sort={state.sort} onChange={state.setSort} wide={wide} />
+        <SortControl state={state} wide={wide} />
       </Group>
     </div>
   )
@@ -213,25 +256,69 @@ export function ListSwitch({ state, fullWidth }: { state: ApprovalsState; fullWi
   )
 }
 
-export function SortMenu({ sort, onChange, wide, size = 30 }: { sort: ApprovalSort; onChange: (sort: ApprovalSort) => void; wide?: boolean; size?: number }) {
+/** Sort dialog: direction, then one field. Properties that are hidden in the list are disabled. */
+export function SortModal({ opened, kind, sort, visible, onClose, onApply, contained }: {
+  opened: boolean
+  kind: ApprovalKind
+  sort: ApprovalSort
+  visible: ApprovalProperty[]
+  onClose: () => void
+  onApply: (sort: ApprovalSort) => void
+  contained?: boolean
+}) {
+  const [draft, setDraft] = useState(sort)
   return (
-    <Menu position="bottom-end" offset={4}>
-      <Menu.Target>
-        {wide ? (
-          <Button variant="default" size="xs" fw={400} leftSection={<ArrowDownUp size={16} aria-hidden="true" />}>Sort</Button>
-        ) : (
-          <Tooltip label="Sort"><ActionIcon variant="default" size={size} aria-label="Sort"><ArrowDownUp size={size > 30 ? 20 : 16} /></ActionIcon></Tooltip>
-        )}
-      </Menu.Target>
-      <Menu.Dropdown>
-        <Menu.Label>Sort by</Menu.Label>
-        {approvalSorts.map((option) => (
-          <Menu.Item key={option.key} onClick={() => onChange(option.key)} rightSection={option.key === sort ? <Check size={14} aria-hidden="true" /> : null}>
-            {option.label}
-          </Menu.Item>
-        ))}
-      </Menu.Dropdown>
-    </Menu>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title="Sort"
+      centered
+      size={400}
+      withinPortal={!contained}
+      lockScroll={!contained}
+      overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
+      classNames={{ inner: classes.inner, title: classes.modalTitle }}
+    >
+      <SegmentedControl
+        fullWidth
+        value={draft.direction}
+        onChange={(value) => setDraft((current) => ({ ...current, direction: value as ApprovalSort['direction'] }))}
+        aria-label="Direction"
+        classNames={{ root: classes.switch, label: classes.switchLabel }}
+        data={[
+          { value: 'asc', label: <Group gap={8} justify="center" wrap="nowrap"><ChevronsUp size={16} aria-hidden="true" />Ascending</Group> },
+          { value: 'desc', label: <Group gap={8} justify="center" wrap="nowrap"><ChevronsDown size={16} aria-hidden="true" />Descending</Group> },
+        ]}
+      />
+      <Radio.Group value={draft.field} onChange={(value) => setDraft((current) => ({ ...current, field: value as ApprovalSortField }))} label={<Eyebrow>Sort by</Eyebrow>} mt="xl">
+        <Stack gap="sm" mt="sm">
+          {approvalSortFields(kind).map((field) => {
+            const hidden = field.property && !visible.includes(field.key as ApprovalProperty)
+            return <Radio key={field.key} value={field.key} label={field.label} disabled={hidden} description={hidden && draft.field === field.key ? 'Hidden in the list' : undefined} />
+          })}
+        </Stack>
+      </Radio.Group>
+      <Text size="xs" c="dimmed" mt="md">Properties turned off in Visibility can’t be sorted by.</Text>
+      <Group justify="flex-end" gap="sm" mt="xl">
+        <Button variant="default" onClick={onClose}>Cancel</Button>
+        <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
+      </Group>
+    </Modal>
+  )
+}
+
+/** Sort button and its dialog. */
+export function SortControl({ state, wide, size = 30, contained }: { state: ApprovalsState; wide?: boolean; size?: number; contained?: boolean }) {
+  const [opened, setOpened] = useState(false)
+  return (
+    <>
+      {wide ? (
+        <Button variant="default" size="xs" fw={400} leftSection={<ArrowDownUp size={16} aria-hidden="true" />} onClick={() => setOpened(true)}>Sort</Button>
+      ) : (
+        <Tooltip label="Sort"><ActionIcon variant="default" size={size} aria-label="Sort" onClick={() => setOpened(true)}><ArrowDownUp size={size > 30 ? 20 : 16} /></ActionIcon></Tooltip>
+      )}
+      <SortModal key={String(opened)} opened={opened} kind={state.kind} sort={state.sort} visible={state.visible} onClose={() => setOpened(false)} onApply={state.setSort} contained={contained} />
+    </>
   )
 }
 
@@ -278,7 +365,7 @@ export function ApprovalListPane({ state, onVisibility }: { state: ApprovalsStat
   const { ref, width } = useElementSize()
   return (
     <div ref={ref} className={classes.pane}>
-      <ApprovalListToolbar state={state} wide={width >= 640} onVisibility={onVisibility} />
+      <ApprovalListToolbar state={state} wide={width >= (state.kind === 'timesheet' ? 640 : 400)} onVisibility={onVisibility} />
       <div className={classes.paneScroll}><ApprovalListItems state={state} /></div>
     </div>
   )
@@ -322,13 +409,15 @@ function Note({ text }: { text: string }) {
 
 /** Everything about one request, top to bottom. */
 export function ApprovalDetail({ request, onLink, compact }: { request: ApprovalRequest; onLink: (label: string) => void; compact?: boolean }) {
-  const link = approvalKinds.find((item) => item.key === request.kind)!.link
+  const { link, blockingLabel } = approvalKind(request.kind)
   const [first, ...rest] = request.details
-  const sections = 'rows' in first ? [{ ...first, rows: [['Status', statusText(request)] as [string, string], ...first.rows] }, ...rest] : request.details
+  // Timesheets and leave list the status first; activity and trades show it in the badge only
+  const sections = first && 'rows' in first && (request.kind === 'timesheet' || request.kind === 'leave')
+    ? [{ ...first, rows: [['Status', statusText(request)] as [string, string], ...first.rows] }, ...rest] : request.details
   return (
     <article className={classes.detail} data-compact={compact || undefined} aria-label={requestHeading(request)}>
       <div className={classes.detailHead}>
-        <h4 className={classes.detailTitle}>{request.kind === 'timesheet' ? request.title : `${request.title} · ${request.employee}`}</h4>
+        <h4 className={classes.detailTitle}>{request.kind === 'timesheet' ? request.title : <RequestHeading request={request} />}</h4>
         {request.status !== 'unsubmitted' && request.list === 'submitted' && <RequestStatusBadge stateKey={approvalStatusBadge[request.status]} />}
       </div>
       <Anchor component="button" type="button" className={classes.detailLink} onClick={() => onLink(link)} fw={600}>
@@ -337,6 +426,9 @@ export function ApprovalDetail({ request, onLink, compact }: { request: Approval
 
       {request.submittedLong && request.list === 'submitted' && (
         <Block title="Submitted on"><Text size="lg" className="tabular">{request.submittedLong}</Text></Block>
+      )}
+      {request.status === 'rejected' && request.rejectionReason && (
+        <Alert variant="light" color="red" icon={<Info size={18} />} title="Rejection reason" classNames={{ root: classes.rejection, title: classes.rejectionTitle, message: classes.rejectionMessage, icon: classes.rejectionIcon }}>{request.rejectionReason}</Alert>
       )}
       {sections.map((section) => (
         <Block key={section.title} title={section.title}>
@@ -347,12 +439,13 @@ export function ApprovalDetail({ request, onLink, compact }: { request: Approval
           )}
         </Block>
       ))}
+      {request.trade && <TradeCards sender={request.trade.sender} receiver={request.trade.receiver} />}
       {request.alerts && (
         <section className={classes.block}>
-          <h5 className={classes.alertsTitle}>Alerts</h5>
+          {!request.trade && <h5 className={classes.alertsTitle}>Alerts</h5>}
           {request.alerts.prevent && (
             <div>
-              <Eyebrow>Prevent</Eyebrow>
+              <Eyebrow>{blockingLabel}</Eyebrow>
               <ul className={classes.alertList} data-tone="error">{request.alerts.prevent.map((alert) => <li key={alert}>{alert}</li>)}</ul>
             </div>
           )}
@@ -369,7 +462,76 @@ export function ApprovalDetail({ request, onLink, compact }: { request: Approval
       )}
       {request.schedulerNote && <Block title="Scheduler note"><Note text={request.schedulerNote} /></Block>}
       {request.employeeNote && <Block title="Employee note"><Note text={request.employeeNote} /></Block>}
+      {request.notes && request.notes.length > 0 && (
+        <Block title="Employee notes">
+          <ul className={classes.thread}>
+            {request.notes.map((note, index) => (
+              <li key={index} className={classes.threadNote} data-side={index % 2 ? 'right' : 'left'}>
+                <Group gap={8} wrap="nowrap" className={classes.threadAuthor}>
+                  <StickyNote size={18} strokeWidth={1.75} aria-hidden="true" />
+                  <Text c="dimmed">{note.author}{note.role && ` · ${note.role}`}</Text>
+                </Group>
+                <Text fs="italic">“{note.text}”</Text>
+              </li>
+            ))}
+          </ul>
+        </Block>
+      )}
+      {request.tags && <Block title="Tracking tags"><Tags groups={request.tags} /></Block>}
     </article>
+  )
+}
+
+function Tags({ groups }: { groups: TagGroup[] }) {
+  return (
+    <>
+      {groups.map((group, index) => (
+        <div key={group.label ?? index} className={classes.tagGroup}>
+          {group.label && <Text size="sm" fw={600} c="dimmed" tt="uppercase" lts="0.06em">{group.label}</Text>}
+          <Group gap={8}>{group.values.map((value) => <Pill key={value} size="lg" className={classes.payout}>{value}</Pill>)}</Group>
+        </div>
+      ))}
+    </>
+  )
+}
+
+function TradeCard({ side }: { side: TradeSide }) {
+  return (
+    <div className={classes.tradeCard}>
+      <div className={classes.tradeHead}>
+        <div className={classes.dateTile} aria-label={`${side.day.weekday} ${side.day.date} ${side.day.month}`}>
+          <span>{side.day.weekday}</span><strong className="tabular">{side.day.date}</strong><span>{side.day.month}</span>
+        </div>
+        <div className={classes.tradeWho}>
+          <Text fw={600}>{side.name}</Text>
+          <Text size="sm">{side.rank}</Text>
+          <Text size="sm" c="dimmed">{side.unit}</Text>
+        </div>
+        <span className={classes.hoursPill}><span className="tabular">{side.hours}</span> HRS</span>
+      </div>
+      <div>
+        <Text fw={600} size="lg" className="tabular">{side.time}</Text>
+        <Text>{side.activity}</Text>
+      </div>
+      <Text c="dimmed">{side.location}</Text>
+      <Text c="dimmed">Hours modifier: {side.hoursModifier}</Text>
+      {(side.tags || side.assets) && <div className={classes.tradeDivider} />}
+      {side.tags && <div className={classes.tradeGroup}><Eyebrow>Tracking tags</Eyebrow><Tags groups={side.tags} /></div>}
+      {side.assets && <div className={classes.tradeGroup}><Eyebrow>Assets</Eyebrow><Tags groups={side.assets} /></div>}
+    </div>
+  )
+}
+
+/** Sender and receiver side by side with a swap icon between them. Stacks when the pane is narrow. */
+function TradeCards({ sender, receiver }: { sender: TradeSide; receiver: TradeSide }) {
+  return (
+    <section className={classes.block}>
+      <div className={classes.tradeGrid}>
+        <div className={classes.tradeColumn}><Eyebrow>Sender</Eyebrow><TradeCard side={sender} /></div>
+        <ArrowLeftRight size={24} aria-hidden="true" className={classes.tradeSwap} />
+        <div className={classes.tradeColumn}><Eyebrow>Receiver</Eyebrow><TradeCard side={receiver} /></div>
+      </div>
+    </section>
   )
 }
 
@@ -407,8 +569,8 @@ export function RequiredApprovals({ request, onAdd, onRemove }: { request: Appro
           <li key={index} className={classes.approver} data-decision={approver.decision}>
             <span className={classes.approverIcon}>{approverIcon(approver, 18)}</span>
             <div className={classes.approverText}>
-              <Text size="lg">{approver.name}</Text>
-              {approver.at && <Text size="sm" c="dimmed" className="tabular">{approver.decision === 'rejected' ? 'Rejected ' : ''}{approver.at}</Text>}
+              <Text size="lg">{approver.name === CURRENT_USER && <Text span c="dimmed" inherit>(you) </Text>}{approver.name}</Text>
+              {approver.at && <Text size="sm" c="dimmed" className="tabular">{approver.decision === 'rejected' ? 'Rejected' : 'Approved'} · {approver.at}</Text>}
             </div>
             {editable && approver.decision === 'waiting' && request.approvers.length > 1 && (
               <Tooltip label="Remove approver">
@@ -452,6 +614,20 @@ export function ApprovalActions({ state, withApprovers = true }: { state: Approv
     )
   }
 
+  if (!multiple && request!.status !== 'pending' && approvalKind(state.kind).decidedPanel === 'note') {
+    // Trades keep the note field, so a cleared decision can be explained in the thread
+    return (
+      <Stack gap="xl">
+        <Stack gap="md">
+          <Eyebrow>Modify status</Eyebrow>
+          <Textarea label="Scheduler note" placeholder="Leave an optional note to the employees…" value={note} onChange={(event) => setNote(event.currentTarget.value)} autosize minRows={2} classNames={{ label: classes.noteLabel }} />
+          <Button variant="default" fullWidth className={classes.action} onClick={() => run('clear')}>Clear</Button>
+        </Stack>
+        {withApprovers && <RequiredApprovals request={request!} />}
+      </Stack>
+    )
+  }
+
   if (!multiple && request!.status !== 'pending') {
     return (
       <Stack gap="xl">
@@ -480,7 +656,7 @@ export function ApprovalActions({ state, withApprovers = true }: { state: Approv
         />
         <Stack gap={10}>
           <Button variant="default" fullWidth className={classes.action} onClick={() => run('approve')}>Approve{suffix}</Button>
-          <Button variant="default" fullWidth className={classes.action} onClick={() => run('clear')}>Clear{suffix}</Button>
+          {approvalKind(state.kind).clearWhilePending && <Button variant="default" fullWidth className={classes.action} onClick={() => run('clear')}>Clear{suffix}</Button>}
           <Button fullWidth className={classes.reject} onClick={() => run('reject')}>Reject{suffix}</Button>
         </Stack>
       </Stack>

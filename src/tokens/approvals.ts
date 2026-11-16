@@ -3,12 +3,33 @@ import type { TokenStatus } from './types'
 /** The four approval queues. They share one layout: a list, the selected request and an action panel. */
 export type ApprovalKind = 'activity' | 'leave' | 'trade' | 'timesheet'
 
-export const approvalKinds: { key: ApprovalKind; label: string; link: string; meaning: string; status: TokenStatus }[] = [
-  { key: 'activity', label: 'Activity', link: 'View in Team View', meaning: 'Overtime, hold overs and extra patrols an employee asked to work or already worked.', status: 'review' },
-  { key: 'leave', label: 'Leave', link: 'View in Calendar', meaning: 'Vacation, sick leave and other time off.', status: 'review' },
-  { key: 'trade', label: 'Trade', link: 'View in Team View', meaning: 'Two employees swapping shifts. Both sides are shown.', status: 'review' },
-  { key: 'timesheet', label: 'Timesheets', link: 'View Timesheet', meaning: 'An employee’s hours for a pay period. Schedulers can also submit timesheets the employee has not.', status: 'review' },
+export interface ApprovalKindDef {
+  key: ApprovalKind
+  label: string
+  /** Link to the source, above the details */
+  link: string
+  meaning: string
+  /** Heading for blocking alerts in the details */
+  blockingLabel: 'Prevent' | 'Critical'
+  /** Pending requests also offer Clear (timesheets). Leave offers Approve and Reject only. */
+  clearWhilePending: boolean
+  /** List items show the employee’s rank with an award icon */
+  showRank: boolean
+  /** List items show a warning icon when the request has alerts */
+  showAlertIcon: boolean
+  /** Approved or rejected: `modify` shows Modify status with Clear Status; `note` keeps the note field and offers Clear (trades) */
+  decidedPanel: 'modify' | 'note'
+  status: TokenStatus
+}
+
+export const approvalKinds: ApprovalKindDef[] = [
+  { key: 'activity', label: 'Activity', link: 'View in Team View', meaning: 'Special events, hold overs and patrols an employee asked to work or already worked.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'modify', status: 'confirmed' },
+  { key: 'leave', label: 'Leave', link: 'View in Calendar', meaning: 'Vacation, comp time, sick leave and other time off.', blockingLabel: 'Critical', clearWhilePending: false, showRank: true, showAlertIcon: false, decidedPanel: 'modify', status: 'confirmed' },
+  { key: 'timesheet', label: 'Timesheets', link: 'View Timesheet', meaning: 'An employee’s hours for a pay period. Schedulers can also submit timesheets the employee has not.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: false, decidedPanel: 'modify', status: 'confirmed' },
+  { key: 'trade', label: 'Trade', link: 'View in Team View', meaning: 'Two employees swapping shifts: the sender gives one, the receiver gives one back. Both sides are shown.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'note', status: 'confirmed' },
 ]
+
+export const approvalKind = (key: ApprovalKind) => approvalKinds.find((kind) => kind.key === key)!
 
 /** Where a request is in its life. `unsubmitted` only exists for timesheets. */
 export type ApprovalStatus = 'unsubmitted' | 'pending' | 'approved' | 'rejected'
@@ -22,32 +43,62 @@ export const approvalStatusBadge: Record<Exclude<ApprovalStatus, 'unsubmitted'>,
 
 /** What the action panel shows, by status. */
 export const approvalPanelStates: { key: string; when: string; panel: string }[] = [
-  { key: 'awaiting', when: 'Pending, waiting for you', panel: 'Optional scheduler note, then Approve, Clear and Reject. Below: the required approvals.' },
-  { key: 'decided', when: 'Approved or rejected', panel: 'Clear Status to send it back to pending. Below: who decided and when.' },
+  { key: 'awaiting', when: 'Pending, waiting for you', panel: 'Optional scheduler note, then Approve and Reject (and Clear, except on leave). Below: the required approvals.' },
+  { key: 'decided', when: 'Approved or rejected', panel: 'Clear Status to send it back to pending. Trades keep the note field and offer Clear. Below: who decided and when.' },
   { key: 'unsubmitted', when: 'Timesheet not submitted yet', panel: 'Submit, on the employee’s behalf. Disabled once submitted.' },
   { key: 'selection', when: 'Several requests selected', panel: 'The same actions with “selected”: Approve selected, Clear selected, Reject selected or Submit selected.' },
 ]
 
 /** Properties the Visibility dialog can show on each list item. */
-export type ApprovalProperty = 'submittedOn' | 'branch' | 'unit' | 'location' | 'payPeriod' | 'timesheetId' | 'approvalLevel'
+export type ApprovalProperty = 'submittedOn' | 'branch' | 'unit' | 'precedence' | 'premium' | 'timeBank' | 'location' | 'payPeriod' | 'timesheetId' | 'approvalLevel'
+
+const all: ApprovalKind[] = ['activity', 'leave', 'timesheet', 'trade']
 
 export const approvalProperties: { key: ApprovalProperty; label: string; kinds: ApprovalKind[] }[] = [
-  { key: 'submittedOn', label: 'Submitted on', kinds: ['activity', 'leave', 'trade', 'timesheet'] },
-  { key: 'branch', label: 'Branch', kinds: ['activity', 'leave', 'trade', 'timesheet'] },
-  { key: 'unit', label: 'Unit', kinds: ['activity', 'leave', 'trade', 'timesheet'] },
-  { key: 'location', label: 'Location', kinds: ['activity', 'trade'] },
+  { key: 'submittedOn', label: 'Submitted on', kinds: all },
+  { key: 'branch', label: 'Branch', kinds: all },
+  { key: 'unit', label: 'Unit', kinds: all },
+  { key: 'precedence', label: 'Precedence', kinds: ['leave'] },
+  { key: 'premium', label: 'Premium', kinds: ['activity'] },
+  { key: 'timeBank', label: 'Time Bank', kinds: ['activity'] },
+  { key: 'location', label: 'Location', kinds: ['trade'] },
   { key: 'payPeriod', label: 'Pay Period', kinds: ['timesheet'] },
   { key: 'timesheetId', label: 'Timesheet ID', kinds: ['timesheet'] },
-  { key: 'approvalLevel', label: 'Approval Level', kinds: ['activity', 'leave', 'trade', 'timesheet'] },
+  { key: 'approvalLevel', label: 'Approval Level', kinds: all },
 ]
 
-export const defaultApprovalProperties: ApprovalProperty[] = ['submittedOn', 'location', 'approvalLevel']
+/** On by default, per tab. Activity always shows its location; trades show both shifts instead of the submitted date. */
+export const defaultApprovalProperties: Record<ApprovalKind, ApprovalProperty[]> = {
+  activity: ['submittedOn', 'approvalLevel'],
+  leave: ['submittedOn', 'approvalLevel'],
+  timesheet: ['submittedOn', 'approvalLevel'],
+  trade: ['approvalLevel'],
+}
 
-export type ApprovalSort = 'newest' | 'oldest' | 'name' | 'status'
+/* ---------- Sort ---------- */
 
-export const approvalSorts: { key: ApprovalSort; label: string }[] = [
-  { key: 'newest', label: 'Newest first' },
-  { key: 'oldest', label: 'Oldest first' },
-  { key: 'name', label: 'Name, A to Z' },
-  { key: 'status', label: 'Status' },
-]
+export type ApprovalSortField = 'status' | 'title' | 'employee' | 'start' | 'end' | 'location' | ApprovalProperty
+
+export interface ApprovalSort {
+  field: ApprovalSortField
+  direction: 'asc' | 'desc'
+}
+
+export const defaultApprovalSort: ApprovalSort = { field: 'status', direction: 'asc' }
+
+/**
+ * Fields the Sort dialog offers for a tab: the request’s own fields first, then its Visibility properties.
+ * A property can only be sorted by while it is visible in the list (`property: true`).
+ */
+export function approvalSortFields(kind: ApprovalKind): { key: ApprovalSortField; label: string; property?: boolean }[] {
+  const title = kind === 'leave' ? 'Leave Type' : kind === 'timesheet' ? 'Pay Period' : 'Activity'
+  const own: { key: ApprovalSortField; label: string }[] = [
+    { key: 'status', label: 'Status' }, { key: 'title', label: title }, { key: 'employee', label: 'Employee' },
+    ...(kind === 'timesheet' ? [] : [{ key: 'start' as const, label: 'Start Date' }, { key: 'end' as const, label: 'End Date' }]),
+    ...(kind === 'activity' || kind === 'trade' ? [{ key: 'location' as const, label: 'Location' }] : []),
+  ]
+  const properties = approvalProperties
+    .filter((property) => property.kinds.includes(kind) && !own.some((item) => item.key === property.key) && !(kind === 'timesheet' && property.key === 'payPeriod'))
+    .map((property) => ({ key: property.key, label: property.label, property: true }))
+  return [...own, ...properties]
+}

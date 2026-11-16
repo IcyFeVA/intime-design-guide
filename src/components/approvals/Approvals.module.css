@@ -230,6 +230,8 @@
 /* ---------- Detail ---------- */
 
 .detail {
+  /* The detail is its own container, so rows and trade cards adapt on a phone as well as in a narrow pane */
+  container-type: inline-size;
   max-width: 800px;
   margin-inline: auto;
   padding: 20px 32px 40px;
@@ -330,6 +332,27 @@
   }
 }
 
+.rejection {
+  margin-top: 28px;
+  background: color-mix(in srgb, var(--background-error-light) 22%, var(--background-default));
+}
+
+.rejectionTitle {
+  color: var(--text-title);
+  font-weight: 600;
+}
+
+.rejectionMessage,
+.rejectionIcon {
+  color: var(--text-default);
+}
+
+.tagGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .alertsTitle {
   margin: 0;
   font-size: 22px;
@@ -368,6 +391,130 @@
 .noteGlyph {
   flex: none;
   margin-top: 3px;
+}
+
+/* ---------- Trades ---------- */
+
+.tradeHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.tradeGrid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 16px 24px;
+}
+
+.tradeColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.tradeSwap {
+  margin-top: 84px;
+  color: var(--text-default);
+}
+
+.tradeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+}
+
+.tradeHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.dateTile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  min-width: 52px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-sm);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.dateTile strong {
+  font-size: 16px;
+}
+
+.tradeWho {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hoursPill {
+  flex: none;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary-default);
+  background: var(--background-primary-light);
+}
+
+.tradeDivider {
+  height: 1px;
+  margin-block: 8px;
+  background: var(--border-default);
+}
+
+.tradeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@container (max-width: 560px) {
+  .tradeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tradeSwap {
+    margin: 0 auto;
+    transform: rotate(90deg);
+  }
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.threadNote {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 85%;
+}
+
+.threadNote[data-side='right'] {
+  align-self: flex-end;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.threadNote[data-side='right'] .threadAuthor {
+  flex-direction: row-reverse;
 }
 
 /* ---------- Actions ---------- */

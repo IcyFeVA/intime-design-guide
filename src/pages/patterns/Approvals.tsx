@@ -9,7 +9,7 @@ import PropsTable from '../../components/PropsTable'
 import { DesktopDemoFrame, MobileStage, PhoneFrame } from '../../components/schedule/ScheduleChrome'
 import {
   ApprovalActions, ApprovalActionsSheet, ApprovalChain, ApprovalDetail, ApprovalFilters, ApprovalListItems, ApprovalTabs, BackToList,
-  ListSwitch, SortMenu, VisibilityModal,
+  ListSwitch, SortControl, VisibilityModal,
 } from '../../components/approvals/Approvals'
 import ApprovalsWorkspace from '../../components/approvals/ApprovalsWorkspace'
 import { useApprovals, type ApprovalsState } from '../../components/approvals/useApprovals'
@@ -115,7 +115,7 @@ function PhoneHeader({ state, onVisibility }: { state: ApprovalsState; onVisibil
           className={classes.phoneSearch}
         />
         <Tooltip label="Visibility"><ActionIcon variant="default" size={42} aria-label="Visibility" onClick={onVisibility}><Eye size={20} /></ActionIcon></Tooltip>
-        <SortMenu size={42} sort={state.sort} onChange={state.setSort} />
+        <SortControl size={42} state={state} contained />
       </div>
       {state.kind === 'timesheet' && <div className={classes.phoneSwitch}><ListSwitch state={state} fullWidth /></div>}
     </div>
@@ -202,7 +202,11 @@ export default function Approvals() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Tab counts</strong> show how many requests still need someone to act. Approved and rejected requests do not count.</Text>
-          <Text size="sm"><strong>List items</strong> read “Name · Pay period” for timesheets and “Type · Name” for the rest, with the date and time underneath.</Text>
+          <Text size="sm"><strong>List items</strong> read “Name · Pay period” for timesheets, “Type · Surname” for leave, “Surname · Activity” for activity and “Surname ⇄ Surname” for trades.</Text>
+          <Text size="sm"><strong>Activity</strong> items always show the location. The details are one list: date, branch, location, activity, hours modifier, unit, rank, time bank and banked time.</Text>
+          <Text size="sm"><strong>Trades</strong> show both shifts in the list (“… for …”). The details put the sender’s and the receiver’s shift side by side, each with its own tracking tags and assets. Notes from both employees and the approvers form one thread, alternating left and right. A note written while approving, rejecting or clearing a trade is added to it.</Text>
+          <Text size="sm"><strong>A warning icon</strong> marks activity and trade requests that have alerts.</Text>
+          <Text size="sm"><strong>Leave</strong> list items also show the employee’s rank. The details list the request (ID, type, date, hours), the employee (unit, branch, rank, precedence) and any tracking tags. Pending leave has Approve and Reject only, no Clear.</Text>
           <Text size="sm"><strong>Unsubmitted</strong> exists for timesheets only. A scheduler can submit a timesheet the employee has not.</Text>
         </Stack>
       </Section>
@@ -224,9 +228,9 @@ export default function Approvals() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Approve</strong> fills the next waiting approval with your name and the time. The request is approved once every approval is given.</Text>
-          <Text size="sm"><strong>Reject</strong> rejects the request straight away. <strong>Clear</strong> removes every decision and sends it back to pending.</Text>
+          <Text size="sm"><strong>Reject</strong> rejects the request straight away. A note written while rejecting becomes the rejection reason, shown in red at the top of the details. <strong>Clear</strong> removes every decision and sends it back to pending.</Text>
           <Text size="sm"><strong>Reject</strong> is the only colored button, so it is hard to press by mistake.</Text>
-          <Text size="sm"><strong>Alerts</strong> in the details come in two kinds. Prevent (red) breaks a rule the system enforces; Warnings (amber) are worth a look but do not block approval.</Text>
+          <Text size="sm"><strong>Alerts</strong> in the details come in two kinds. Prevent (red, “Critical” on leave) breaks a rule the system enforces; Warnings (amber) are worth a look but do not block approval.</Text>
         </Stack>
       </Section>
 
@@ -266,7 +270,8 @@ export default function Approvals() {
           </Table>
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
-          <Text size="sm">Submitted on, Location and Approval level are on by default. Changes apply when you press Apply, and stay for every tab.</Text>
+          <Text size="sm">Each tab keeps its own choice. Submitted on and Approval level are on by default (trades show only the approval level). Leave adds Precedence; activity adds Premium and Time Bank. Changes apply when you press Apply, and stay for every tab.</Text>
+          <Text size="sm"><strong>Sort</strong> opens a dialog: ascending or descending, then one field. The request’s own fields (status, activity, employee, dates, location) always work. Properties can only be sorted by while they are visible in the list; the others are disabled. The default is status, ascending, so pending requests come first.</Text>
           <Text size="sm">The status badge and the note icon always show. When the list is wide, Visibility and Sort get text labels next to their icons.</Text>
         </Stack>
       </Section>
@@ -325,10 +330,21 @@ export default function Approvals() {
             ['approvals-multi-select.png', 'Three timesheets selected: the list fills the space, the details are hidden and the panel shows Approve selected, Clear selected and Reject selected.'],
             ['approvals-unsubmitted.png', 'Unsubmitted timesheets: Albert Flores open with zero hours and a Submit button.'],
             ['approvals-unsubmitted-submitted.png', 'After submitting: Albert Flores shows Pending in the list, status Submitted, and Submit is disabled.'],
+            ['approvals-leave-pending.png', 'Leave approvals: Comp Time · Spengler pending, with the leave request, employee details, a warning, an employee note and tracking tags, and Approve and Reject only.'],
+            ['approvals-leave-approved.png', 'Vacation · Stantz approved: Clear Status, two approvers, scheduler and employee notes and tracking tags grouped by label.'],
+            ['approvals-leave-rejected.png', 'Vacation · Venkman rejected: a red rejection reason above the details, critical and warning alerts and tracking tags.'],
+            ['approvals-activity-pending.png', 'Activity approvals: Spengler · Special Event pending, details list, a warning, employee note and tracking tags.'],
+            ['approvals-activity-approved.png', 'Stantz · Beach Patrol approved: Clear Status, approvals including “(you)”, scheduler and employee notes and grouped tracking tags.'],
+            ['approvals-trade-pending.png', 'Trade approvals: Parker ⇄ Rodriguez pending, sender and receiver cards with tracking tags and assets, warnings and a notes thread.'],
+            ['approvals-trade-approved.png', 'The same trade approved by two approvers, with a note field and Clear.'],
+            ['approvals-trade-rejected.png', 'The same trade rejected by the second approver, whose note closes the thread.'],
             ['approvals-unsubmitted-multi-select.png', 'Three unsubmitted timesheets selected with Submit selected.'],
           ] as const).map(([file, alt]) => <img key={file} src={`${import.meta.env.BASE_URL}figma/${file}`} alt={alt} className={classes.figma} />)}
           <div className={classes.figmaTrio}>
             {([
+              ['approvals-activity-visibility.png', 'Configure Visibility for activity: Submitted on, Branch, Unit, Premium, Time Bank and Approval Level.'],
+              ['approvals-activity-sort.png', 'Sort dialog: Ascending or Descending, then Status, Activity, Employee, Start Date, End Date and Location, with hidden properties disabled.'],
+              ['approvals-leave-visibility.png', 'Configure Visibility for leave: Submitted on, Branch, Unit, Precedence and Approval Level.'],
               ['approvals-visibility.png', 'Configure Visibility dialog with checkboxes for Submitted on, Branch, Unit, Pay Period, Timesheet ID and Approval Level, and Cancel and Apply.'],
               ['approvals-mobile.png', 'Activity approvals on a phone: select-all checkbox, search, visibility and sort, cards grouped by month, and Show Approval Actions at the bottom.'],
               ['approvals-mobile-actions.png', 'The approval actions as a bottom sheet on a phone: scheduler note, Approve selected, Clear selected and Reject selected.'],

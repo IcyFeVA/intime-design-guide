@@ -1,4 +1,4 @@
-import type { ApprovalKind, ApprovalProperty, ApprovalSort, ApprovalStatus } from '../../tokens/approvals'
+import type { ApprovalKind, ApprovalProperty, ApprovalSort, ApprovalSortField, ApprovalStatus } from '../../tokens/approvals'
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -12,6 +12,37 @@ export interface Approver {
   at?: string
   /** Added with Add Approval. Waiting approvers can be removed. */
   added?: boolean
+}
+
+export interface TagGroup {
+  /** Shown above the values. Without one, values sit in a single row. */
+  label?: string
+  values: string[]
+}
+
+/** One side of a trade: the shift this person gives away. */
+export interface TradeSide {
+  name: string
+  rank: string
+  unit: string
+  day: { weekday: string; date: number; month: string }
+  /** e.g. “9.0” */
+  hours: string
+  time: string
+  activity: string
+  location: string
+  hoursModifier: string
+  tags?: TagGroup[]
+  assets?: TagGroup[]
+}
+
+/** A note in a trade’s thread, from either employee or an approver. */
+export interface ThreadNote {
+  /** Short name, e.g. “L. Parker” */
+  author: string
+  /** e.g. “Approver #1” */
+  role?: string
+  text: string
 }
 
 /** A block in the detail pane: label/value rows, or a two-column hours grid. */
@@ -44,12 +75,27 @@ export interface ApprovalRequest {
   location?: string
   payPeriod?: string
   timesheetId?: string
+  /** Leave: order in which competing requests are granted */
+  precedence?: string
+  /** Activity: hours modifier and time bank, for Visibility */
+  premium?: string
+  timeBank?: string
+  /** Sort keys for Start Date and End Date (days, fractional hours) */
+  startAt?: number
+  endAt?: number
+  /** Trades: both shifts, and the notes thread that replaces the single employee note */
+  trade?: { sender: TradeSide; receiver: TradeSide }
+  notes?: ThreadNote[]
   approvers: Approver[]
   details: DetailSection[]
   alerts?: { prevent?: string[]; warnings?: string[] }
   payout?: string[]
   employeeNote?: string
   schedulerNote?: string
+  /** Shown as a red notice at the top of the details. Set from the scheduler note when rejecting. */
+  rejectionReason?: string
+  /** Tracking tags. Groups with a label show it above their values; without one the values sit in one row. */
+  tags?: TagGroup[]
 }
 
 /* ------------------------------------------------------------------ */
@@ -133,98 +179,172 @@ const timesheets: ApprovalRequest[] = [
 
 const base = { list: 'submitted' as const, branch: 'Field Operations', unit: 'Patrol D4' }
 
+const LEAVE_GROUP = 'June 28 – July 12, 2026'
+
+function leaveRequest(id: string, employee: string, rank: string, type: string, extra: Partial<ApprovalRequest> & { status: ApprovalStatus; approvers: Approver[]; submittedAt: number }): ApprovalRequest {
+  const date = 'Wed Jul 1, 2026 · 21:00–23:00'
+  return {
+    ...base, id, kind: 'leave', employee, rank, title: type, when: date, group: LEAVE_GROUP, startAt: 31.875, endAt: 31.96,
+    branch: '99th Precinct - Brooklyn', unit: 'Patrol D4', precedence: '0.0',
+    submittedOn: 'Mon Jun 15, 2026 · 14:00', submittedLong: 'Monday June 15 · 14:00',
+    details: [
+      { title: 'Leave request', rows: [['Request ID', id], ['Leave Type', type], ['Date', date], ['Hours Requested', '02:00']] },
+      { title: 'Employee', rows: [['Name', employee], ['Unit', 'Patrol D4'], ['Branch', '99th Precinct - Brooklyn'], ['Rank', rank], ['Precedence', '0.0']] },
+    ],
+    ...extra,
+  }
+}
+
 const leave: ApprovalRequest[] = [
-  {
-    ...base, id: 'lv-1', kind: 'leave', status: 'pending', employee: 'Daniel Reyes', rank: 'Officer', title: 'Vacation',
-    when: 'Jun 22–26, 2026 · 5 days', group: 'June 2026',
-    submittedOn: 'Jun 10, 2026 · 09:14', submittedLong: 'Wednesday June 10 · 09:14', submittedAt: 10.38,
-    approvers: [waiting(1), waiting(2)],
-    details: [
-      { title: 'Leave', rows: [['Type', 'Vacation'], ['From', 'Mon Jun 22, 2026 · 07:00'], ['To', 'Fri Jun 26, 2026 · 15:00'], ['Hours', '40:00'], ['Balance after', '82:00']] },
-      { title: 'Replaces', rows: [['Mon–Fri', 'Patrol D4 · 07:00–15:00']] },
-      { title: 'Employee', rows: [['Name', 'Daniel Reyes'], ['Rank', 'Officer']] },
+  leaveRequest('f2342a71', 'Egon Spengler', 'Sergeant', 'Comp Time', {
+    status: 'pending', submittedAt: 15.6,
+    approvers: [{ name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 21:00' }, waiting(2)],
+    alerts: { warnings: ['Daily work hours (24:00) exceed the maximum of 16:00 over the following 24-hour period.'] },
+    employeeNote: 'Covering the late arrest paperwork from June 28.',
+    tags: [{ values: ['Police File #: 984654', 'Case #: 564654'] }],
+  }),
+  leaveRequest('b7710c2e', 'Ray Stantz', 'Sergeant', 'Vacation', {
+    status: 'approved', submittedAt: 15.59,
+    approvers: [
+      { name: 'Ronald McDowell', decision: 'approved', at: 'Mon Jun 15, 2026 · 21:00' },
+      { name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 21:10' },
     ],
-    alerts: { warnings: ['Two others in Patrol D4 are on leave June 24–25. Coverage drops below the minimum.'] },
-    employeeNote: 'Family wedding in Albany.',
-  },
-  {
-    ...base, id: 'lv-2', kind: 'leave', status: 'pending', employee: 'Priya Nair', rank: 'Sergeant', title: 'Compensating',
-    when: 'Fri Jun 19, 2026 · 12:00–15:00', group: 'June 2026',
-    submittedOn: 'Jun 9, 2026 · 16:30', submittedLong: 'Tuesday June 9 · 16:30', submittedAt: 9.69,
-    approvers: [waiting(1)],
-    details: [
-      { title: 'Leave', rows: [['Type', 'Compensating'], ['From', 'Fri Jun 19, 2026 · 12:00'], ['To', 'Fri Jun 19, 2026 · 15:00'], ['Hours', '03:00'], ['Balance after', '21:00']] },
-      { title: 'Employee', rows: [['Name', 'Priya Nair'], ['Rank', 'Sergeant']] },
+    schedulerNote: 'Well deserved. Enjoy your vacation!',
+    employeeNote: 'Family trip, back on the 6th.',
+    tags: [
+      { label: 'Police File #', values: ['#984654'] },
+      { label: 'Overtime reason', values: ['Late Arrest', 'Paperwork'] },
+      { label: 'Court related', values: ['Arraignment', 'Subpoena'] },
     ],
-  },
-  {
-    ...base, id: 'lv-3', kind: 'leave', status: 'approved', employee: 'Tom Bradley', rank: 'Officer', title: 'Sick',
-    when: 'Wed Jun 3, 2026 · All day', group: 'June 2026',
-    submittedOn: 'Jun 3, 2026 · 05:40', submittedLong: 'Wednesday June 3 · 05:40', submittedAt: 3.24,
-    approvers: [{ name: 'John Smith', decision: 'approved', at: 'Wed Jun 3, 2026 · 06:10' }],
-    details: [
-      { title: 'Leave', rows: [['Type', 'Sick'], ['Date', 'Wed Jun 3, 2026'], ['Hours', '08:00']] },
-      { title: 'Employee', rows: [['Name', 'Tom Bradley'], ['Rank', 'Officer']] },
-    ],
-    schedulerNote: 'Feel better.',
-  },
+  }),
+  leaveRequest('c90f4d18', 'Peter Venkman', 'Lieutenant', 'Vacation', {
+    status: 'rejected', submittedAt: 15.58,
+    approvers: [{ name: 'John Smith', decision: 'rejected', at: 'Mon Jun 15, 2026 · 21:00' }, waiting(2)],
+    rejectionReason: 'Comp Time over balance cap.',
+    alerts: {
+      prevent: ['Comp Time over balance cap (34:00 hours) by 02:30 hours on 07-01-2026. Maximum hours you can bank on this is 00:00 hours.'],
+      warnings: ['Daily work hours (24:00) exceed the maximum of 16:00 over the following 24-hour period.', 'Overtime (12.0 hours) for the work period.'],
+    },
+    employeeNote: 'Requested before the summer freeze.',
+    tags: [{ values: ['Police File #: 984654', 'Case #: 564654'] }],
+  }),
 ]
 
-const trade: ApprovalRequest[] = [
-  {
-    ...base, id: 'tr-1', kind: 'trade', status: 'pending', employee: 'Kevin Walsh', rank: 'Officer', title: 'Trade with Tom Bradley',
-    when: 'Sat Jun 20 ⇄ Sun Jun 28, 2026', location: 'Patrol D4', group: 'June 2026',
-    submittedOn: 'Jun 12, 2026 · 08:02', submittedLong: 'Friday June 12 · 08:02', submittedAt: 12.33,
-    approvers: [{ name: 'Tom Bradley', decision: 'approved', at: 'Fri Jun 12, 2026 · 08:30' }, waiting(2)],
-    details: [
-      { title: 'Kevin Walsh gives', rows: [['Date', 'Sat Jun 20, 2026'], ['Shift', 'Day · 07:00–15:00'], ['Location', 'Patrol D4']] },
-      { title: 'Tom Bradley gives', rows: [['Date', 'Sun Jun 28, 2026'], ['Shift', 'Day · 07:00–15:00'], ['Location', 'Patrol D4']] },
-    ],
-    employeeNote: 'Tom agreed. Same post, same hours.',
-  },
-  {
-    ...base, id: 'tr-2', kind: 'trade', status: 'rejected', employee: 'Sara Kim', rank: 'Officer', title: 'Trade with Luis Ortega',
-    when: 'Fri Jun 5 ⇄ Sat Jun 6, 2026', location: 'Gate A', group: 'June 2026',
-    submittedOn: 'Jun 1, 2026 · 19:12', submittedLong: 'Monday June 1 · 19:12', submittedAt: 1.8,
-    approvers: [{ name: 'John Smith', decision: 'rejected', at: 'Tue Jun 2, 2026 · 07:45' }],
-    details: [
-      { title: 'Sara Kim gives', rows: [['Date', 'Fri Jun 5, 2026'], ['Shift', 'Night · 23:00–07:00'], ['Location', 'Gate A']] },
-      { title: 'Luis Ortega gives', rows: [['Date', 'Sat Jun 6, 2026'], ['Shift', 'Night · 23:00–07:00'], ['Location', 'Gate A']] },
-    ],
-    alerts: { prevent: ['Luis Ortega would work 16:00 hours without the required 08:00 rest.'] },
-  },
+const PAY_GROUP = 'June 28 – July 12, 2026'
+
+const groupedTags: TagGroup[] = [
+  { label: 'Police File #', values: ['#984654'] },
+  { label: 'Overtime reason', values: ['Late Arrest', 'Paperwork'] },
+  { label: 'Court related', values: ['Arraignment', 'Subpoena'] },
 ]
 
-const activity = (id: string, employee: string, title: string, when: string, location: string, extra: Partial<ApprovalRequest> & { status: ApprovalStatus; approvers: Approver[]; submittedAt: number; group: string }): ApprovalRequest => ({
-  ...base, id, kind: 'activity', employee, rank: 'Officer', title, when, location,
-  details: [
-    { title: 'Activity', rows: [['Activity', title], ['Date and time', when], ['Hours', '05:00'], ['Hours modifier', 'Overtime 1.5x'], ['Location', location]] },
-    { title: 'Employee', rows: [['Name', employee], ['Rank', 'Officer']] },
-  ],
-  ...extra,
+const side = (name: string, rank: string, unit: string, weekday: string, date: number, extra: Partial<TradeSide> = {}): TradeSide => ({
+  name, rank, unit, day: { weekday, date, month: 'Jul' }, hours: '9.0', time: '08:00–17:00',
+  activity: 'Special Event', location: 'City Hall · Gate A', hoursModifier: 'OT Training', ...extra,
 })
 
+function tradeRequest(id: string, sender: TradeSide, receiver: TradeSide, extra: Partial<ApprovalRequest> & { status: ApprovalStatus; approvers: Approver[] }): ApprovalRequest {
+  const line = (s: TradeSide) => `${s.day.weekday} ${s.day.month} ${s.day.date} · ${s.time}`
+  return {
+    ...base, id, kind: 'trade', employee: sender.name, rank: sender.rank, title: `${sender.activity} for ${receiver.activity}`,
+    when: `${line(sender)}\nfor ${line(receiver)}`, location: sender.location, group: PAY_GROUP,
+    submittedOn: 'Mon Jun 15, 2026 · 09:23', submittedLong: 'Monday June 15 · 09:23', submittedAt: 15.39,
+    startAt: 30 + sender.day.date, endAt: 30 + receiver.day.date,
+    details: [], trade: { sender, receiver },
+    ...extra,
+  }
+}
+
+const trade: ApprovalRequest[] = [
+  tradeRequest('tr-1',
+    side('Lewis Parker', 'Sergeant', 'Night Patrol', 'Fri', 3, { tags: groupedTags, assets: [{ label: 'Vehicle', values: ['Unit #4127'] }] }),
+    side('Rodriga Rodriguez', 'Lieutenant', 'Day Patrol', 'Sat', 4, {
+      activity: 'Security Detail', location: 'Barclays Center',
+      tags: [{ label: 'Overtime reason', values: ['Late Arrest', 'Paperwork'] }], assets: [{ label: 'Vehicle', values: ['Unit #701'] }],
+    }),
+    {
+      status: 'pending',
+      approvers: [{ name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 16:41' }, waiting(2)],
+      alerts: { warnings: ['R. Rodriguez: daily work hours exceed the maximum of 16:00 over the following 24-hour period.', 'L. Parker: rank mismatch, a Sergeant covering a Lieutenant assignment.'] },
+      notes: [
+        { author: 'L. Parker', text: 'Family commitment that Friday. Happy to take the Saturday event instead.' },
+        { author: 'R. Rodriguez', text: 'Works for me.' },
+        { author: 'J. Smith', role: 'Approver #1', text: 'Thanks Rodriga for helping Lewis out!' },
+      ],
+    }),
+  tradeRequest('tr-2',
+    side('Kevin Walsh', 'Officer', 'Patrol D4', 'Mon', 6, { activity: 'Day Patrol', location: 'Patrol D4', hoursModifier: 'Regular', time: '07:00–15:00', hours: '8.0' }),
+    side('Tom Bradley', 'Officer', 'Patrol D4', 'Wed', 8, { activity: 'Day Patrol', location: 'Patrol D4', hoursModifier: 'Regular', time: '07:00–15:00', hours: '8.0' }),
+    {
+      status: 'approved', submittedAt: 15.2,
+      approvers: [
+        { name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 16:41' },
+        { name: 'Madison Taylor', decision: 'approved', at: 'Mon Jun 15, 2026 · 16:55' },
+      ],
+      notes: [
+        { author: 'K. Walsh', text: 'Same post, same hours. Tom agreed.' },
+        { author: 'J. Smith', role: 'Approver #1', text: 'Fine by me.' },
+      ],
+    }),
+  tradeRequest('tr-3',
+    side('Sara Kim', 'Officer', 'Gate Security', 'Thu', 9, { activity: 'Security', location: 'Gate A', time: '23:00–07:00', hours: '8.0', hoursModifier: 'Night' }),
+    side('Luis Ortega', 'Officer', 'Gate Security', 'Fri', 10, { activity: 'Security', location: 'Gate A', time: '23:00–07:00', hours: '8.0', hoursModifier: 'Night' }),
+    {
+      status: 'rejected', submittedAt: 15.1,
+      approvers: [
+        { name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 16:41' },
+        { name: 'Madison Taylor', decision: 'rejected', at: 'Mon Jun 15, 2026 · 16:55' },
+      ],
+      alerts: { warnings: ['L. Ortega: works 16:00 hours without the required 08:00 rest.'] },
+      notes: [
+        { author: 'S. Kim', text: 'Dentist appointment Thursday night.' },
+        { author: 'L. Ortega', text: 'Works for me.' },
+        { author: 'J. Smith', role: 'Approver #1', text: 'Approved on my side.' },
+        { author: 'M. Taylor', role: 'Approver #2', text: 'Sorry Sara, we need you for the special task that day.' },
+      ],
+    }),
+]
+
+function activity(id: string, employee: string, rank: string, title: string, location: string, extra: Partial<ApprovalRequest> & { status: ApprovalStatus; approvers: Approver[]; submittedAt: number }): ApprovalRequest {
+  const when = 'Wed Jul 1, 2026 · 21:00–23:00'
+  return {
+    ...base, id, kind: 'activity', employee, rank, title, when, location, group: PAY_GROUP, unit: 'Night Patrol',
+    premium: 'OT - Min. Staffing', timeBank: 'Comp Time', startAt: 31.875, endAt: 31.96,
+    submittedOn: 'Mon Jun 15, 2026 · 14:00', submittedLong: 'Monday June 15 · 14:00',
+    details: [
+      { title: 'Details', rows: [
+        ['Date', when], ['Branch', '99th Precinct - Brooklyn'], ['Location', location], ['Activity', 'Hold over'],
+        ['Hours Modifier', 'OT - Min. Staffing'], ['Unit', 'Night Patrol'], ['Rank', rank], ['Time Bank', 'Comp Time'], ['Banked Time', '01:00'],
+      ] },
+    ],
+    ...extra,
+  }
+}
+
 const activities: ApprovalRequest[] = [
-  activity('ac-1', 'Hank Moody', 'Hold Over', 'Mon Jun 15, 2026 · 14:00–19:00', 'Gate A', {
-    status: 'pending', group: 'June 2026', submittedOn: 'Jun 15, 2026 · 19:20', submittedLong: 'Monday June 15 · 19:20', submittedAt: 15.8,
-    approvers: [waiting(1)], employeeNote: 'Held over for the shift change at the gate.',
+  activity('ac-1', 'Egon Spengler', 'Sergeant', 'Special Event', 'City Hall - Gate A', {
+    status: 'pending', submittedAt: 15.6,
+    approvers: [{ name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 21:00' }, waiting(2)],
+    alerts: { warnings: ['Daily work hours (24:00) exceed the maximum of 16:00 over the following 24-hour period.'] },
+    employeeNote: 'Happy to cover the City Hall event.',
+    tags: [{ values: ['Police File #: 984654', 'Case #: 564654'] }],
   }),
-  activity('ac-2', 'Sara Kim', 'Extra Patrol', 'Sat Jun 13, 2026 · 14:00–19:00', 'Gate A', {
-    status: 'approved', group: 'June 2026', submittedOn: 'Jun 11, 2026 · 10:00', submittedLong: 'Thursday June 11 · 10:00', submittedAt: 11.41,
-    approvers: [{ name: 'John Smith', decision: 'approved', at: 'Thu Jun 11, 2026 · 12:15' }],
+  activity('ac-2', 'Ray Stantz', 'Sergeant', 'Beach Patrol', 'Coney Island Boardwalk', {
+    status: 'approved', submittedAt: 15.59,
+    approvers: [
+      { name: CURRENT_USER, decision: 'approved', at: 'Mon Jun 15, 2026 · 21:00' },
+      { name: 'John Smith', decision: 'approved', at: 'Mon Jun 15, 2026 · 21:10' },
+    ],
+    schedulerNote: 'Thanks for covering the boardwalk.',
+    employeeNote: 'Swapped my day off to make this work.',
+    tags: groupedTags,
   }),
-  activity('ac-3', 'Ray Stantz', 'Hold Over', 'Wed Jun 10, 2026 · 14:00–19:00', 'Gate A', {
-    status: 'rejected', group: 'June 2026', submittedOn: 'Jun 10, 2026 · 19:30', submittedLong: 'Wednesday June 10 · 19:30', submittedAt: 10.81,
-    approvers: [{ name: 'John Smith', decision: 'rejected', at: 'Thu Jun 11, 2026 · 07:30' }],
-    alerts: { warnings: ['Overtime (12.0 hours) for the work period.'] },
-  }),
-  activity('ac-4', 'Maria Alvarez', 'Court Appearance', 'Thu May 28, 2026 · 09:00–14:00', 'City Hall', {
-    status: 'approved', group: 'May 2026', submittedOn: 'May 27, 2026 · 15:10', submittedLong: 'Wednesday May 27 · 15:10', submittedAt: -4.37,
-    approvers: [{ name: 'Ronald McDowell', decision: 'approved', at: 'Wed May 27, 2026 · 16:00' }],
-  }),
-  activity('ac-5', 'Daniel Reyes', 'Paid Duty', 'Sat May 23, 2026 · 18:00–23:00', 'Barclays Center', {
-    status: 'pending', group: 'May 2026', submittedOn: 'May 20, 2026 · 08:45', submittedLong: 'Wednesday May 20 · 08:45', submittedAt: -10.63,
-    approvers: [waiting(1), waiting(2)],
+  activity('ac-3', 'Peter Venkman', 'Lieutenant', 'Security', 'Barclays Center', {
+    status: 'rejected', submittedAt: 15.58,
+    approvers: [{ name: 'John Smith', decision: 'rejected', at: 'Mon Jun 15, 2026 · 21:00' }, waiting(2)],
+    rejectionReason: 'The security detail is already fully staffed.',
+    employeeNote: 'Available all evening.',
+    tags: [{ values: ['Police File #: 984654'] }],
   }),
 ]
 
@@ -236,8 +356,23 @@ export const initialRequests = (): ApprovalRequest[] => [...activities, ...leave
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+export const surname = (name: string) => name.split(' ').at(-1)!
+
+/** “J. McLane” */
+const shortName = (name: string) => `${name[0]}. ${surname(name)}`
+
+/**
+ * “Name · Pay period” for timesheets, “Type · Surname” for leave, “Surname · Activity” for activity
+ * and “Surname ⇄ Surname” for trades.
+ */
 export const requestHeading = (request: ApprovalRequest) =>
-  request.kind === 'timesheet' ? `${request.employee} · ${request.title}` : `${request.title} · ${request.employee}`
+  request.kind === 'timesheet' ? `${request.employee} · ${request.title}`
+    : request.kind === 'leave' ? `${request.title} · ${surname(request.employee)}`
+      : request.trade ? `${surname(request.trade.sender.name)} ⇄ ${surname(request.trade.receiver.name)}`
+        : `${surname(request.employee)} · ${request.title}`
+
+/** The employee wrote a note, or the trade has a thread. */
+export const hasNotes = (request: ApprovalRequest) => !!request.employeeNote || !!request.notes?.length
 
 /** Waiting for a decision, from anyone. */
 export const isOpen = (request: ApprovalRequest) => request.status === 'pending' || request.status === 'unsubmitted'
@@ -253,6 +388,9 @@ export function propertyLines(request: ApprovalRequest, visible: ApprovalPropert
   if (visible.includes('submittedOn') && request.submittedOn) lines.push(`Submitted: ${request.submittedOn}`)
   if (visible.includes('branch')) lines.push(`Branch: ${request.branch}`)
   if (visible.includes('unit')) lines.push(`Unit: ${request.unit}`)
+  if (visible.includes('precedence') && request.precedence) lines.push(`Precedence: ${request.precedence}`)
+  if (visible.includes('premium') && request.premium) lines.push(`Premium: ${request.premium}`)
+  if (visible.includes('timeBank') && request.timeBank) lines.push(`Time bank: ${request.timeBank}`)
   if (visible.includes('payPeriod') && request.payPeriod && request.list === 'submitted') lines.push(`Pay period: ${request.payPeriod}`)
   if (visible.includes('timesheetId') && request.timesheetId) lines.push(`Timesheet ID: ${request.timesheetId}`)
   return lines
@@ -260,13 +398,27 @@ export function propertyLines(request: ApprovalRequest, visible: ApprovalPropert
 
 const statusOrder: Record<ApprovalStatus, number> = { pending: 0, unsubmitted: 1, rejected: 2, approved: 3 }
 
+function sortValue(request: ApprovalRequest, field: ApprovalSortField): number | string {
+  switch (field) {
+    case 'status': return statusOrder[request.status]
+    case 'title': return request.title
+    case 'employee': return `${surname(request.employee)} ${request.employee}`
+    case 'start': return request.startAt ?? request.submittedAt
+    case 'end': return request.endAt ?? request.startAt ?? request.submittedAt
+    case 'submittedOn': return request.submittedAt
+    case 'approvalLevel': return approvedCount(request)
+    default: return String(request[field] ?? '')
+  }
+}
+
+/** Stable sort, so ties keep their order. */
 export function sortRequests(requests: ApprovalRequest[], sort: ApprovalSort) {
-  const sorted = [...requests]
-  if (sort === 'newest') sorted.sort((a, b) => b.submittedAt - a.submittedAt)
-  if (sort === 'oldest') sorted.sort((a, b) => a.submittedAt - b.submittedAt)
-  if (sort === 'name') sorted.sort((a, b) => a.employee.localeCompare(b.employee))
-  if (sort === 'status') sorted.sort((a, b) => statusOrder[a.status] - statusOrder[b.status])
-  return sorted
+  const sign = sort.direction === 'asc' ? 1 : -1
+  return [...requests].sort((a, b) => {
+    const x = sortValue(a, sort.field)
+    const y = sortValue(b, sort.field)
+    return sign * (typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y)))
+  })
 }
 
 /** Keeps list order, splits into the headings. */
@@ -292,11 +444,17 @@ export function applyAction(request: ApprovalRequest, action: ApprovalAction, no
   if (action === 'submit') {
     return { ...request, status: 'pending', submittedOn: 'Jun 16, 2026 · 10:30', submittedLong: 'Tuesday June 16 · 10:30', submittedAt: 16.44 }
   }
+  // Trades keep a thread: a note from the scheduler is added to it instead
+  const thread = (slot: number) => request.trade && note?.trim()
+    ? { notes: [...(request.notes ?? []), { author: shortName(CURRENT_USER), role: slot >= 0 ? `Approver #${slot + 1}` : undefined, text: note.trim() }] }
+    : {}
   if (action === 'clear') {
     return {
       ...request,
+      ...thread(request.approvers.findIndex((approver) => approver.name === CURRENT_USER)),
       status: 'pending',
       schedulerNote: undefined,
+      rejectionReason: undefined,
       approvers: request.approvers.map((approver, index) => approver.added ? { ...approver, decision: 'waiting', at: undefined } : waiting(index + 1)),
     }
   }
@@ -307,6 +465,9 @@ export function applyAction(request: ApprovalRequest, action: ApprovalAction, no
   if (slot >= 0) approvers[slot] = mine
   else approvers.push(mine)
   const status: ApprovalStatus = decision === 'rejected' ? 'rejected' : approvers.every((approver) => approver.decision === 'approved') ? 'approved' : 'pending'
+  if (request.trade) return { ...request, status, approvers, ...thread(slot >= 0 ? slot : approvers.length - 1) }
+  // A note given while rejecting is the rejection reason
+  if (decision === 'rejected' && note?.trim()) return { ...request, status, approvers, rejectionReason: note.trim() }
   return { ...request, status, approvers, schedulerNote }
 }
 

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { defaultApprovalProperties, type ApprovalKind, type ApprovalProperty, type ApprovalSort, type ApprovalStatus } from '../../tokens/approvals'
+import { defaultApprovalProperties, defaultApprovalSort, type ApprovalKind, type ApprovalProperty, type ApprovalSort, type ApprovalStatus } from '../../tokens/approvals'
 import {
   addApprover, applyAction, initialRequests, removeApprover, requestHeading, sortRequests, type ApprovalAction, type ApprovalRequest,
 } from './data'
@@ -19,8 +19,8 @@ export function useApprovals({ kind: initialKind = 'timesheet', autoOpen = true 
   const [list, setListState] = useState<ApprovalList>('submitted')
   const [opened, setOpened] = useState<Record<string, string | null>>({})
   const [selection, setSelection] = useState<string[]>([])
-  const [visible, setVisible] = useState<ApprovalProperty[]>(defaultApprovalProperties)
-  const [sort, setSort] = useState<ApprovalSort>('newest')
+  const [visibleByKind, setVisibleByKind] = useState(defaultApprovalProperties)
+  const [sort, setSort] = useState<ApprovalSort>(defaultApprovalSort)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [hint, setHint] = useState<string | null>(null)
@@ -71,12 +71,15 @@ export function useApprovals({ kind: initialKind = 'timesheet', autoOpen = true 
 
   const reset = () => {
     setRequests(initialRequests()); setKindState(initialKind); setListState('submitted'); setOpened({}); setSelection([])
-    setVisible(defaultApprovalProperties); setSort('newest'); setSearch(''); setStatus('all'); setHint(null)
+    setVisibleByKind(defaultApprovalProperties); setSort(defaultApprovalSort); setSearch(''); setStatus('all'); setHint(null)
   }
 
   return {
     requests, kind, setKind, list, setList, items, active, open, selection: selected, toggle, toggleAll, clearSelection: () => setSelection([]),
-    visible, setVisible, sort, setSort, search, setSearch, status, setStatus, hint, setHint, act, reset,
+    visible: visibleByKind[kind],
+    /** Visibility is kept per tab */
+    setVisible: (value: ApprovalProperty[]) => setVisibleByKind((current) => ({ ...current, [kind]: value })),
+    sort, setSort, search, setSearch, status, setStatus, hint, setHint, act, reset,
     addApprover: (id: string) => update([id], addApprover),
     removeApprover: (id: string, index: number) => update([id], (request) => removeApprover(request, index)),
   }
