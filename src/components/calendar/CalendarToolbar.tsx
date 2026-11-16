@@ -3,16 +3,24 @@ import { ActionIcon, Button, Menu, Tooltip } from '@mantine/core'
 import { Calendar1, CalendarCog, CalendarDays, Check, ChevronLeft, ChevronRight, Map as MapIcon } from 'lucide-react'
 import { calendarViews, type CalendarView } from '../../tokens/calendar'
 import { MOCK_TODAY } from '../schedule/data'
+import { PeriodPicker, type PeriodMode } from '../date-picker/DatePickers'
 import { stepView, viewLabel } from './events'
+
+/** Month view picks a month, Week a week, Agenda seven days from any day, Day a single day. */
+const pickerMode: Record<CalendarView, PeriodMode> = {
+  month: { kind: 'month' },
+  week: { kind: 'block', length: 7, align: 'week' },
+  agenda: { kind: 'block', length: 7, align: 'day' },
+  day: { kind: 'day' },
+}
 
 const stepName: Record<CalendarView, string> = { month: 'month', week: 'week', day: 'day', agenda: 'week' }
 
-/** Previous, date, next and Today. Arrows move by the view: a month, a week or a day. */
-export function CalendarStepper({ view, anchor, onAnchorChange, onPicker, compact }: {
+/** Previous, date, next and Today. Arrows move by the view: a month, a week or a day. The date button opens a picker that fits the view. */
+export function CalendarStepper({ view, anchor, onAnchorChange, compact }: {
   view: CalendarView
   anchor: number
   onAnchorChange: Dispatch<SetStateAction<number>>
-  onPicker: () => void
   /** Phone: shorter date label and Today as an icon */
   compact?: boolean
 }) {
@@ -23,9 +31,17 @@ export function CalendarStepper({ view, anchor, onAnchorChange, onPicker, compac
       <Tooltip label={`Previous ${unit}`}>
         <ActionIcon variant="default" size={size} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, -1))}><ChevronLeft size={18} /></ActionIcon>
       </Tooltip>
-      <Button variant="default" size="sm" h={size} fw={400} px={compact ? 10 : undefined} leftSection={<CalendarDays size={18} aria-hidden="true" />} onClick={onPicker} miw={0} style={compact ? { flex: 1 } : undefined}>
-        <span className="tabular">{viewLabel(view, anchor, compact)}</span>
-      </Button>
+      <PeriodPicker
+        mode={pickerMode[view]}
+        anchor={anchor}
+        onChange={onAnchorChange}
+        target={
+          <Button variant="default" size="sm" h={size} fw={400} px={compact ? 10 : undefined} leftSection={<CalendarDays size={18} aria-hidden="true" />} miw={0} style={compact ? { flex: 1 } : undefined}
+            aria-label={`${viewLabel(view, anchor)}. Pick a ${view === 'agenda' ? 'start day' : unit}`}>
+            <span className="tabular">{viewLabel(view, anchor, compact)}</span>
+          </Button>
+        }
+      />
       <Tooltip label={`Next ${unit}`}>
         <ActionIcon variant="default" size={size} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, 1))}><ChevronRight size={18} /></ActionIcon>
       </Tooltip>

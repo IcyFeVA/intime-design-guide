@@ -8,6 +8,7 @@ import {
   Search, StickyNote, TriangleAlert, X,
 } from 'lucide-react'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
+import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import {
   approvalKind, approvalKinds, approvalProperties, approvalSortFields, approvalStatusBadge, type ApprovalKind, type ApprovalProperty, type ApprovalSort,
@@ -60,6 +61,15 @@ const statusOptions: { key: StatusFilter; label: string }[] = [
   { key: 'all', label: 'All Statuses' }, { key: 'pending', label: 'Pending' }, { key: 'approved', label: 'Approved' }, { key: 'rejected', label: 'Rejected' },
 ]
 
+const longDate = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })
+const yearOf = (day: number) => new Date(day * 86_400_000).getUTCFullYear()
+const dayLabel = (day: number) => longDate.format(new Date(day * 86_400_000))
+/** “June 1 – June 18, 2026”, with both years when the range spans two */
+const formatDateRange = ([start, end]: [number, number]) =>
+  start === end ? `${dayLabel(start)}, ${yearOf(start)}`
+    : yearOf(start) === yearOf(end) ? `${dayLabel(start)} – ${dayLabel(end)}, ${yearOf(end)}`
+      : `${dayLabel(start)}, ${yearOf(start)} – ${dayLabel(end)}, ${yearOf(end)}`
+
 /** Search, date range and filter menus above the list. Status and search filter the demo; the rest are preview only. */
 export function ApprovalFilters({ state }: { state: ApprovalsState }) {
   const [employeeFilter, setEmployeeFilter] = useState('none')
@@ -78,9 +88,15 @@ export function ApprovalFilters({ state }: { state: ApprovalsState }) {
         leftSection={<Search size={16} aria-hidden="true" />}
         w={240}
       />
-      <Button variant="default" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => state.setHint('The date picker is not part of this demo.')}>
-        <span className="tabular">June 1 – June 18, 2026</span>
-      </Button>
+      <RangePicker
+        value={state.dateRange}
+        onChange={(value) => { state.setDateRange(value); previewOnly('The date range') }}
+        target={
+          <Button variant="default" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} aria-label={`Date range: ${formatDateRange(state.dateRange)}. Pick a start and end day`}>
+            <span className="tabular">{formatDateRange(state.dateRange)}</span>
+          </Button>
+        }
+      />
       {state.kind !== 'trade' && (
         <PickerMenu label="Employee filter" value={employeeFilter} onChange={(value) => { setEmployeeFilter(value); previewOnly('The employee filter') }}
           options={[{ key: 'none', label: 'Employee Filter' }, { key: 'reports', label: 'My direct reports' }, { key: 'overtime', label: 'Over 40 hours' }]} />

@@ -1,0 +1,8 @@
+/* The demo's "today" (Jun 5, 2026): a ring, so it still reads when selected or in range. */
+.day[data-mock-today] {
+  box-shadow: inset 0 0 0 1px var(--text-primary-default);
+}
+
+.day[data-mock-today][data-selected] {
+  box-shadow: inset 0 0 0 2px var(--background-body);
+}

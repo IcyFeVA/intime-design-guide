@@ -7,6 +7,7 @@ import {
   BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
   Search, SlidersHorizontal, UserRound, Wifi,
 } from 'lucide-react'
+import { PeriodPicker } from '../date-picker/DatePickers'
 import AppNav, { type AppNavProps } from '../app-nav/AppNav'
 import type { ScheduleRange } from '../../tokens/schedule'
 import { MOCK_TODAY, formatRange, shiftRange } from './data'
@@ -132,12 +133,12 @@ export function ToolbarDivider() {
   return <span className={classes.toolbarDivider} aria-hidden="true" />
 }
 
-/** Previous, date range, next and Today. Arrows move by the selected range. */
-export function RangeStepper({ range, days, onAnchorChange, onPicker }: {
+/** Previous, date range, next and Today. Arrows move by the selected range; the date button opens a week or month picker. */
+export function RangeStepper({ range, days, anchor, onAnchorChange }: {
   range: ScheduleRange
   days: number[]
+  anchor: number
   onAnchorChange: Dispatch<SetStateAction<number>>
-  onPicker: () => void
 }) {
   const unit = range === 'month' ? 'month' : 'range'
   return (
@@ -145,9 +146,16 @@ export function RangeStepper({ range, days, onAnchorChange, onPicker }: {
       <Tooltip label={`Previous ${unit}`}>
         <ActionIcon variant="default" size={36} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, -1))}><ChevronLeft size={18} /></ActionIcon>
       </Tooltip>
-      <Button variant="default" size="sm" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} onClick={onPicker}>
-        <span className="tabular">{formatRange(days)}</span>
-      </Button>
+      <PeriodPicker
+        mode={range === 'month' ? { kind: 'month' } : { kind: 'block', length: days.length, align: 'week' }}
+        anchor={anchor}
+        onChange={onAnchorChange}
+        target={
+          <Button variant="default" size="sm" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} aria-label={`Date range: ${formatRange(days)}. Pick ${range === 'month' ? 'a month' : 'a start week'}`}>
+            <span className="tabular">{formatRange(days)}</span>
+          </Button>
+        }
+      />
       <Tooltip label={`Next ${unit}`}>
         <ActionIcon variant="default" size={36} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, 1))}><ChevronRight size={18} /></ActionIcon>
       </Tooltip>

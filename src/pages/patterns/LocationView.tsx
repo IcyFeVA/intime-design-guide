@@ -68,7 +68,7 @@ function DesktopDemo() {
             <PickerMenu label="Location" value={site} options={locationSites} onChange={setSite} />
             <PickerMenu label="Range" value={range} options={scheduleRanges.map(({ key, label }) => ({ key, label }))} onChange={setRange} />
             <ToolbarDivider />
-            <RangeStepper range={range} days={days} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')} />
+            <RangeStepper range={range} days={days} anchor={anchor} onAnchorChange={setAnchor} />
           </>
         }
       >

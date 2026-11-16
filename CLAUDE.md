@@ -1,6 +1,6 @@
 # InTime Design Guide
 
-Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 + TypeScript, **Mantine 9** (core, hooks, spotlight), **lucide-react**, react-router 7 (hash routes: `/#/patterns/navigation?section=pinning`). Dark-first with a light toggle. All data is illustrative: no persistence, network calls or auth.
+Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 + TypeScript, **Mantine 9** (core, hooks, dates, spotlight), **lucide-react**, react-router 7 (hash routes: `/#/patterns/navigation?section=pinning`). Dark-first with a light toggle. All data is illustrative: no persistence, network calls or auth.
 
 `.github/copilot-instructions.md` holds the same project rules for Copilot. Keep the two in sync.
 
@@ -56,6 +56,7 @@ Typical section set for a component/pattern page: live demos, then `guidelines` 
 | `app-nav/AppNav` | The real product sidebar (roles, collapsed rail, pin/overlay). Reuse it in app-shell mocks. Props are documented on the Navigation page. |
 | `schedule/ScheduleGrid`, `MobileSchedule`, `ShiftChip`, `Coverage`, `LocationPath` | Schedule grid (desktop, 1–4 weeks), mobile week/day, shift cells, coverage values and location breadcrumbs. Both take `sections`: build them with `teamSections` or `locationSections`/`locationPeopleSections` (`schedule/sections.tsx`). Mock data in `schedule/data.ts` (members, dates), `schedule/locations.ts` and `schedule/profiles.ts` (employee details). `onRowClick`/`onCoverageClick` open `CoverageDrawer` and `EmployeeDetailsModal` (`schedule/ScheduleDetails.tsx`); `useCoverageDrawer(variant)` wires up the drawer in one line; pass `contained` to keep them inside a demo frame (the frame needs `transform: translateZ(0)`, and the overlay's `inner` needs `left: 0`). Demo shell (app frame, phone, pickers, Unit/Location tabs) in `schedule/ScheduleChrome.tsx`: `DesktopDemoFrame` takes `title`, `actions` and `nav` for other pages; `PhoneFrame`, `MobileDemoBar` and `MobileStage` build custom phone demos. Documented on the Team View and Location View pages. |
 | `calendar/CalendarViews` (`MonthView`, `TimeGridView`, `AgendaView`, `EventChip`, `CalendarLegend`), `CalendarToolbar`, `CalendarModals`, `useCalendarModals` | Employee calendar: month, week/day timeline and agenda, event details, sign-ups and the add/edit task form. Mock events and date helpers in `calendar/events.ts`. Documented on the Calendar page. |
+| `date-picker/DatePickers` (`PeriodPicker`, `RangePicker`) | Mantine Dates pickers in a popover, opened from a date button (`target`). `PeriodPicker` moves an `anchor` day by `mode`: `month`, `day` or a `block` of N days (`align: 'week'` snaps to Monday). `RangePicker` picks a start and end day. Used by `RangeStepper`, `CalendarStepper` and the Approvals filters. `DatesProvider` (Monday first) is set in `main.tsx`. |
 | `pages/foundations/TokenSwatch` | Color swatch used by the Colors page. |
 
 For tables, use `<Table.ScrollContainer minWidth={560} className="doc-table"><Table verticalSpacing="sm" horizontalSpacing="md">…`.

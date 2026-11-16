@@ -14,7 +14,8 @@
 - Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry. The same applies when the user approves a page: set the page and its tokens to `confirmed` and add the changelog entry in the same change, without being asked.
 
 ## UI Conventions
-- Keep the Mantine core and spotlight stylesheets imported in `src/main.tsx`, and keep the app wrapped in `MantineProvider`. The default scheme is dark.
+- Keep the Mantine core, dates and spotlight stylesheets imported in `src/main.tsx`, and keep the app wrapped in `MantineProvider` and `DatesProvider` (weeks start on Monday). The default scheme is dark.
+- Date buttons open `PeriodPicker` (month, day or a block of days) or `RangePicker` (start and end day) from `src/components/date-picker/DatePickers.tsx`.
 - Prefer Mantine components and theme tokens over hand-built equivalents.
 - Use CSS variables (`--intime-surface`, `--intime-surface-raised`, `--intime-border`, `--mantine-color-*`) so both color schemes work.
 - Show shift states with an icon and a label, never color alone.

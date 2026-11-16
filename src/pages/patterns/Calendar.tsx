@@ -57,7 +57,7 @@ function DesktopDemo() {
           <>
             <PickerMenu label="View" value={view} options={calendarViews.map(({ key, label }) => ({ key, label }))} onChange={setView} />
             <ToolbarDivider />
-            <CalendarStepper view={view} anchor={anchor} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')} />
+            <CalendarStepper view={view} anchor={anchor} onAnchorChange={setAnchor} />
             <div style={{ flex: 1 }} />
             <MapButton pressed={legend} label={legend ? 'Hide legend' : 'Show legend'} onClick={() => setLegend((value) => !value)} />
           </>
@@ -109,7 +109,7 @@ function MobileDemo() {
               </Group>
               <div className={classes.phoneToolbar}>
                 <CalendarViewMenu view={view} onChange={setView} />
-                <CalendarStepper compact view={view} anchor={anchor} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo.')} />
+                <CalendarStepper compact view={view} anchor={anchor} onAnchorChange={setAnchor} />
                 <MapButton size={38} pressed={legend} label={legend ? 'Hide legend' : 'Show legend'} onClick={() => setLegend((value) => !value)} />
               </div>
               {legend && <div className={classes.phoneLegend}><CalendarLegend /></div>}

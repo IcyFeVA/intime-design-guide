@@ -3,9 +3,13 @@ import { defaultApprovalProperties, defaultApprovalSort, type ApprovalKind, type
 import {
   addApprover, applyAction, initialRequests, removeApprover, requestHeading, sortRequests, type ApprovalAction, type ApprovalRequest,
 } from './data'
+import { dayOf } from '../schedule/data'
 
 export type ApprovalList = 'submitted' | 'unsubmitted'
 export type StatusFilter = 'all' | Exclude<ApprovalStatus, 'unsubmitted'>
+
+/** Date range button in the filters: Jun 1 – Jun 18, 2026 (days since 1970-01-01). */
+const DEFAULT_DATE_RANGE: [number, number] = [dayOf(2026, 6, 1), dayOf(2026, 6, 18)]
 
 const pastTense: Record<ApprovalAction, string> = { approve: 'Approved', reject: 'Rejected', clear: 'Cleared the status of', submit: 'Submitted' }
 
@@ -23,6 +27,7 @@ export function useApprovals({ kind: initialKind = 'timesheet', autoOpen = true 
   const [sort, setSort] = useState<ApprovalSort>(defaultApprovalSort)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('all')
+  const [dateRange, setDateRange] = useState(DEFAULT_DATE_RANGE)
   const [hint, setHint] = useState<string | null>(null)
 
   const listKey = `${kind}:${kind === 'timesheet' ? list : 'submitted'}`
@@ -71,7 +76,7 @@ export function useApprovals({ kind: initialKind = 'timesheet', autoOpen = true 
 
   const reset = () => {
     setRequests(initialRequests()); setKindState(initialKind); setListState('submitted'); setOpened({}); setSelection([])
-    setVisibleByKind(defaultApprovalProperties); setSort(defaultApprovalSort); setSearch(''); setStatus('all'); setHint(null)
+    setVisibleByKind(defaultApprovalProperties); setSort(defaultApprovalSort); setSearch(''); setStatus('all'); setDateRange(DEFAULT_DATE_RANGE); setHint(null)
   }
 
   return {
@@ -79,7 +84,7 @@ export function useApprovals({ kind: initialKind = 'timesheet', autoOpen = true 
     visible: visibleByKind[kind],
     /** Visibility is kept per tab */
     setVisible: (value: ApprovalProperty[]) => setVisibleByKind((current) => ({ ...current, [kind]: value })),
-    sort, setSort, search, setSearch, status, setStatus, hint, setHint, act, reset,
+    sort, setSort, search, setSearch, status, setStatus, dateRange, setDateRange, hint, setHint, act, reset,
     addApprover: (id: string) => update([id], addApprover),
     removeApprover: (id: string, index: number) => update([id], (request) => removeApprover(request, index)),
   }

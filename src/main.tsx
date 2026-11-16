@@ -1,8 +1,10 @@
 import { StrictMode, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { MantineProvider, localStorageColorSchemeManager } from '@mantine/core'
+import { DatesProvider } from '@mantine/dates'
 import { createHashRouter, RouterProvider } from 'react-router'
 import '@mantine/core/styles.css'
+import '@mantine/dates/styles.css'
 import '@mantine/spotlight/styles.css'
 import './styles/fonts.css'
 import './styles/global.css'
@@ -36,7 +38,9 @@ createRoot(document.getElementById('root')!).render(
       colorSchemeManager={colorSchemeManager}
       cssVariablesResolver={cssVariablesResolver}
     >
-      <RouterProvider router={router} />
+      <DatesProvider settings={{ firstDayOfWeek: 1, consistentWeeks: true }}>
+        <RouterProvider router={router} />
+      </DatesProvider>
     </MantineProvider>
   </StrictMode>,
 )

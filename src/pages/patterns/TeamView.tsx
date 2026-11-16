@@ -108,7 +108,7 @@ function DesktopDemo() {
             <PickerMenu label="Team" value={unit} options={scheduleUnits.map(({ key, label }) => ({ key, label }))} onChange={setUnit} />
             <PickerMenu label="Range" value={range} options={scheduleRanges.map(({ key, label }) => ({ key, label }))} onChange={setRange} />
             <ToolbarDivider />
-            <RangeStepper range={range} days={days} onAnchorChange={setAnchor} onPicker={() => setHint('The date picker is not part of this demo. Use the arrows or Today.')} />
+            <RangeStepper range={range} days={days} anchor={anchor} onAnchorChange={setAnchor} />
             <div style={{ flex: 1 }} />
             <PickerMenu label="Sort" leftSection={<ArrowUpDown size={16} aria-hidden="true" />} value={sort} options={sortOptions} onChange={setSort} />
           </>

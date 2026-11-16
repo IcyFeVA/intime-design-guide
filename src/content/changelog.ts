@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-16',
+    page: null,
+    summary: 'The date buttons on Team View, Location View, Calendar and Approvals open a date picker.',
+    changes: [
+      'Team View and Location View: one to three weeks pick a start week, and the whole range highlights as you hover. One month picks a month.',
+      'Calendar: Month picks a month, Week a week, Agenda a start day for seven days, and Day a single day.',
+      'Approvals: pick a start and an end day on a two-month calendar, or a preset such as This week or Last 30 days.',
+      'The demo’s “today” (June 5, 2026) is ringed in every picker.',
+    ],
+  },
+  {
+    date: '2026-11-16',
     page: '/patterns/approvals',
     summary: 'Approvals approved.',
   },
