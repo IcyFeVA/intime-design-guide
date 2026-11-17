@@ -5,28 +5,9 @@ import Section from '../../components/Section'
 import CodeBlock from '../../components/CodeBlock'
 import CopyValue from '../../components/CopyValue'
 import { allPalettes, surfaceTokens } from '../../tokens/colors'
-import { fontFamilies, fontSizes, headingScale } from '../../tokens/typography'
-import { spacing, radius, shadows, breakpoints, zIndex } from '../../tokens/scales'
+import { spacing, radius, shadows, zIndex } from '../../tokens/scales'
+import { themeConfig } from '../../tokens/themeExport'
 
-const record = (items: { name: string; value: string }[]) => Object.fromEntries(items.map((item) => [item.name, item.value]))
-const headingSizes = Object.fromEntries(headingScale.map((item) => [
-  item.token,
-  { fontSize: `${item.size / 16}rem`, lineHeight: (item.lineHeight / item.size).toFixed(3), fontWeight: String(item.weight) },
-]))
-const themeConfig = {
-  primaryColor: 'intime',
-  primaryShade: { light: 8, dark: 9 },
-  fontFamily: fontFamilies[0].stack,
-  fontFamilyMonospace: fontFamilies[1].stack,
-  fontSizes,
-  defaultRadius: 'sm',
-  colors: Object.fromEntries(allPalettes.map((palette) => [palette.key, palette.shades])),
-  spacing: record(spacing),
-  radius: record(radius),
-  shadows: record(shadows),
-  breakpoints: record(breakpoints),
-  headings: { sizes: headingSizes },
-}
 const themeCode = `import { createTheme, MantineProvider } from '@mantine/core'\n\nexport const theme = createTheme(${JSON.stringify(themeConfig, null, 2)})\n\n// Mount once, at the application root.\n<MantineProvider theme={theme} defaultColorScheme="dark">\n  <App />\n</MantineProvider>`
 const scaleVariables = [
   ...spacing.map((token) => `${token.cssVar}: ${token.value};`),

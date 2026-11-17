@@ -2,6 +2,10 @@ import { DEFAULT_THEME } from '@mantine/core'
 import type { TokenStatus } from '../types'
 import darkCss from './dark.css?raw'
 import lightCss from './light.css?raw'
+import duskCss from './dusk.css?raw'
+import miamiViceCss from './miami-vice.css?raw'
+import terraCss from './terra.css?raw'
+import candyCss from './candy.css?raw'
 
 /* ------------------------------------------------------------------ */
 /* Primitives                                                          */
@@ -19,6 +23,7 @@ export const primitivePalettes = [
   { key: 'red', name: 'Red (error)', mantine: 'red', prefixes: ['red-red'] },
   { key: 'blue', name: 'Blue (info)', mantine: 'blue', prefixes: ['blue-blue'] },
   { key: 'indigo', name: 'Indigo', mantine: 'indigo', prefixes: ['indigo-indigo'] },
+  { key: 'pink', name: 'Pink', mantine: 'pink', prefixes: ['pink-pink'] },
 ].map((palette) => ({ ...palette, shades: DEFAULT_THEME.colors[palette.mantine] as readonly string[] }))
 
 /** Alpha variants referenced by the export (`primary-color-dark-15`, `-light-10`, …). */
@@ -102,6 +107,22 @@ export const themes: ThemeDef[] = [
     id: 'light', label: 'Light', scheme: 'light', status: 'confirmed', source: lightCss, tokens: resolveTheme(lightCss),
     description: 'High ambient light: offices, vehicles in daylight, printing.',
   },
+  {
+    id: 'dusk', label: 'Dusk', scheme: 'dark', status: 'confirmed', source: duskCss, tokens: resolveTheme(duskCss),
+    description: 'Dark navy with a violet accent.',
+  },
+  {
+    id: 'miami-vice', label: 'Miami Vice', scheme: 'dark', status: 'confirmed', source: miamiViceCss, tokens: resolveTheme(miamiViceCss),
+    description: 'Near-black with a magenta accent and cyan titles.',
+  },
+  {
+    id: 'terra', label: 'Terra', scheme: 'light', status: 'confirmed', source: terraCss, tokens: resolveTheme(terraCss),
+    description: 'Warm off-white with sage green and clay accents.',
+  },
+  {
+    id: 'candy', label: 'Candy', scheme: 'light', status: 'confirmed', source: candyCss, tokens: resolveTheme(candyCss),
+    description: 'Light gray with a pink accent and purple links.',
+  },
 ]
 
 export const plannedThemes = [
@@ -115,6 +136,22 @@ export const findTheme = (id: string) => themes.find((theme) => theme.id === id)
 export const allTokenNames = [...new Set(themes.flatMap((theme) => Object.keys(theme.tokens)))]
 
 export const isColorToken = (name: string) => !/^(radius|padding|spacing)-/.test(name)
+
+/** Mantine and guide variables that read from a theme token. Used by `src/theme.ts` and the theme export. */
+export const mantineAliases: [cssVar: string, token: string][] = [
+  ['--mantine-color-body', 'background-body'],
+  ['--mantine-color-text', 'text-default'],
+  ['--mantine-color-dimmed', 'text-dimmed'],
+  ['--mantine-color-placeholder', 'text-placeholder'],
+  ['--mantine-color-anchor', 'text-link'],
+  ['--mantine-color-error', 'text-error-default'],
+  ['--mantine-color-default', 'background-default'],
+  ['--mantine-color-default-hover', 'background-default-hover'],
+  ['--mantine-color-default-border', 'border-default'],
+  ['--intime-surface', 'background-default'],
+  ['--intime-surface-raised', 'background-default-hover'],
+  ['--intime-border', 'border-default'],
+]
 
 /* ------------------------------------------------------------------ */
 /* Presentation groups (mirrors the Figma colors frame)                */

@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Eye, FileClock, FormInput, Layers,
+  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Layers,
   LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -179,11 +179,18 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/resources/ColorVision')),
   },
   {
-    path: '/resources/tokens', title: 'Tokens & Code', group: 'Resources', icon: Code, status: 'draft', updated: '2026-11-12',
+    path: '/resources/tokens', title: 'Tokens & Code', group: 'Resources', icon: Code, status: 'draft', updated: '2026-11-12', hidden: true,
     description: 'Theme export, CSS variables and naming conventions.',
     keywords: ['theme', 'css variables', 'export', 'mantine', 'developer', 'naming'],
     sections: s(['theme', 'Mantine theme'], ['css-variables', 'CSS variables'], ['naming', 'Naming conventions']),
     component: lazy(() => import('../pages/resources/TokensCode')),
+  },
+  {
+    path: '/resources/theme-export', title: 'Theme Export', group: 'Resources', icon: Download, status: 'confirmed', updated: '2026-11-17',
+    description: 'Copy or download the six InTime themes as a Mantine theme and CSS variables.',
+    keywords: ['export', 'download', 'mantine', 'css', 'theme.ts', 'dusk', 'miami vice', 'terra', 'candy', 'dark', 'light', 'data-intime-theme', 'developer'],
+    sections: s(['files', 'Files'], ['themes', 'Themes'], ['css', 'Theme CSS'], ['theme-ts', 'Mantine theme'], ['switching', 'Switching themes'], ['mapping', 'Mantine mapping']),
+    component: lazy(() => import('../pages/resources/ThemeExport')),
   },
   {
     path: '/resources/changelog', title: 'Changelog', group: 'Resources', icon: FileClock, status: 'confirmed', updated: '2026-11-13',

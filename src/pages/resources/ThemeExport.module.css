@@ -1,0 +1,25 @@
+.dots {
+  display: inline-flex;
+  flex: none;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.picker {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Long files scroll inside the block instead of stretching the page. */
+.code :global(.code-block__body) {
+  max-height: 520px;
+  overflow: auto;
+}

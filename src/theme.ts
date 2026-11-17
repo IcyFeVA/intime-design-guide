@@ -1,6 +1,6 @@
 import { createTheme, type CSSVariablesResolver, type MantineColorsTuple } from '@mantine/core'
 import { brandPalettes, neutralPalette } from './tokens/colors'
-import { findTheme, isColorToken, type ThemeDef } from './tokens/themes'
+import { findTheme, isColorToken, mantineAliases, type ThemeDef } from './tokens/themes'
 import { fontFamilies, fontSizes, headingScale } from './tokens/typography'
 import { radius, shadows, spacing } from './tokens/scales'
 import { navCssVariables } from './tokens/navigation'
@@ -64,18 +64,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
   )
   return {
     ...exported,
-    '--mantine-color-body': token('background-body'),
-    '--mantine-color-text': token('text-default'),
-    '--mantine-color-dimmed': token('text-dimmed'),
-    '--mantine-color-placeholder': token('text-placeholder'),
-    '--mantine-color-anchor': token('text-link'),
-    '--mantine-color-error': token('text-error-default'),
-    '--mantine-color-default': token('background-default'),
-    '--mantine-color-default-hover': token('background-default-hover'),
-    '--mantine-color-default-border': token('border-default'),
-    '--intime-surface': token('background-default'),
-    '--intime-surface-raised': token('background-default-hover'),
-    '--intime-border': token('border-default'),
+    ...Object.fromEntries(mantineAliases.map(([cssVar, name]) => [cssVar, token(name)])),
   }
 }
 

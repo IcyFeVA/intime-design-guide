@@ -82,7 +82,7 @@ Plain, short sentences in sentence case. Explain behavior ("Pinning keeps the na
 
 ## Tokens map (`src/tokens`)
 
-- `themes/dark.css`, `themes/light.css`: raw Figma variable exports, pasted verbatim. `themes/index.ts` parses them and resolves `var(--primary-primary-color-N)`-style primitives to Mantine default ramps (primary = cyan). Watch for user pastes where the "dark" block is a copy of light. Compare against the existing file before overwriting.
+- `themes/<id>.css` (dark, light, dusk, miami-vice, terra, candy): raw Figma variable exports, pasted verbatim under the one-line header comment. Each is registered in the `themes` array in `themes/index.ts` (label, scheme, status). New primitive ramps in an export (e.g. `--pink-pink-6`) need an entry in `primitivePalettes`. `themeExport.ts` builds the Theme Export page's theme.ts and intime-themes.css from the registry. `themes/index.ts` parses them and resolves `var(--primary-primary-color-N)`-style primitives to Mantine default ramps (primary = cyan). Watch for user pastes where the "dark" block is a copy of light. Compare against the existing file before overwriting.
 - `colors.ts` (palettes), `typography.ts` (Roboto + Cousine, heading/body scales), `scales.ts` (spacing, radius, shadows, breakpoints, z-index, motion, app-shell `layout`), `icons.ts` (curated Lucide set), `status.ts` (shift states, departments), `navigation.ts` (nav roles, items, variants, `--nav-*` vars), `schedule.ts` (shift kinds and codes, date ranges, `--schedule-*` vars), `calendar.ts` (event kinds and modifiers, calendar views, `--calendar-*` vars).
 - `src/theme.ts` builds the Mantine theme and `cssVariablesResolver` from these. Change token files, not the theme.
 

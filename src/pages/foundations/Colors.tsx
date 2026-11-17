@@ -260,7 +260,7 @@ export default function Colors() {
         <h4 className={classes.noteTitle}>Important Notes</h4>
         <p className={classes.noteItem}>
           <span>
-            All tokens can be found on the <Link to="/resources/tokens">tokens page</Link>
+            All tokens can be copied or downloaded on the <Link to="/resources/theme-export">Theme Export page</Link>
           </span>
         </p>
       </div>

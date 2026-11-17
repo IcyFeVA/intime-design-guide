@@ -10,6 +10,26 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-17',
+    page: '/resources/theme-export',
+    summary: 'Theme Export approved and confirmed.',
+  },
+  {
+    date: '2026-11-17',
+    page: '/foundations/colors',
+    summary: 'Dusk, Miami Vice, Terra and Candy are confirmed. All six themes are now confirmed.',
+  },
+  {
+    date: '2026-11-17',
+    page: '/resources/theme-export',
+    summary: 'New Theme Export page: copy or download all six themes for Mantine.',
+    changes: [
+      'Dusk, Miami Vice, Terra and Candy added from Figma as Draft. They also show on the Colors page.',
+      'One theme.ts for all themes; colors per theme in intime-themes.css, switched with data-intime-theme on <html>.',
+      'Each theme block sets Mantine\'s body, text, border and primary-color variables, so components follow the theme.',
+    ],
+  },
+  {
     date: '2026-11-16',
     page: '/resources/color-vision',
     summary: 'Patterns are quieter and no longer cover the text.',
