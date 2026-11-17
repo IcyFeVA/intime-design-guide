@@ -115,10 +115,10 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/Navigation')),
   },
   {
-    path: '/patterns/team-view', title: 'Team View', group: 'Patterns', icon: Users, status: 'confirmed', updated: '2026-11-16',
+    path: '/patterns/team-view', title: 'Team View', group: 'Patterns', icon: Users, status: 'confirmed', updated: '2026-11-17',
     description: 'The team schedule by unit: members down the side, days across, with coverage under each team. One to four weeks on desktop, a day or a week on mobile.',
-    keywords: ['schedule', 'roster', 'grid', 'unit', 'week', 'month', 'two weeks', 'three weeks', 'day view', 'mobile', 'coverage', 'bodies', 'hours', 'time of day', 'overtime', 'OT', 'out of unit', 'OU', 'sick', 'PTO', 'leave', 'cancelled', 'shift code', 'co-worker search', 'drawer', 'bottom sheet', 'employee details', 'profile', 'contact', 'required', 'scheduled', 'hourly'],
-    sections: s(['desktop', 'Desktop'], ['ranges', 'Date ranges'], ['cells', 'Shift cells'], ['coverage', 'Coverage'], ['details', 'Coverage and employee details'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    keywords: ['schedule', 'roster', 'grid', 'unit', 'week', 'month', 'two weeks', 'three weeks', 'day view', 'mobile', 'coverage', 'bodies', 'hours', 'time of day', 'overtime', 'OT', 'out of unit', 'OU', 'sick', 'PTO', 'leave', 'cancelled', 'shift code', 'co-worker search', 'drawer', 'bottom sheet', 'employee details', 'profile', 'contact', 'required', 'scheduled', 'hourly', 'extra row', 'overflow', 'additional assignment', 'outside block', 'block'],
+    sections: s(['desktop', 'Desktop'], ['ranges', 'Date ranges'], ['cells', 'Shift cells'], ['extra-rows', 'Extra rows'], ['coverage', 'Coverage'], ['details', 'Coverage and employee details'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/TeamView')),
   },
   {

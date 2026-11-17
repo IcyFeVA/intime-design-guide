@@ -44,3 +44,8 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
 }
+
+.extraRowFrame {
+  width: 100%;
+  min-width: 0;
+}

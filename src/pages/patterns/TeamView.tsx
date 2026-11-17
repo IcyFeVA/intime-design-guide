@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
-import { Anchor, Group, Stack, Table, Text } from '@mantine/core'
+import { Anchor, Button, Group, Stack, Table, Text } from '@mantine/core'
 import { ArrowUpDown } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -14,6 +14,7 @@ import ShiftChip from '../../components/schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { FilterSheet, type MobileFilters, type SortDirection } from '../../components/schedule/FilterSheet'
+import { SortModal } from '../../components/sort/SortModal'
 import { teamSections } from '../../components/schedule/sections'
 import { EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
@@ -88,12 +89,14 @@ function DesktopDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<ScheduleSort>('team')
+  const [direction, setDirection] = useState<SortDirection>('asc')
+  const [sortOpen, setSortOpen] = useState(false)
   const [hint, setHint] = useState<string | null>(null)
   const details = useScheduleDetails('desktop')
 
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   const days = rangeDays(range, anchor)
-  const reset = () => { setUnit(scheduleUnits[0].key); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setSort('team'); setHint(null); details.close() }
+  const reset = () => { setUnit(scheduleUnits[0].key); setRange('week'); setAnchor(MOCK_TODAY); setQuery(''); setSort('team'); setDirection('asc'); setSortOpen(false); setHint(null); details.close() }
 
   return (
     <Preview
@@ -112,13 +115,13 @@ function DesktopDemo() {
             <ToolbarDivider />
             <RangeStepper range={range} days={days} anchor={anchor} onAnchorChange={setAnchor} />
             <div style={{ flex: 1 }} />
-            <PickerMenu label="Sort" leftSection={<ArrowUpDown size={16} aria-hidden="true" />} value={sort} options={sortOptions} onChange={setSort} />
+            <Button variant="default" size="sm" fw={400} leftSection={<ArrowUpDown size={16} aria-hidden="true" />} onClick={() => setSortOpen(true)}>Sort</Button>
           </>
         }
       >
         <ScheduleGrid
           label="Team schedule"
-          sections={teamSections(filterGroups(unit, query, sort))}
+          sections={teamSections(filterGroups(unit, query, sort, direction))}
           days={days}
           density={rangeDef.density === 'comfortable' ? 'comfortable' : 'compact'}
           columnMin={rangeDef.columnMin}
@@ -131,6 +134,14 @@ function DesktopDemo() {
           onChipClick={details.onChipClick}
         />
         {details.overlays}
+        <SortModal
+          opened={sortOpen}
+          value={{ field: sort, direction }}
+          fields={sortOptions}
+          onClose={() => setSortOpen(false)}
+          onApply={(value) => { setSort(value.field); setDirection(value.direction) }}
+          contained
+        />
       </DesktopDemoFrame>
     </Preview>
   )
@@ -238,6 +249,31 @@ function CellSpecimens() {
   )
 }
 
+/** Officer Dijkstra alone, for the extra-row example. */
+const extraRowGroups: ScheduleGroup[] = scheduleUnits[0].groups.slice(0, 1).map((group) => ({ ...group, members: group.members.filter((member) => member.id === 'fd') }))
+
+const extraRowCases = [
+  { day: 'Mon, Jun 1', what: 'Day patrol, 07:00–17:00', shows: 'The block on its own.' },
+  { day: 'Tue, Jun 2', what: 'Day patrol until 12:00, then Court, morning (C-AM) until 16:00', shows: 'Both fall inside the block’s hours, so they split the one cell.' },
+  { day: 'Wed, Jun 3', what: 'Training, 08:00–16:00. Then PTO 16:00–18:00 and Court 18:00–21:00, partly overtime', shows: 'Training stays in the main row. PTO and Court fall after the block ends, so they go to the extra row, split in time order.' },
+]
+
+function ExtraRowDemo() {
+  return (
+    <Preview flush title="Extra row, Officer Dijkstra">
+      <div className={classes.extraRowFrame}>
+        <ScheduleGrid
+          label="Officer Dijkstra’s week"
+          sections={teamSections(extraRowGroups)}
+          days={rangeDays('week', MOCK_TODAY)}
+          today={MOCK_TODAY}
+          showCoverage={false}
+        />
+      </div>
+    </Preview>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -251,7 +287,7 @@ export default function TeamView() {
         <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
           <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team starts with its coverage.</Text>
-          <Text size="sm">A member with more than one cell on a day gets an extra row without a name, on a lighter background.</Text>
+          <Text size="sm">Some members have an extra row without a name, on a lighter background. It holds assignments outside their block’s hours. See <Anchor component={Link} to="/patterns/team-view?section=extra-rows" size="sm">Extra rows</Anchor>.</Text>
           <Text size="sm">Select a time-of-day cell for that day’s coverage hour by hour, or a name for the employee’s details.</Text>
         </Stack>
       </Section>
@@ -281,6 +317,31 @@ export default function TeamView() {
 
       <Section id="cells" title="Shift cells" description="A cell holds one or more assignments for one day. The fill says what kind of time it is; tags and lines add the rest. Never rely on color alone: the code, the OT and OU tags and the tooltip carry the meaning too.">
         <CellSpecimens />
+      </Section>
+
+      <Section id="extra-rows" title="Extra rows" description="Each member works a block, such as Day patrol from 07:00 to 17:00. When the scheduler adds an assignment outside the block’s hours, it goes to an extra row under the member, so the block stays readable.">
+        <ExtraRowDemo />
+        <Table.ScrollContainer minWidth={560} className="doc-table" mt="md">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th w={110}>Day</Table.Th><Table.Th>Assignments</Table.Th><Table.Th>How it shows</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {extraRowCases.map((item) => (
+                <Table.Tr key={item.day}>
+                  <Table.Td><Text size="sm" fw={600}>{item.day}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{item.what}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{item.shows}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Inside the block’s hours,</strong> assignments share the main cell, split in time order.</Text>
+          <Text size="sm"><strong>Outside the block’s hours,</strong> assignments go to the extra row. A member has one extra row at most: several assignments on the same day share its cell, split in time order.</Text>
+          <Text size="sm"><strong>Any kind of time</strong> can go there: regular, leave or overtime. The fill, code and OT tag say which, as in any other cell.</Text>
+          <Text size="sm"><strong>The row appears</strong> only when a day in the visible range needs it. It has no name, so it reads as part of the member above. Screen readers announce it as the member’s additional assignments.</Text>
+          <Text size="sm"><strong>On mobile,</strong> the extra assignments show as a second, lighter strip under the member’s row.</Text>
+        </Stack>
       </Section>
 
       <Section id="coverage" title="Coverage" description="Above each team, three rows compare the schedule with what the team needs. Red is below target, amber is above, green is on target.">
@@ -405,7 +466,7 @@ export default function TeamView() {
             'Show initials next to names, so two people with the same surname can be told apart.',
             'Pair every fill with a code or a tag, and give each cell a tooltip and an accessible name.',
             'Put coverage directly above the team it describes.',
-            'Move a second assignment that does not fit into an overflow row instead of shrinking the cell.',
+            'Put assignments outside the block’s hours in the extra row, and keep the block on its own in the main row.',
             'Open details over the schedule, so closing them returns the user to the same place.',
           ]}
           dontItems={[

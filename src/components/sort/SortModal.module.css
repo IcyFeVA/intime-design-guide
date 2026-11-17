@@ -1,0 +1,22 @@
+.inner {
+  left: 0;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.eyebrow {
+  font-size: 13px;
+}
+
+.switch {
+  flex: none;
+  background: transparent;
+  border: 1px solid var(--border-default);
+}
+
+.switchLabel[data-active] {
+  color: var(--text-primary-default);
+}

@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-17',
+    page: '/patterns/team-view',
+    summary: 'New Extra rows section: assignments outside a member’s block go to a lighter row under them.',
+  },
+  {
+    date: '2026-11-17',
+    page: '/patterns/team-view',
+    summary: 'The desktop Sort button opens the Sort dialog, as on Approvals, instead of a dropdown.',
+    changes: ['Pick ascending or descending, then a field, and confirm with Apply.'],
+  },
+  {
+    date: '2026-11-17',
     page: '/resources/theme-export',
     summary: 'Theme Export approved and confirmed.',
   },

@@ -1,18 +1,18 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import {
-  ActionIcon, Alert, Anchor, Button, Checkbox, Drawer, Group, Modal, Pill, Radio, SegmentedControl, Stack, Text, Textarea, TextInput, Tooltip, UnstyledButton,
+  ActionIcon, Alert, Anchor, Button, Checkbox, Drawer, Group, Modal, Pill, SegmentedControl, Stack, Text, Textarea, TextInput, Tooltip, UnstyledButton,
 } from '@mantine/core'
 import { useElementSize } from '@mantine/hooks'
 import {
-  ArrowDownUp, ArrowLeftRight, Award, Ban, CalendarDays, ChevronLeft, ChevronsDown, ChevronsUp, Circle, CircleCheck, ExternalLink, Eye, Inbox, Info, MapPin, Plus,
+  ArrowDownUp, ArrowLeftRight, Award, Ban, CalendarDays, ChevronLeft, Circle, CircleCheck, ExternalLink, Eye, Inbox, Info, MapPin, Plus,
   Search, StickyNote, TriangleAlert, X,
 } from 'lucide-react'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
+import { SortModal as SortDialog } from '../sort/SortModal'
 import {
   approvalKind, approvalKinds, approvalProperties, approvalSortFields, approvalStatusBadge, type ApprovalKind, type ApprovalProperty, type ApprovalSort,
-  type ApprovalSortField,
 } from '../../tokens/approvals'
 import {
   CURRENT_USER, approvedCount, groupRequests, hasNotes, openCount, propertyLines, requestHeading, surname,
@@ -272,7 +272,7 @@ export function ListSwitch({ state, fullWidth }: { state: ApprovalsState; fullWi
   )
 }
 
-/** Sort dialog: direction, then one field. Properties that are hidden in the list are disabled. */
+/** Sort dialog for approvals. Properties that are hidden in the list are disabled. */
 export function SortModal({ opened, kind, sort, visible, onClose, onApply, contained }: {
   opened: boolean
   kind: ApprovalKind
@@ -282,44 +282,20 @@ export function SortModal({ opened, kind, sort, visible, onClose, onApply, conta
   onApply: (sort: ApprovalSort) => void
   contained?: boolean
 }) {
-  const [draft, setDraft] = useState(sort)
+  const fields = approvalSortFields(kind).map((field) => {
+    const hidden = !!field.property && !visible.includes(field.key as ApprovalProperty)
+    return { key: field.key, label: field.label, disabled: hidden, description: hidden && sort.field === field.key ? 'Hidden in the list' : undefined }
+  })
   return (
-    <Modal
+    <SortDialog
       opened={opened}
+      value={sort}
+      fields={fields}
       onClose={onClose}
-      title="Sort"
-      centered
-      size={400}
-      withinPortal={!contained}
-      lockScroll={!contained}
-      overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
-      classNames={{ inner: classes.inner, title: classes.modalTitle }}
-    >
-      <SegmentedControl
-        fullWidth
-        value={draft.direction}
-        onChange={(value) => setDraft((current) => ({ ...current, direction: value as ApprovalSort['direction'] }))}
-        aria-label="Direction"
-        classNames={{ root: classes.switch, label: classes.switchLabel }}
-        data={[
-          { value: 'asc', label: <Group gap={8} justify="center" wrap="nowrap"><ChevronsUp size={16} aria-hidden="true" />Ascending</Group> },
-          { value: 'desc', label: <Group gap={8} justify="center" wrap="nowrap"><ChevronsDown size={16} aria-hidden="true" />Descending</Group> },
-        ]}
-      />
-      <Radio.Group value={draft.field} onChange={(value) => setDraft((current) => ({ ...current, field: value as ApprovalSortField }))} label={<Eyebrow>Sort by</Eyebrow>} mt="xl">
-        <Stack gap="sm" mt="sm">
-          {approvalSortFields(kind).map((field) => {
-            const hidden = field.property && !visible.includes(field.key as ApprovalProperty)
-            return <Radio key={field.key} value={field.key} label={field.label} disabled={hidden} description={hidden && draft.field === field.key ? 'Hidden in the list' : undefined} />
-          })}
-        </Stack>
-      </Radio.Group>
-      <Text size="xs" c="dimmed" mt="md">Properties turned off in Visibility can’t be sorted by.</Text>
-      <Group justify="flex-end" gap="sm" mt="xl">
-        <Button variant="default" onClick={onClose}>Cancel</Button>
-        <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
-      </Group>
-    </Modal>
+      onApply={onApply}
+      footnote="Properties turned off in Visibility can’t be sorted by."
+      contained={contained}
+    />
   )
 }
 
@@ -333,7 +309,7 @@ export function SortControl({ state, wide, size = 30, contained }: { state: Appr
       ) : (
         <Tooltip label="Sort"><ActionIcon variant="default" size={size} aria-label="Sort" onClick={() => setOpened(true)}><ArrowDownUp size={size > 30 ? 20 : 16} /></ActionIcon></Tooltip>
       )}
-      <SortModal key={String(opened)} opened={opened} kind={state.kind} sort={state.sort} visible={state.visible} onClose={() => setOpened(false)} onApply={state.setSort} contained={contained} />
+      <SortModal opened={opened} kind={state.kind} sort={state.sort} visible={state.visible} onClose={() => setOpened(false)} onApply={state.setSort} contained={contained} />
     </>
   )
 }
