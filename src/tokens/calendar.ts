@@ -81,3 +81,7 @@ export const calendarDarkVariables: Record<string, string> = Object.fromEntries(
 export const calendarLightVariables: Record<string, string> = Object.fromEntries(
   calendarTokens.filter((token) => token.light).map((token) => [token.name, token.light!]),
 )
+
+/** What the calendar's Add menu creates, in menu order. In the guide's demo every item opens the Add task form. */
+export const calendarAddItems = ['Activity Request', 'Leave Request', 'Timesheet Request', 'Trade Request', 'Task'] as const
+export type CalendarAddItem = (typeof calendarAddItems)[number]

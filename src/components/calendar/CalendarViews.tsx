@@ -1,8 +1,8 @@
 import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
-import { ActionIcon, Popover, Stack, Text, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { ActionIcon, Menu, Popover, Stack, Text, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { AlarmClock, Plus, StickyNote } from 'lucide-react'
 import { dayNumber, formatMonthDay, formatWeekday } from '../schedule/data'
-import { calendarEventKinds, calendarModifiers } from '../../tokens/calendar'
+import { calendarAddItems, calendarEventKinds, calendarModifiers, type CalendarAddItem } from '../../tokens/calendar'
 import {
   byStart, describeEvent, eventLabel, eventTime, formatDuration, formatShortDate, formatTime, formatTimeRange, formatWeekdayLong,
   isAllDay, isPeriodStart, isTimed, sameMonth, weekNumber, type CalendarEvent, type Holiday, type SignUp,
@@ -75,14 +75,28 @@ export function SignUpsChip({ count, day, onOpen }: { count: number; day: number
   )
 }
 
-function AddButton({ day, onAdd }: { day: number; onAdd: (day: number) => void }) {
-  const label = `Add task on ${formatShortDate(day)}`
+/** Add opens a menu of what to create. `children` is the trigger. */
+export function AddMenu({ children, onPick }: { children: ReactNode; onPick: (item: CalendarAddItem) => void }) {
   return (
-    <Tooltip label={label}>
-      <ActionIcon className={classes.add} size={24} variant="filled" color="intime" aria-label={label} onClick={() => onAdd(day)}>
-        <Plus size={16} />
-      </ActionIcon>
-    </Tooltip>
+    <Menu position="bottom-end" width={200} shadow="md">
+      <Menu.Target>{children}</Menu.Target>
+      <Menu.Dropdown>
+        {calendarAddItems.map((item) => <Menu.Item key={item} onClick={() => onPick(item)}>{item}</Menu.Item>)}
+      </Menu.Dropdown>
+    </Menu>
+  )
+}
+
+function AddButton({ day, onAdd }: { day: number; onAdd: (day: number) => void }) {
+  const label = `Add on ${formatShortDate(day)}`
+  return (
+    <AddMenu onPick={() => onAdd(day)}>
+      <Tooltip label={label}>
+        <ActionIcon className={classes.add} size={24} variant="filled" color="intime" aria-label={label}>
+          <Plus size={16} />
+        </ActionIcon>
+      </Tooltip>
+    </AddMenu>
   )
 }
 

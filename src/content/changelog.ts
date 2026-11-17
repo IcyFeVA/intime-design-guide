@@ -12,6 +12,12 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-17',
     page: '/patterns/calendar',
+    summary: 'Add and the + on a day open a menu: Activity, Leave, Timesheet or Trade Request, or Task.',
+    changes: ['In the demo, every item opens the Add task form.'],
+  },
+  {
+    date: '2026-11-17',
+    page: '/patterns/calendar',
     summary: 'Busy month cells show two items and a “+N more” button that lists everything on that day.',
   },
   {

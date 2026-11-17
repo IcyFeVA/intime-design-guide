@@ -9,7 +9,7 @@ import CopyValue from '../../components/CopyValue'
 import PropsTable from '../../components/PropsTable'
 import { DesktopDemoFrame, MobileDemoBar, MobileStage, PhoneFrame, PickerMenu, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { formatFullDate, dayOf } from '../../components/schedule/data'
-import { AgendaView, CalendarLegend, EventChip, HolidayLabel, MonthView, SignUpsChip, TimeGridView, type CalendarViewProps } from '../../components/calendar/CalendarViews'
+import { AddMenu, AgendaView, CalendarLegend, EventChip, HolidayLabel, MonthView, SignUpsChip, TimeGridView, type CalendarViewProps } from '../../components/calendar/CalendarViews'
 import { CalendarStepper, CalendarViewMenu, MapButton } from '../../components/calendar/CalendarToolbar'
 import { EventDetailsModal, SignUpsModal, TaskFormModal } from '../../components/calendar/CalendarModals'
 import { useCalendarModals } from '../../components/calendar/useCalendarModals'
@@ -50,7 +50,7 @@ function DesktopDemo() {
       <DesktopDemoFrame
         title="Calendar"
         nav={{ roles: ['employee', 'scheduler'], defaultRole: 'employee', defaultActive: 'calendar' }}
-        actions={<Button leftSection={<Plus size={18} />} onClick={() => addTask(MOCK_TODAY)}>Add</Button>}
+        actions={<AddMenu onPick={() => addTask(MOCK_TODAY)}><Button leftSection={<Plus size={18} />}>Add</Button></AddMenu>}
         status={hint ?? STATUS}
         onReset={reset}
         toolbar={
@@ -105,7 +105,7 @@ function MobileDemo() {
             <div className={classes.phoneHead}>
               <Group justify="space-between" wrap="nowrap" className={classes.phoneTitleRow}>
                 <h3 className={classes.phoneTitle}>Calendar</h3>
-                <Button leftSection={<Plus size={18} />} onClick={() => addTask(MOCK_TODAY)}>Add</Button>
+                <AddMenu onPick={() => addTask(MOCK_TODAY)}><Button leftSection={<Plus size={18} />}>Add</Button></AddMenu>
               </Group>
               <div className={classes.phoneToolbar}>
                 <CalendarViewMenu view={view} onChange={setView} />
@@ -247,7 +247,7 @@ export default function Calendar() {
       <Section id="desktop" title="Desktop" description="An employee’s own calendar: shifts, overtime, leave, tasks, holidays and open sign-ups. Pick a view, then step through time.">
         <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
-          <Text size="sm">Click any item to open its details. Point at a day and press + to add a task there, or use Add for today.</Text>
+          <Text size="sm">Click any item to open its details. Point at a day and press + to add something there, or use Add for today. Every item in the Add menu opens the task form in this demo.</Text>
           <Text size="sm">Tasks you added yourself open in the edit form. Everything else opens read-only.</Text>
         </Stack>
       </Section>
@@ -298,7 +298,7 @@ export default function Calendar() {
         </Stack>
       </Section>
 
-      <Section id="add-task" title="Adding a task" description="Employees add their own tasks with Add or the + on a day. A task has a name, a date, an optional time, an activity, recurrence, reminders and a note.">
+      <Section id="add-task" title="Adding a task" description="Add and the + on a day open a menu: activity, leave, timesheet or trade request, or a task. Employees add their own tasks from it. A task has a name, a date, an optional time, an activity, recurrence, reminders and a note.">
         <AddTaskDemo />
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>All day or a set time.</strong> The time field stays visible but disabled until Set time is picked.</Text>

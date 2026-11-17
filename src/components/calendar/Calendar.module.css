@@ -190,6 +190,7 @@
 }
 
 .add:focus-visible,
+.add[data-expanded],
 [data-hover] .add {
   opacity: 1;
 }
