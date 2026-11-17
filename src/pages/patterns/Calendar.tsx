@@ -283,7 +283,7 @@ export default function Calendar() {
         <Preview title="Sign-ups" align="start">
           <div className={classes.signUpSpecimen}><SignUpsChip count={2} day={mockSignUps[0].day} onOpen={setSpecimenSignUps} /></div>
         </Preview>
-        <Text size="sm" mt="md">Three or more tasks on one day collapse into “Tasks (×3)” in month view, which opens a list.</Text>
+        <Text size="sm" mt="md">Three or more tasks on one day collapse into “Tasks (×3)” in month view, which opens a list. A month cell shows up to three items. When there are more, it shows two and a “+N more” button at the bottom that lists them all.</Text>
         <EventDetailsModal event={specimen} onClose={() => setSpecimen(null)} />
         <SignUpsModal day={specimenSignUps} signUps={mockSignUps} onClose={() => setSpecimenSignUps(null)} onHint={() => {}} />
       </Section>

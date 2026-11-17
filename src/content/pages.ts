@@ -129,7 +129,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/LocationView')),
   },
   {
-    path: '/patterns/calendar', title: 'Calendar', group: 'Patterns', icon: CalendarDays, status: 'confirmed', updated: '2026-11-16',
+    path: '/patterns/calendar', title: 'Calendar', group: 'Patterns', icon: CalendarDays, status: 'confirmed', updated: '2026-11-17',
     description: 'An employee’s own calendar in month, week, day and agenda views, with event details, sign-ups and adding tasks.',
     keywords: ['calendar', 'month', 'week', 'day', 'agenda', 'event', 'task', 'reminder', 'leave', 'vacation', 'pending', 'overtime', 'holiday', 'sign-ups', 'all-day', 'current time', 'legend', 'add task', 'mobile'],
     sections: s(['desktop', 'Desktop'], ['views', 'Views'], ['events', 'Event types'], ['details', 'Event details'], ['add-task', 'Adding a task'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),

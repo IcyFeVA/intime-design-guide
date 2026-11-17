@@ -604,6 +604,41 @@
   pointer-events: none;
 }
 
+/* ---------- Month: "+N more" ---------- */
+
+.more {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dimmed);
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1), color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.more:hover,
+.more[aria-expanded='true'] {
+  color: var(--text-default);
+  background: var(--background-default-hover);
+}
+
+.more:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.more[data-compact] {
+  align-self: stretch;
+  padding: 2px;
+  text-align: center;
+}
+
+.moreDropdown {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
 /* ---------- Toolbar ---------- */
 
 .toolbarSpacer {
@@ -613,6 +648,7 @@
 @media (prefers-reduced-motion: reduce) {
   .event,
   .signUps,
+  .more,
   .add {
     transition: none;
   }

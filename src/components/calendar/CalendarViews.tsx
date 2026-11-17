@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
 import { ActionIcon, Popover, Stack, Text, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { AlarmClock, Plus, StickyNote } from 'lucide-react'
 import { dayNumber, formatMonthDay, formatWeekday } from '../schedule/data'
@@ -159,6 +159,68 @@ function AllDayItems({ day, index, onOpenEvent, onOpenSignUps, compact }: {
 /* Month                                                               */
 /* ------------------------------------------------------------------ */
 
+/** A month cell shows up to this many items. More than that shows the first ones and a “+N more” button. */
+const MONTH_MAX_ITEMS = 3
+
+/** Everything in a month cell, in order: holiday, sign-ups, all-day, timed events, then grouped tasks. */
+function MonthDayItems({ day, index, onOpenEvent, onOpenSignUps, compact }: {
+  day: number
+  index: ReturnType<typeof useDayIndex>
+  onOpenEvent: (event: CalendarEvent) => void
+  onOpenSignUps: (day: number) => void
+  compact?: boolean
+}) {
+  const [opened, setOpened] = useState(false)
+  const holiday = index.holidayOn(day)
+  const signUps = index.signUpCount(day)
+  const allDay = index.eventsOn(day).filter(isAllDay)
+  const timed = index.eventsOn(day).filter(isTimed)
+  const tasks = timed.filter((event) => event.kind === 'task')
+  const grouped = tasks.length > 2
+  const open = (event: CalendarEvent) => { setOpened(false); onOpenEvent(event) }
+  const openSignUps = (target: number) => { setOpened(false); onOpenSignUps(target) }
+
+  const items = (inList: boolean): { key: string; node: ReactNode }[] => [
+    ...(holiday ? [{ key: 'holiday', node: <HolidayLabel holiday={holiday} /> }] : []),
+    ...(signUps > 0 ? [{ key: 'sign-ups', node: <SignUpsChip count={signUps} day={day} onOpen={inList ? openSignUps : onOpenSignUps} /> }] : []),
+    ...allDay.map((event) => ({ key: event.id, node: <EventChip event={event} variant={compact && !inList ? 'mini' : 'bar'} onOpen={inList ? open : onOpenEvent} /> })),
+    ...timed.filter((event) => inList || !grouped || event.kind !== 'task').map((event) => ({
+      key: event.id, node: <EventChip event={event} variant={compact && !inList ? 'mini' : 'month'} onOpen={inList ? open : onOpenEvent} />,
+    })),
+    ...(grouped && !inList ? [{ key: 'tasks', node: <TaskGroup tasks={tasks} onOpen={onOpenEvent} compact={compact} /> }] : []),
+  ]
+
+  const cell = items(false)
+  if (cell.length <= MONTH_MAX_ITEMS) return <>{cell.map((item) => <Fragment key={item.key}>{item.node}</Fragment>)}</>
+
+  const shown = cell.slice(0, MONTH_MAX_ITEMS - 1)
+  const hidden = cell.length - shown.length
+  return (
+    <>
+      {shown.map((item) => <Fragment key={item.key}>{item.node}</Fragment>)}
+      <Popover opened={opened} onChange={setOpened} position="bottom-start" shadow="md" withinPortal>
+        <Popover.Target>
+          <UnstyledButton
+            className={classes.more}
+            data-compact={compact || undefined}
+            aria-label={`${hidden} more on ${formatShortDate(day)}. Show all`}
+            aria-expanded={opened}
+            onClick={() => setOpened((value) => !value)}
+          >
+            {compact ? `+${hidden}` : `+${hidden} more`}
+          </UnstyledButton>
+        </Popover.Target>
+        <Popover.Dropdown p={6} className={classes.moreDropdown}>
+          <Text size="xs" fw={600} c="dimmed" px={4} pb={6}>{formatShortDate(day)}</Text>
+          <Stack gap={4} w={240}>
+            {items(true).map((item) => <Fragment key={item.key}>{item.node}</Fragment>)}
+          </Stack>
+        </Popover.Dropdown>
+      </Popover>
+    </>
+  )
+}
+
 export function MonthView(props: CalendarViewProps & { month: number }) {
   const { days, today, compact, onOpenEvent, onOpenSignUps, onAdd, month } = props
   const index = useDayIndex(props)
@@ -173,9 +235,6 @@ export function MonthView(props: CalendarViewProps & { month: number }) {
       {weeks.map((week) => (
         <div className={classes.monthWeek} key={week[0]} role="row">
           {week.map((day) => {
-            const events = index.eventsOn(day).filter(isTimed)
-            const tasks = events.filter((event) => event.kind === 'task')
-            const grouped = tasks.length > 2
             return (
               <div
                 key={day}
@@ -193,11 +252,7 @@ export function MonthView(props: CalendarViewProps & { month: number }) {
                   </span>
                   {onAdd && !compact && <AddButton day={day} onAdd={onAdd} />}
                 </div>
-                <AllDayItems day={day} index={index} onOpenEvent={onOpenEvent} onOpenSignUps={onOpenSignUps} compact={compact} />
-                {events.filter((event) => !grouped || event.kind !== 'task').map((event) => (
-                  <EventChip key={event.id} event={event} variant={compact ? 'mini' : 'month'} onOpen={onOpenEvent} />
-                ))}
-                {grouped && <TaskGroup tasks={tasks} onOpen={onOpenEvent} compact={compact} />}
+                <MonthDayItems day={day} index={index} onOpenEvent={onOpenEvent} onOpenSignUps={onOpenSignUps} compact={compact} />
               </div>
             )
           })}
