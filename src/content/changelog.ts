@@ -11,6 +11,11 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-17',
+    page: null,
+    summary: 'In the full-screen desktop demos (Team View, Location View, Approvals), dialogs and drawers keep their normal size.',
+  },
+  {
+    date: '2026-11-17',
     page: '/patterns/calendar',
     summary: 'Add and the + on a day open a menu: Activity, Leave, Timesheet or Trade Request, or Task.',
     changes: ['In the demo, every item opens the Add task form.'],

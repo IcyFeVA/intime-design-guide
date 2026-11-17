@@ -169,8 +169,22 @@
   }
 }
 
+/* The full-screen Modal's vars (padding 0, full-size content) also reach the contained modals and
+   drawers inside the demo. Reset them (initial = Mantine's own fallbacks) so those keep their size. */
 .shell[data-full-screen] {
   height: calc(100dvh - 61px);
+  --mb-padding: initial;
+}
+
+.shell[data-full-screen] :global(.mantine-Modal-content) {
+  --modal-content-flex: initial;
+  --modal-content-max-height: initial;
+  --modal-content-height: initial;
+}
+
+.shell[data-full-screen] :global(.mantine-Modal-inner) {
+  --modal-inner-y-offset: initial;
+  --modal-inner-x-offset: initial;
 }
 
 .modalHeader {
