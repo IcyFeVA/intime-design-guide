@@ -217,7 +217,11 @@ function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
       <div
         className={classes.cellSample}
         style={{
-          background: isHexColor(background) ? composite(background, body) : background,
+          background: !isHexColor(background)
+            ? background
+            : color.tint && /^#[0-9a-f]{6}$/i.test(background)
+              ? composite(`${background}${Math.round((color.tint / 100) * 255).toString(16).padStart(2, '0')}`, body)
+              : composite(background, body),
           borderColor: border ?? 'transparent',
           color: text,
         }}
@@ -228,7 +232,7 @@ function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
       <Stack gap={0}>
         {[color.background, color.border, color.text].filter(Boolean).map((name) => (
           <Text key={name} size="xs" ff="monospace" c={name === color.background ? undefined : 'dimmed'} truncate>
-            --{name}
+            --{name}{name === color.background && color.tint ? ` · ${color.tint}%` : ''}
           </Text>
         ))}
       </Stack>

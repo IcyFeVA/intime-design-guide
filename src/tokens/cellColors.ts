@@ -9,6 +9,8 @@ export interface CellColor {
   background: string
   border?: string
   text?: string
+  /** Show the background as a tint (percent) over the page, like the `*-light` status badges and alerts. */
+  tint?: number
 }
 
 export interface CellKind {
@@ -35,8 +37,8 @@ export const cellKinds: CellKind[] = [
 
 const shared = {
   signups: { background: 'background-primary-light', border: 'border-primary-default' },
-  'all-day-event': { background: 'background-info-light', text: 'text-info' },
-  pending: { background: 'background-warning-light', border: 'border-warning-default', text: 'text-warning-default' },
+  'all-day-event': { background: 'background-info-light', text: 'text-info', tint: 16 },
+  pending: { background: 'background-warning-light', border: 'border-warning-default', text: 'text-warning-default', tint: 16 },
 } satisfies Record<string, CellColor>
 
 const theme = (
