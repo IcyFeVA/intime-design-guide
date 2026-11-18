@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-18',
     page: '/foundations/colors',
+    summary: 'Restored --text-warning-default (#e5b953) and --text-info (#5fb5ff) in Dark, Dusk and Miami Vice to the Figma export values.',
+  },
+  {
+    date: '2026-11-18',
+    page: '/foundations/colors',
     summary: 'Miami Vice: --background-info-light now matches Dark (#228be6). Temporary until the next Figma export.',
   },
   {

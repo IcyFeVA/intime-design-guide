@@ -51,7 +51,7 @@
 --spacing-spacing-xxl: 32px;
 --spacing-spacing-xxs: 2px;
 --text-primary-default: #fa00af;
---text-warning-default: #8a4700;
+--text-warning-default: #e5b953;
 --text-success-default: #59cdaa;
 --spacing-spacing-none: 0px;
 --background-primary-light-hover: var(--primary-primary-color-dark-20);
@@ -87,7 +87,7 @@
 --background-body-alt: #151027;
 --border-border-info: #5fb5ff;
 --background-info: #228be6;
---text-info: #075599;
+--text-info: #5fb5ff;
 --background-info-light: #228be6;
 --soft1: #ffa722;
 --soft2: #fc8bd6;
