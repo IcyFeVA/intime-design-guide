@@ -346,7 +346,7 @@ export default function Colors() {
               }}
             >
               <p className={classes.alertTitle}>Bummer!</p>
-              <p className={classes.alertBody}>
+              <p className={classes.alertBody} style={{ color: token('text-default').value }}>
                 Something terrible happened! You made a mistake and there is no going back, your data was lost forever!
               </p>
             </div>
