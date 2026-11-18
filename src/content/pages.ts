@@ -22,7 +22,7 @@ export const pages: PageDef[] = [
   },
   // Foundations
   {
-    path: '/foundations/colors', title: 'Colors', group: 'Foundations', icon: Palette, status: 'confirmed', updated: '2026-11-12',
+    path: '/foundations/colors', title: 'Colors', group: 'Foundations', icon: Palette, status: 'confirmed', updated: '2026-11-18',
     description: 'Color helps to express hierarchy, establish brand identity, give meaning, and indicate element states.',
     keywords: ['palette', 'hex', 'theme', 'dark', 'light', 'color-blind', 'surface', 'background', 'text', 'border', 'cta', 'success', 'warning', 'error', 'info', 'contrast'],
     sections: s(['themes', 'Themes'], ['main-ui', 'Main UI colors'], ['signalling', 'Signalling colors'], ['in-context', 'Signalling colors with example'], ['text', 'Text'], ['borders', 'Borders'], ['grays', 'Gray scale & neutrals'], ['primitives', 'Primitive palettes'], ['all-tokens', 'All color tokens']),

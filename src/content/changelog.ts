@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-18',
+    page: '/foundations/colors',
+    summary: 'Re-imported all six themes from Figma. Each theme adds 24 categorical colors.',
+    changes: [
+      'New tokens: --soft1 to --soft8, --base1 to --base8 and --deep1 to --deep8, in every theme.',
+      'They are listed in the All color tokens table and included in the Theme Export downloads.',
+      'Existing theme values are unchanged.',
+    ],
+  },
+  {
+    date: '2026-11-18',
     page: '/components/feedback',
     summary: 'Alerts use the theme’s error, warning and info colors.',
     changes: [

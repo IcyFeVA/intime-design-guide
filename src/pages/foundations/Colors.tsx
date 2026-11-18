@@ -19,6 +19,9 @@ import { composite, contrastRatio, isHexColor } from '../../lib/color'
 import TokenSwatch, { type CopyFormat } from './TokenSwatch'
 import classes from './Colors.module.css'
 
+/** The "Contrast on body" column in All color tokens is hidden for now. */
+const SHOW_CONTRAST = false
+
 interface RowProps {
   swatches: SwatchDef[]
   theme: ThemeDef
@@ -149,7 +152,7 @@ function AllTokens() {
               {themes.map((theme) => (
                 <Table.Th key={theme.id}>{theme.label}</Table.Th>
               ))}
-              <Table.Th>Contrast on body</Table.Th>
+              {SHOW_CONTRAST && <Table.Th>Contrast on body</Table.Th>}
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -163,6 +166,7 @@ function AllTokens() {
                     <ValueCell theme={theme} name={name} />
                   </Table.Td>
                 ))}
+                {SHOW_CONTRAST && (
                 <Table.Td>
                   {name.startsWith('text-') ? (
                     <Group gap={6} wrap="nowrap">
@@ -184,6 +188,7 @@ function AllTokens() {
                     <Text size="xs" c="dimmed">—</Text>
                   )}
                 </Table.Td>
+                )}
               </Table.Tr>
             ))}
           </Table.Tbody>
