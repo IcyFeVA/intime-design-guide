@@ -93,7 +93,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/ShiftCells')),
   },
   {
-    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'confirmed', updated: '2026-11-13',
+    path: '/components/status-badges', title: 'Status Badges', group: 'Components', icon: Tag, status: 'confirmed', updated: '2026-11-18',
     description: 'Request and sign-up status badges and counters.',
     keywords: ['badge', 'tag', 'chip', 'pill', 'overtime', 'on duty', 'leave', 'sick', 'conflict', 'open shift'],
     sections: s(['shift-states', 'Status badges'], ['outline-dot', 'Outline & dot badges'], ['counts', 'Counts & indicators'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),

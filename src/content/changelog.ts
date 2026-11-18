@@ -10,6 +10,26 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-18',
+    page: '/components/status-badges',
+    summary: 'Each status group has its own icon shape, so badges stay clear for people who are color blind.',
+    changes: [
+      'Rejected: cross (was a ban sign). Expired: timer off (was the clock, same as Pending). Missed: calendar with a cross (had no icon). Submitted: paper plane (was a check).',
+      'Every status now has an icon, and the table shows each status’s group.',
+      'Gray badges (Closed, Full) use the gray text color instead of dimmed text.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    page: null,
+    summary: 'New theme colors from Figma for status text and borders, in all six themes.',
+    changes: [
+      'Warning, success, error, info and gray text and borders now use one value per tone: the same in all dark themes and the same in all light themes.',
+      'Status badge text reaches 4.7:1 or more in every theme (was as low as 1.9:1 in the light themes).',
+      'Dimmed text changes too: #c5d2e0 in dark themes, #3a4753 in light themes.',
+    ],
+  },
+  {
     date: '2026-11-17',
     page: null,
     summary: 'In the full-screen desktop demos (Team View, Location View, Approvals), dialogs and drawers keep their normal size.',

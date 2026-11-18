@@ -1,6 +1,6 @@
 .root {
   --tone-bg: var(--background-gray-light);
-  --tone-fg: var(--text-dimmed);
+  --tone-fg: var(--text-gray-default);
   background: color-mix(in srgb, var(--tone-bg) 16%, transparent);
   color: var(--tone-fg);
   font-weight: 700;

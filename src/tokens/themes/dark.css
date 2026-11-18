@@ -1,13 +1,13 @@
 /* InTime dark theme — exported from Figma variables. Paste re-exports here verbatim. */
 --text-title: #f3f5f7;
---text-error-default: #db4a4c;
+--text-error-default: #e68082;
 --text-placeholder: #7b808c;
 --text-link: var(--primary-primary-color-6);
 --background-default: #19232e;
 --background-default-hover: #243242;
 --text-default: #f3f6f7;
 --border-default: #263140;
---text-dimmed: #acbed2;
+--text-dimmed: #c5d2e0;
 --background-body: #121921;
 --text-disabled-default: #4c5162;
 --background-disabled-default: #202d3b;
@@ -29,7 +29,7 @@
 --background-primary-light: var(--primary-primary-color-dark-15);
 --background-warning-light: #fab005;
 --background-success-light: #12b886;
---text-gray-default: var(--gray-gray-2);
+--text-gray-default: #c5d2e0;
 --radius-radius-sm: 4px;
 --padding-padding-xs: 12px;
 --padding-padding-sm: 16px;
@@ -51,8 +51,8 @@
 --spacing-spacing-xxl: 32px;
 --spacing-spacing-xxs: 2px;
 --text-primary-default: var(--primary-primary-color-6);
---text-warning-default: #da9b09;
---text-success-default: #12b886;
+--text-warning-default: #e5b953;
+--text-success-default: #59cdaa;
 --spacing-spacing-none: 0px;
 --background-primary-light-hover: var(--primary-primary-color-dark-20);
 --background-warning-light-hover: #fab005;
@@ -61,10 +61,10 @@
 --background-gray-light-hover: #868e96;
 --border-primary-default: var(--primary-primary-color-7);
 --text-error-disabled: #db4a4c;
---border-success-default: #12b886;
---border-error-default: var(--red-red-7);
---border-gray-default: var(--gray-gray-3);
---border-warning-default: #da9b09;
+--border-success-default: #59cdaa;
+--border-error-default: #e68082;
+--border-gray-default: #c5d2e0;
+--border-warning-default: #e5b953;
 --background-indigo-filled: var(--indigo-indigo-8);
 --background-indigo-filled-hover: var(--indigo-indigo-9);
 --background-indigo-light: #4c6ef5;
@@ -85,7 +85,7 @@
 --background-framework: #161e28;
 --background-framework-alt: #0d1116;
 --background-body-alt: #0f141a;
---border-border-info: var(--blue-blue-6);
+--border-border-info: #5fb5ff;
 --background-info: #228be6;
---text-info: #1b95ff;
+--text-info: #5fb5ff;
 --background-info-light: #228be6;

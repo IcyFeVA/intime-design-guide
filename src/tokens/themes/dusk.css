@@ -1,13 +1,13 @@
 /* InTime Dusk theme — exported from Figma variables. Paste re-exports here verbatim. */
 --text-title: #ada7ff;
---text-error-default: #db4a4c;
+--text-error-default: #e68082;
 --text-placeholder: #7b808c;
 --text-link: #cb8aff;
 --background-default: #1a2438;
 --background-default-hover: #202d46;
 --text-default: #f3f6f7;
 --border-default: #282e5d;
---text-dimmed: #9fbedd;
+--text-dimmed: #c5d2e0;
 --background-body: #0f1524;
 --text-disabled-default: #4c5162;
 --background-disabled-default: #131b2f;
@@ -29,7 +29,7 @@
 --background-primary-light: #704195;
 --background-warning-light: #fab005;
 --background-success-light: #12b886;
---text-gray-default: var(--gray-gray-2);
+--text-gray-default: #c5d2e0;
 --radius-radius-sm: 4px;
 --padding-padding-xs: 12px;
 --padding-padding-sm: 16px;
@@ -51,8 +51,8 @@
 --spacing-spacing-xxl: 32px;
 --spacing-spacing-xxs: 2px;
 --text-primary-default: #e98827;
---text-warning-default: #da9b09;
---text-success-default: #12b886;
+--text-warning-default: #e5b953;
+--text-success-default: #59cdaa;
 --spacing-spacing-none: 0px;
 --background-primary-light-hover: var(--primary-primary-color-dark-20);
 --background-warning-light-hover: #fab005;
@@ -61,10 +61,10 @@
 --background-gray-light-hover: #868e96;
 --border-primary-default: #a77fc7;
 --text-error-disabled: #db4a4c;
---border-success-default: #12b886;
---border-error-default: var(--red-red-7);
---border-gray-default: var(--gray-gray-3);
---border-warning-default: #da9b09;
+--border-success-default: #59cdaa;
+--border-error-default: #e68082;
+--border-gray-default: #c5d2e0;
+--border-warning-default: #e5b953;
 --background-indigo-filled: var(--indigo-indigo-8);
 --background-indigo-filled-hover: var(--indigo-indigo-9);
 --background-indigo-light: #4c6ef5;
@@ -85,7 +85,7 @@
 --background-framework: #131b2a;
 --background-framework-alt: #171f31;
 --background-body-alt: #0c111d;
---border-border-info: var(--blue-blue-6);
+--border-border-info: #5fb5ff;
 --background-info: #228be6;
---text-info: #1b95ff;
+--text-info: #5fb5ff;
 --background-info-light: #228be6;

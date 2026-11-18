@@ -12,19 +12,19 @@ export default function StatusBadges() {
   return (
     <>
       <PageHeader />
-      <Section id="shift-states" title="Status badges" description="Status badges pair an icon with a short, unambiguous label. The palette is provisional; the meaning is never conveyed by color alone.">
+      <Section id="shift-states" title="Status badges" description="Status badges pair an icon with a short, unambiguous label. Each group has its own icon shape, so the meaning never depends on color alone.">
         <Stack gap="lg">
-          <Preview code={'<Badge variant="light" color="teal" radius="xl"\n  leftSection={<CircleCheck size={14} />}>Approved</Badge>'}>
+          <Preview code={'<Badge className="status-badge" data-tone="success" radius="xl"\n  leftSection={<CircleCheck size={14} aria-hidden />}>Approved</Badge>'}>
             {requestStates.map((state) => <RequestStatusBadge key={state.key} stateKey={state.key} />)}
           </Preview>
           <Table.ScrollContainer minWidth={500} className="doc-table">
-            <Table verticalSpacing="sm" horizontalSpacing="md"><Table.Thead><Table.Tr><Table.Th>State</Table.Th><Table.Th>Meaning</Table.Th></Table.Tr></Table.Thead>
-              <Table.Tbody>{requestStates.map((state) => <Table.Tr key={state.key}><Table.Td><RequestStatusBadge stateKey={state.key} /></Table.Td><Table.Td><Text size="sm">{state.meaning}</Text></Table.Td></Table.Tr>)}</Table.Tbody>
+            <Table verticalSpacing="sm" horizontalSpacing="md"><Table.Thead><Table.Tr><Table.Th>State</Table.Th><Table.Th>Group</Table.Th><Table.Th>Meaning</Table.Th></Table.Tr></Table.Thead>
+              <Table.Tbody>{requestStates.map((state) => <Table.Tr key={state.key}><Table.Td><div style={{ width: 'max-content' }}><RequestStatusBadge stateKey={state.key} /></div></Table.Td><Table.Td><Text size="sm">{state.group}</Text></Table.Td><Table.Td><Text size="sm">{state.meaning}</Text></Table.Td></Table.Tr>)}</Table.Tbody>
             </Table>
           </Table.ScrollContainer>
           <PropsTable rows={[
             { prop: 'variant', type: 'light | outline | filled', default: 'light', description: 'Light pills keep status legible without overpowering the roster.' },
-            { prop: 'leftSection', type: 'ReactNode', description: 'Use the icon assigned by the status token.' },
+            { prop: 'leftSection', type: 'ReactNode', description: 'Required. Use the icon assigned by the status token: an hourglass or clock for waiting, a check or forward arrow for positive, a cross or slash for negative, a paper plane or lock for neutral.' },
             { prop: 'size', type: 'xs | sm | md', default: 'sm', description: 'xs for calendar cells, sm for tables, md for detail headers.' },
           ]} />
         </Stack>
@@ -48,7 +48,7 @@ export default function StatusBadges() {
           <Group gap="xl"><Badge variant="default">12 members</Badge><Badge color="yellow" variant="light">3 open shifts</Badge><Indicator color="green" size={8} offset={-6}><Text size="sm">Dispatch online</Text></Indicator></Group>
         </Preview>
       </Section>
-      <Section id="guidelines" title="Guidelines"><DoDont doItems={['Use the shared shift-state token for label, icon and color.', 'Use sentence case and concise labels.', 'Keep status badges non-interactive unless they open clearly labeled details.']} dontItems={['Use a red or green dot without a text alternative.', 'Invent different labels for the same state in different views.', 'Use a badge as a substitute for an action button.']} /></Section>
+      <Section id="guidelines" title="Guidelines"><DoDont doItems={['Use the shared shift-state token for label, icon and color.', 'Give every status an icon, in the shape of its group.', 'Keep the label at every size, including calendar cells and mobile rows.', 'Use sentence case and concise labels.', 'Keep status badges non-interactive unless they open clearly labeled details.']} dontItems={['Use a red or green dot without a text alternative.', 'Reuse one icon for statuses in different groups.', 'Tint or mix the badge text color; it is set to pass 4.5:1 in every theme.', 'Invent different labels for the same state in different views.', 'Use a badge as a substitute for an action button.']} /></Section>
       <Section id="figma" title="Figma reference"><FigmaSlot title="Badges — states, departments & counts" notes="Provide the confirmed state inventory, labels, icon mapping, colors, size variants and any interactive badge behavior." /></Section>
     </>
   )

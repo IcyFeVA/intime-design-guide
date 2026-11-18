@@ -11,7 +11,7 @@ export default function RequestStatusBadge({ stateKey, size = 'md' }: { stateKey
       radius="xl"
       data-tone={state.tone}
       classNames={{ root: classes.root }}
-      leftSection={Icon ? <Icon size={14} strokeWidth={2} aria-hidden="true" /> : undefined}
+      leftSection={<Icon size={14} strokeWidth={2} aria-hidden="true" />}
     >
       {state.label}
     </Badge>

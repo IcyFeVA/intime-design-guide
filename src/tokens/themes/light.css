@@ -1,13 +1,13 @@
 /* InTime light theme — exported from Figma variables. Paste re-exports here verbatim. */
 --text-title: #284460;
---text-error-default: var(--red-red-8);
+--text-error-default: #861d1d;
 --text-placeholder: var(--gray-gray-6);
 --text-link: var(--primary-primary-color-7);
 --background-default: #ebeef4;
 --background-default-hover: #e8ebf3;
 --text-default: #284460;
 --border-default: #d8e0e8;
---text-dimmed: #60768b;
+--text-dimmed: #3a4753;
 --background-body: #ffffff;
 --text-disabled-default: #98a5b8;
 --background-disabled-default: #f3f4f6;
@@ -29,7 +29,7 @@
 --background-primary-light: var(--primary-primary-color-light-10);
 --background-warning-light: #fab005;
 --background-success-light: #12b886;
---text-gray-default: var(--gray-gray-7);
+--text-gray-default: #3a4753;
 --radius-radius-sm: 4px;
 --padding-padding-xs: 12px;
 --padding-padding-sm: 16px;
@@ -51,8 +51,8 @@
 --spacing-spacing-xxl: 32px;
 --spacing-spacing-xxs: 2px;
 --text-primary-default: var(--primary-primary-color-7);
---text-warning-default: var(--yellow-teal-yellow-9);
---text-success-default: var(--teal-teal-6);
+--text-warning-default: #8a4700;
+--text-success-default: #0b6e50;
 --spacing-spacing-none: 0px;
 --background-primary-light-hover: var(--primary-primary-color-light-12);
 --background-warning-light-hover: #fab005;
@@ -61,10 +61,10 @@
 --background-gray-light-hover: #868e96;
 --border-primary-default: var(--primary-primary-color-7);
 --text-error-disabled: var(--red-red-4);
---border-success-default: var(--teal-teal-6);
---border-error-default: var(--red-red-6);
---border-gray-default: var(--gray-gray-6);
---border-warning-default: var(--yellow-teal-yellow-9);
+--border-success-default: #0b6e50;
+--border-error-default: #861d1d;
+--border-gray-default: #3a4753;
+--border-warning-default: #8a4700;
 --background-indigo-filled: var(--indigo-indigo-6);
 --background-indigo-filled-hover: var(--indigo-indigo-7);
 --background-indigo-light: #4c6ef5;
@@ -85,7 +85,7 @@
 --background-framework: #f4f5f6;
 --background-framework-alt: #f8f9fb;
 --background-body-alt: #fcfcfd;
---border-border-info: #0c8eff;
+--border-border-info: #075599;
 --background-info: #0c8eff;
---text-info: #0c8eff;
+--text-info: #075599;
 --background-info-light: #0c8eff;
