@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-18',
     page: '/foundations/colors',
+    summary: 'Miami Vice: --background-info-light now matches Dark (#228be6). Temporary until the next Figma export.',
+  },
+  {
+    date: '2026-11-18',
+    page: '/foundations/colors',
     summary: 'Shift cell colors are confirmed.',
   },
   {
