@@ -12,6 +12,29 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-18',
     page: '/foundations/colors',
+    summary: 'Shift cell colors are confirmed.',
+  },
+  {
+    date: '2026-11-18',
+    page: '/foundations/colors',
+    summary: 'Text warning and text info now match across all six themes. Shift cell labels for pending and all-day events use them.',
+    changes: [
+      'Dark, Dusk and Miami Vice: --text-warning-default is #8a4700 and --text-info is #075599, the same as the light themes. Temporary until the next Figma export.',
+      'Pending cells use --text-warning-default for their label; all-day events use --text-info.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    page: '/foundations/colors',
+    summary: 'Added the Shift cell colors table: which soft, base and deep token fills each schedule and calendar cell in every theme.',
+    changes: [
+      'Covers activity, out of unit, leave, overtime, task, sign-ups, all-day event and leave, schedule ruler and pending cells.',
+      'Sign-ups, all-day events and pending cells add a border or text token.',
+    ],
+  },
+  {
+    date: '2026-11-18',
+    page: '/foundations/colors',
     summary: 'Re-imported all six themes from Figma. Each theme adds 24 categorical colors.',
     changes: [
       'New tokens: --soft1 to --soft8, --base1 to --base8 and --deep1 to --deep8, in every theme.',

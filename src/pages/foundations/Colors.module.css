@@ -315,3 +315,14 @@
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
+
+.cellSample {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-xs);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+}

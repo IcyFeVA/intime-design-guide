@@ -15,6 +15,7 @@ import {
   isColorToken, mainUiSwatches, neutralSwatches, plannedThemes, primitivePalettes, signalGroups,
   textSignalSwatches, textSwatches, themes, type SwatchDef, type ThemeDef,
 } from '../../tokens/themes'
+import { cellColors, cellColorsStatus, cellKinds } from '../../tokens/cellColors'
 import { composite, contrastRatio, isHexColor } from '../../lib/color'
 import TokenSwatch, { type CopyFormat } from './TokenSwatch'
 import classes from './Colors.module.css'
@@ -200,6 +201,70 @@ function AllTokens() {
         </Text>
       )}
     </Stack>
+  )
+}
+
+function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
+  const color = cellColors[theme.id]?.[kind]
+  const hex = (name?: string) => (name ? theme.tokens[name]?.value : undefined)
+  const background = hex(color?.background)
+  if (!color || !background) return <Text size="xs" c="dimmed">Not defined</Text>
+  const body = theme.tokens['background-body'].value
+  const border = hex(color.border)
+  const text = hex(color.text) ?? theme.tokens['text-default'].value
+  return (
+    <Stack gap={4} style={{ minWidth: 0 }}>
+      <div
+        className={classes.cellSample}
+        style={{
+          background: isHexColor(background) ? composite(background, body) : background,
+          borderColor: border ?? 'transparent',
+          color: text,
+        }}
+        aria-hidden="true"
+      >
+        PatD
+      </div>
+      <Stack gap={0}>
+        {[color.background, color.border, color.text].filter(Boolean).map((name) => (
+          <Text key={name} size="xs" ff="monospace" c={name === color.background ? undefined : 'dimmed'} truncate>
+            --{name}
+          </Text>
+        ))}
+      </Stack>
+    </Stack>
+  )
+}
+
+function CellColorTable() {
+  return (
+    <Table.ScrollContainer minWidth={1180} className="doc-table">
+      <Table verticalSpacing={10} horizontalSpacing="md">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th miw={190}>Cell</Table.Th>
+            {themes.map((theme) => (
+              <Table.Th key={theme.id}>{theme.label}</Table.Th>
+            ))}
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {cellKinds.map((kind) => (
+            <Table.Tr key={kind.key}>
+              <Table.Td>
+                <Text size="sm" fw={600}>{kind.label}</Text>
+                <Text size="xs" c="dimmed">{kind.usage}</Text>
+              </Table.Td>
+              {themes.map((theme) => (
+                <Table.Td key={theme.id}>
+                  <CellSample theme={theme} kind={kind.key} />
+                </Table.Td>
+              ))}
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   )
 }
 
@@ -401,6 +466,20 @@ export default function Colors() {
         description="Every color variable from the export, side by side across themes. Use it to spot gaps when a new theme is added."
       >
         <AllTokens />
+      </Section>
+
+      <Section
+        id="cell-colors"
+        title="Shift cell colors"
+        description="Which token fills each schedule and calendar cell, per theme. Special cells add a border or text color on top of the background."
+      >
+        <Stack gap="sm">
+          <Group gap="xs">
+            <StatusBadge status={cellColorsStatus} />
+            <Text size="xs" c="dimmed">Labels use each theme's --text-default unless a text token is listed.</Text>
+          </Group>
+          <CellColorTable />
+        </Stack>
       </Section>
     </>
   )
