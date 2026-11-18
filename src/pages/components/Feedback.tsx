@@ -5,9 +5,17 @@ import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
 import FigmaSlot from '../../components/FigmaSlot'
-import PropsTable from '../../components/PropsTable'
 import DoDont from '../../components/DoDont'
 import styles from './ComponentDemos.module.css'
+import classes from './Feedback.module.css'
+
+type Tone = 'error' | 'warning' | 'info'
+
+/** Alert colored with the theme's tone tokens: `--background-<tone>-light` behind, the tone text color in front. */
+const tone = (value: Tone) => ({
+  'data-tone': value,
+  classNames: { root: classes.alert, title: classes.title, icon: classes.icon, message: classes.message },
+})
 
 export default function Feedback() {
   const [opened, setOpened] = useState(false)
@@ -18,14 +26,9 @@ export default function Feedback() {
       <PageHeader />
       <Section id="alerts" title="Alerts" description="Inline alerts explain a persistent condition that affects the current task. Keep them close to the relevant content.">
         <Stack gap="lg">
-          <Preview align="start" code={'<Alert color="yellow" title="Coverage below minimum"\n  icon={<TriangleAlert size={18} />}>\n  Patrol D4 needs 1 more qualified officer for 19:00–07:00.\n</Alert>'}>
-            <Stack w="100%"><Alert color="yellow" title="Coverage below minimum" icon={<TriangleAlert size={18} />}>Patrol D4 needs 1 more qualified officer for <span className="tabular">19:00–07:00</span>.</Alert><Alert color="red" title="Rest period conflict" icon={<TriangleAlert size={18} />}>Taylor Brooks has less than 8 hours of rest before this assignment. Review the shift before publishing.</Alert><Alert color="cyan" title="Agency local time" icon={<Info size={18} />}>Schedules use the timezone configured by your agency administrator.</Alert></Stack>
+          <Preview align="start" code={'<Alert {...tone(\'warning\')} title="Coverage below minimum"\n  icon={<TriangleAlert size={18} />}>\n  Patrol D4 needs 1 more qualified officer for 19:00–07:00.\n</Alert>'}>
+            <Stack w="100%"><Alert {...tone('warning')} title="Coverage below minimum" icon={<TriangleAlert size={18} />}>Patrol D4 needs 1 more qualified officer for <span className="tabular">19:00–07:00</span>.</Alert><Alert {...tone('error')} title="Rest period conflict" icon={<TriangleAlert size={18} />}>Taylor Brooks has less than 8 hours of rest before this assignment. Review the shift before publishing.</Alert><Alert {...tone('info')} title="Agency local time" icon={<Info size={18} />}>Schedules use the timezone configured by your agency administrator.</Alert></Stack>
           </Preview>
-          <PropsTable rows={[
-            { prop: 'color', type: 'MantineColor', description: 'yellow for warning, red for blocking errors, cyan for information.' },
-            { prop: 'title', type: 'ReactNode', description: 'Lead with the condition, not “Warning” or “Error”.' },
-            { prop: 'icon', type: 'ReactNode', description: 'Always pair semantic color with a recognizable icon.' },
-          ]} />
         </Stack>
       </Section>
       <Section id="notifications" title="Notifications" description="Transient feedback confirms completed actions. Avoid placing critical, unresolved problems in a disappearing toast.">
@@ -44,7 +47,7 @@ export default function Feedback() {
           <DoDont doItems={['Use a specific title and show the assignment being changed.', 'Provide a safe, clearly labeled cancel action.', 'Return focus to the trigger when the modal closes.']} dontItems={['Ask “Are you sure?” without explaining the consequence.', 'Use a modal for routine confirmations such as a successful save.', 'Allow background interaction while a blocking dialog is open.']} />
         </Stack>
         <Modal opened={opened} onClose={() => setOpened(false)} title="Delete this shift?" centered>
-          <Stack gap="lg"><Alert color="red" icon={<TriangleAlert size={18} />}>This removes the assignment from the schedule. The member will need to be notified.</Alert><Stack gap={4}><Text fw={600}>Alex Morgan · Patrol D4</Text><Text c="dimmed" size="sm" className="tabular">May 4 · 07:00–19:00</Text></Stack><Group justify="flex-end"><Button variant="default" onClick={() => setOpened(false)}>Keep shift</Button><Button color="red" onClick={() => { setOpened(false); setDeleted(true) }}>Delete shift</Button></Group></Stack>
+          <Stack gap="lg"><Alert {...tone('error')} icon={<TriangleAlert size={18} />}>This removes the assignment from the schedule. The member will need to be notified.</Alert><Stack gap={4}><Text fw={600}>Alex Morgan · Patrol D4</Text><Text c="dimmed" size="sm" className="tabular">May 4 · 07:00–19:00</Text></Stack><Group justify="flex-end"><Button variant="default" onClick={() => setOpened(false)}>Keep shift</Button><Button color="red" onClick={() => { setOpened(false); setDeleted(true) }}>Delete shift</Button></Group></Stack>
         </Modal>
       </Section>
       <Section id="tooltips" title="Tooltips" description="Tooltips clarify controls, not essential instructions. Trigger them on focus as well as hover.">

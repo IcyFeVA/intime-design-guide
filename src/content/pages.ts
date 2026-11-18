@@ -100,7 +100,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/components/StatusBadges')),
   },
   {
-    path: '/components/feedback', title: 'Feedback', group: 'Components', icon: MessageSquareWarning, status: 'confirmed', updated: '2026-11-12',
+    path: '/components/feedback', title: 'Feedback', group: 'Components', icon: MessageSquareWarning, status: 'confirmed', updated: '2026-11-18',
     description: 'Alerts, notifications, confirmation modals and tooltips.',
     keywords: ['alert', 'toast', 'notification', 'modal', 'dialog', 'confirm', 'tooltip'],
     sections: s(['alerts', 'Alerts'], ['notifications', 'Notifications'], ['modals', 'Modals & confirmation'], ['tooltips', 'Tooltips'], ['figma', 'Figma reference']),

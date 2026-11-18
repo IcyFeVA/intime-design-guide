@@ -1,0 +1,19 @@
+/* Alert tones: the `*-light` theme token tints the background, the matching text token colors the title and icon. */
+.alert {
+  --tone-bg: var(--background-info-light);
+  --tone-fg: var(--text-info);
+  background: color-mix(in srgb, var(--tone-bg) 16%, var(--background-default));
+}
+
+.alert[data-tone='error'] { --tone-bg: var(--background-error-light); --tone-fg: var(--text-error-default); }
+.alert[data-tone='warning'] { --tone-bg: var(--background-warning-light); --tone-fg: var(--text-warning-default); }
+.alert[data-tone='info'] { --tone-bg: var(--background-info-light); --tone-fg: var(--text-info); }
+
+.title,
+.icon {
+  color: var(--tone-fg);
+}
+
+.message {
+  color: var(--text-default);
+}

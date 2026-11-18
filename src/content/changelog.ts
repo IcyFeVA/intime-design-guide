@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-18',
+    page: '/components/feedback',
+    summary: 'Alerts use the theme’s error, warning and info colors.',
+    changes: [
+      'The background uses the tone’s light color, and the title and icon use the tone color.',
+      'Applies to the alert examples and the alert in the delete confirmation.',
+      'Removed the alert props table.',
+    ],
+  },
+  {
+    date: '2026-11-18',
     page: '/components/status-badges',
     summary: 'Each status group has its own icon shape, so badges stay clear for people who are color blind.',
     changes: [
