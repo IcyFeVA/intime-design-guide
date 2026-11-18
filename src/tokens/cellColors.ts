@@ -56,7 +56,7 @@ const theme = (
 /** Keyed by theme id from `themes/index.ts`, then by cell kind key. */
 export const cellColors: Record<string, Record<string, CellColor>> = {
   //                    activity  leave    overtime task     ruler date ruler cell
-  dark: theme(          'base3',  'base5', 'deep7', 'base8', 'soft4',   'soft7'),
+  dark: theme(          'base3',  'base5', 'deep6', 'base8', 'soft4',   'soft7'),
   light: theme(         'soft3',  'soft5', 'deep7', 'soft8', 'deep4',   'base2'),
   dusk: theme(          'base3',  'base5', 'soft7', 'deep8', 'base7',   'soft1'),
   'miami-vice': theme(  'soft3',  'soft5', 'deep7', 'deep8', 'deep8',   'soft1'),
