@@ -59,6 +59,24 @@ export interface ThemeToken {
   alias?: string
   /** True when the value relies on an assumed primitive */
   assumed: boolean
+  /** Opacity the guide added because the Figma export dropped it (see `exportAlphaFixes`) */
+  addedAlpha?: number
+}
+
+/**
+ * The Figma export drops the alpha channel, so translucent variables arrive as solid colors
+ * (`--background-error-light: #fa5252`, `--background-transparent: #ffffff`).
+ * Until the export keeps alpha, the guide adds it back to solid hex values of these tokens.
+ */
+export const exportAlphaFixes: { test: RegExp; alpha: number; label: string }[] = [
+  { test: /^background-[\w-]+-light$/, alpha: 0.16, label: 'background-*-light' },
+  { test: /^background-[\w-]+-light-hover$/, alpha: 0.2, label: 'background-*-light-hover' },
+  { test: /^background-transparent$/, alpha: 0, label: 'background-transparent' },
+]
+
+function addExportAlpha(name: string, value: string) {
+  if (!/^#[0-9a-f]{6}$/i.test(value)) return undefined
+  return exportAlphaFixes.find((fix) => fix.test.test(name))?.alpha
 }
 
 function parse(css: string) {
@@ -78,7 +96,12 @@ function resolveTheme(css: string): Record<string, ThemeToken> {
     return { value: primitive ?? raw, alias: ref[1], assumed: true }
   }
   return Object.fromEntries(
-    [...entries].map(([name, raw]) => [name, { name, raw, ...resolve(raw) }]),
+    [...entries].map(([name, raw]) => {
+      const resolved = resolve(raw)
+      const addedAlpha = addExportAlpha(name, resolved.value)
+      if (addedAlpha === undefined) return [name, { name, raw, ...resolved }]
+      return [name, { name, raw, ...resolved, value: toHex8(resolved.value, addedAlpha), addedAlpha }]
+    }),
   )
 }
 

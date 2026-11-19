@@ -334,7 +334,7 @@
 
 .rejection {
   margin-top: 28px;
-  background: color-mix(in srgb, var(--background-error-light) 22%, var(--background-default));
+  background: var(--background-error-light);
 }
 
 .rejectionTitle {
@@ -533,12 +533,12 @@
 .reject {
   height: 44px;
   font-weight: 700;
-  background: color-mix(in srgb, var(--background-error-light) 22%, var(--background-default));
+  background: var(--background-error-light);
   color: var(--text-error-default);
 }
 
 .reject:hover {
-  background: color-mix(in srgb, var(--background-error-light) 32%, var(--background-default));
+  background: var(--background-error-light-hover);
 }
 
 .required {

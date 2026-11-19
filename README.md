@@ -61,6 +61,7 @@ If a value points at a Figma color the guide doesn't know yet, such as `var(--or
 - **Only colors become CSS variables.** `--radius-*`, `--padding-*` and `--spacing-*` in the exports are ignored. Use `var(--mantine-radius-*)`, `var(--mantine-spacing-*)` or plain px.
 - **A `*` in the Colors tables means an assumed value.** The export pointed at a Figma color, and the guide filled it in from Mantine's default palette. The real Figma value may differ slightly.
 - **Watch for leftover cyan in non-cyan themes.** Some tokens in Dusk, Miami Vice, Terra and Candy still point at the cyan primary color, probably copied over from Dark or Light. The Theme Export page has a hidden "Values to check" section that lists them. Set `SHOW_TO_CHECK` to `true` in `src/pages/resources/ThemeExport.tsx` and add `'to-check'` back to the page's sections in `src/content/pages.ts`.
+- **The export drops opacity.** Translucent Figma variables arrive as solid hex. Until that's fixed in Figma, `exportAlphaFixes` in `src/tokens/themes/index.ts` adds it back to solid hex values: 16% for `background-*-light`, 20% for `background-*-light-hover`, 0% for `background-transparent`. The All color tokens table marks these with †. Remove the fix once the export includes alpha.
 - **Windows line endings are fine.** Figma exports use them, and the parser handles both.
 
 ### Using the exported theme in the app

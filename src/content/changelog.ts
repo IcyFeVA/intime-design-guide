@@ -10,6 +10,17 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-19',
+    page: null,
+    summary: 'Light background tokens are translucent again. The Figma export had dropped their opacity.',
+    changes: [
+      'background-*-light is 16% opacity and background-*-light-hover is 20%, in every theme. background-transparent is fully transparent.',
+      'The Theme Export downloads include the corrected values.',
+      'Alerts, status badges, Approvals and the cell colors use the tokens directly instead of mixing their own tint.',
+      'Temporary until the Figma export keeps opacity.',
+    ],
+  },
+  {
     date: '2026-11-18',
     page: '/foundations/colors',
     summary: 'Restored --text-warning-default (#e5b953) and --text-info (#5fb5ff) in Dark, Dusk and Miami Vice to the Figma export values.',

@@ -2,7 +2,7 @@
 .alert {
   --tone-bg: var(--background-info-light);
   --tone-fg: var(--text-info);
-  background: color-mix(in srgb, var(--tone-bg) 16%, var(--background-default));
+  background: var(--tone-bg);
 }
 
 .alert[data-tone='error'] { --tone-bg: var(--background-error-light); --tone-fg: var(--text-error-default); }

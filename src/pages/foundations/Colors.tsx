@@ -102,6 +102,11 @@ function ValueCell({ theme, name }: { theme: ThemeDef; name: string }) {
             {token.assumed ? ' *' : ''}
           </Text>
         )}
+        {token.addedAlpha !== undefined && (
+          <Text size="xs" c="dimmed" ff="monospace" truncate>
+            {Math.round(token.addedAlpha * 100)}% added †
+          </Text>
+        )}
       </Stack>
     </Group>
   )
@@ -142,7 +147,7 @@ function AllTokens() {
         />
         <SegmentedControl size="xs" data={categories} value={category} onChange={setCategory} aria-label="Token category" />
         <Text size="xs" c="dimmed" ml="auto">
-          {rows.length} tokens · * assumed primitive
+          {rows.length} tokens · * assumed primitive · † opacity the Figma export dropped
         </Text>
       </Group>
       <Table.ScrollContainer minWidth={720} className="doc-table" maxHeight={560}>
@@ -217,11 +222,7 @@ function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
       <div
         className={classes.cellSample}
         style={{
-          background: !isHexColor(background)
-            ? background
-            : color.tint && /^#[0-9a-f]{6}$/i.test(background)
-              ? composite(`${background}${Math.round((color.tint / 100) * 255).toString(16).padStart(2, '0')}`, body)
-              : composite(background, body),
+          background: isHexColor(background) ? composite(background, body) : background,
           borderColor: border ?? 'transparent',
           color: text,
         }}
@@ -232,7 +233,7 @@ function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
       <Stack gap={0}>
         {[color.background, color.border, color.text].filter(Boolean).map((name) => (
           <Text key={name} size="xs" ff="monospace" c={name === color.background ? undefined : 'dimmed'} truncate>
-            --{name}{name === color.background && color.tint ? ` · ${color.tint}%` : ''}
+            --{name}
           </Text>
         ))}
       </Stack>
@@ -401,7 +402,7 @@ export default function Colors() {
         id="in-context"
         title="Signalling colors with example"
         size="display"
-        description="Text tokens paired with their light background. Alerts tint the light token over the body color."
+        description="Text tokens paired with their light background. Light tokens are 16% opacity, so they tint whatever is behind them."
       >
         <SwatchRow swatches={textSignalSwatches} theme={theme} copyFormat={copyFormat} variant="text" />
         <div className={classes.alerts}>
@@ -410,7 +411,7 @@ export default function Colors() {
               key={alert.key}
               className={classes.alert}
               style={{
-                background: `color-mix(in srgb, ${token(alert.background).value} 12%, ${token('background-body').value})`,
+                background: composite(token(alert.background).value, token('background-body').value),
                 color: token(alert.text).value,
               }}
             >
