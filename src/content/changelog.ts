@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-20',
     page: '/patterns/keyboard-shortcuts',
+    summary: 'New shortcuts panel for discovering the most used shortcuts. The page is back in review.',
+    changes: [
+      'Docks to the bottom of the window, with a tab for each place shortcuts work and related shortcuts in columns.',
+      'Opens on the current page’s tab, shows the user’s keys and doesn’t block the page.',
+      'Ctrl/⌘ / and the user menu now open the panel. Its Customize button opens the shortcuts modal.',
+    ],
+  },
+  {
+    date: '2026-11-20',
+    page: '/patterns/keyboard-shortcuts',
     summary: 'Keyboard Shortcuts is confirmed, including the default shortcuts.',
   },
   {

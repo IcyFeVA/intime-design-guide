@@ -37,7 +37,7 @@ const a = (id: string, label: string, scope: ShortcutScope, keys: string, descri
 
 export const shortcutActions: ShortcutAction[] = [
   // Everywhere
-  a('show-shortcuts', 'Show keyboard shortcuts', 'global', 'mod+/', 'Opens this list.'),
+  a('show-shortcuts', 'Show keyboard shortcuts', 'global', 'mod+/', 'Opens the shortcuts panel.'),
   a('search', 'Search', 'global', 'mod+K', 'People, units, locations and pages.'),
   a('toggle-nav', 'Collapse or expand navigation', 'global', 'mod+\\'),
   a('switch-role', 'Change role', 'global', 'alt+shift+R', 'Opens the “Acting as” menu.'),
@@ -66,6 +66,30 @@ export const shortcutActions: ShortcutAction[] = [
   a('approvals-approve', 'Approve', 'approvals', 'mod+Enter', 'Approves the open or selected requests.'),
   a('approvals-reject', 'Reject', 'approvals', 'mod+shift+Enter', 'Opens the reject form. Nothing is rejected until you confirm.'),
 ]
+
+/**
+ * How the shortcuts panel groups each tab, in column order. Every action appears once.
+ */
+export const shortcutPanelGroups: Record<ShortcutScope, { title: string; ids: string[] }[]> = {
+  global: [
+    { title: 'Find and open', ids: ['show-shortcuts', 'search', 'toggle-nav'] },
+    { title: 'Go to', ids: ['go-home', 'go-calendar', 'go-team-view', 'go-approvals'] },
+    { title: 'Change', ids: ['switch-role', 'switch-unit'] },
+  ],
+  schedule: [
+    { title: 'Move through dates', ids: ['schedule-previous', 'schedule-next', 'schedule-today'] },
+    { title: 'Find', ids: ['schedule-find'] },
+  ],
+  calendar: [
+    { title: 'Move through dates', ids: ['calendar-previous', 'calendar-next', 'calendar-today'] },
+    { title: 'Views', ids: ['calendar-month', 'calendar-week', 'calendar-day', 'calendar-agenda'] },
+    { title: 'Add', ids: ['calendar-add-task'] },
+  ],
+  approvals: [
+    { title: 'Move through requests', ids: ['approvals-next', 'approvals-previous'] },
+    { title: 'Decide', ids: ['approvals-approve', 'approvals-reject'] },
+  ],
+}
 
 /* ------------------------------------------------------------------ */
 /* Standard keys                                                       */

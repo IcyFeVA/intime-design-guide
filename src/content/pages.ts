@@ -150,10 +150,10 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/Approvals')),
   },
   {
-    path: '/patterns/keyboard-shortcuts', title: 'Keyboard Shortcuts', group: 'Patterns', icon: Keyboard, status: 'confirmed', updated: '2026-11-20',
-    description: 'How power users look up, change and turn off keyboard shortcuts, from a modal in Preferences.',
-    keywords: ['keyboard', 'shortcut', 'shortcuts', 'hotkey', 'keybinding', 'remap', 'rebind', 'key', 'kbd', 'preferences', 'settings', 'power user', 'wcag 2.1.4', 'character key', 'aria-keyshortcuts', 'cheat sheet', 'help', 'touch', 'ctrl', 'cmd', 'command'],
-    sections: s(['modal', 'Shortcuts modal'], ['changing', 'Changing a shortcut'], ['allowed-keys', 'Allowed keys'], ['entry-points', 'Where to find it'], ['revealing', 'Showing shortcuts'], ['touch', 'Touch devices'], ['defaults', 'Default shortcuts'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    path: '/patterns/keyboard-shortcuts', title: 'Keyboard Shortcuts', group: 'Patterns', icon: Keyboard, status: 'review', updated: '2026-11-20',
+    description: 'How power users discover, change and turn off keyboard shortcuts, from a quick panel and a modal in Preferences.',
+    keywords: ['keyboard', 'shortcut', 'shortcuts', 'hotkey', 'keybinding', 'remap', 'rebind', 'key', 'kbd', 'preferences', 'settings', 'power user', 'wcag 2.1.4', 'character key', 'aria-keyshortcuts', 'cheat sheet', 'quick reference', 'panel', 'help', 'touch', 'ctrl', 'cmd', 'command'],
+    sections: s(['modal', 'Shortcuts modal'], ['panel', 'Shortcuts panel'], ['changing', 'Changing a shortcut'], ['allowed-keys', 'Allowed keys'], ['entry-points', 'Where to find it'], ['revealing', 'Showing shortcuts'], ['touch', 'Touch devices'], ['defaults', 'Default shortcuts'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/KeyboardShortcuts')),
   },
   {

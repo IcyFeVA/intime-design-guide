@@ -1,0 +1,126 @@
+.dock {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 250;
+  box-shadow: var(--mantine-shadow-lg);
+}
+
+.panel {
+  border-top: 1px solid var(--border-default);
+  background: var(--background-body-alt);
+  color: var(--text-default);
+}
+
+/* ---------- Header: tabs, then Customize and Close ---------- */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 8px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.tabs {
+  display: flex;
+  flex-direction: column;
+}
+
+.list {
+  flex: 1;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* The header has its own border, so the tab list doesn't need one. */
+.list::before {
+  display: none;
+}
+
+.tab {
+  flex: none;
+  height: 44px;
+  padding-inline: 16px;
+  color: var(--text-dimmed);
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--text-default);
+}
+
+.tab[data-active] {
+  color: var(--text-default);
+}
+
+.actions {
+  flex: none;
+}
+
+/* ---------- Body: groups flow into columns ---------- */
+
+.scroll {
+  min-height: 0;
+}
+
+.body {
+  columns: 3 240px;
+  column-gap: 56px;
+  padding: 12px 24px 16px;
+}
+
+.group {
+  break-inside: avoid;
+  padding-bottom: 12px;
+}
+
+.groupTitle {
+  margin: 0;
+  padding: 8px 0 4px;
+  color: var(--text-dimmed);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.label {
+  min-width: 0;
+}
+
+.row[data-off] .label {
+  color: var(--text-dimmed);
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--background-default);
+  color: var(--text-dimmed);
+}
+
+@media (max-width: 36em) {
+  .body {
+    padding-inline: 16px;
+  }
+}
