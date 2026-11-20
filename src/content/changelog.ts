@@ -11,6 +11,22 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-20',
+    page: '/patterns/keyboard-shortcuts',
+    summary: 'Keyboard Shortcuts is confirmed, including the default shortcuts.',
+  },
+  {
+    date: '2026-11-20',
+    page: '/patterns/keyboard-shortcuts',
+    summary: 'New Keyboard Shortcuts page: a modal in Preferences to look up, change and turn off shortcuts.',
+    changes: [
+      'Search by action or keys, shortcuts grouped by where they work, and a switch to turn them all off.',
+      'Recording new keys, with the reason when keys aren’t allowed and a Replace step when another action uses them.',
+      'Rules for allowed keys (WCAG 2.1.4), the browser and system keys that are blocked, and the default shortcuts.',
+      'Key hints in tooltips and menus with aria-keyshortcuts, and hidden on touch-only devices.',
+    ],
+  },
+  {
+    date: '2026-11-20',
     page: null,
     summary: 'Team View and Location View explain the coverage drawer in its own section.',
     changes: [

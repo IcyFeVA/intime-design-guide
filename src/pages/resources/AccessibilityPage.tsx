@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ActionIcon, Alert, Badge, Button, Code, Group, Kbd, List, Paper, SimpleGrid, Stack, Table, Text, TextInput } from '@mantine/core'
+import { ActionIcon, Alert, Anchor, Badge, Button, Code, Group, Kbd, List, Paper, SimpleGrid, Stack, Table, Text, TextInput } from '@mantine/core'
+import { Link } from 'react-router'
 import { Check, Info, Plus, Search } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -74,6 +75,7 @@ export default function AccessibilityPage() {
             ].map((row) => <Table.Tr key={row.action}><Table.Td><Text size="sm">{row.action}</Text></Table.Td><Table.Td><Group gap={4}>{row.keys.map((key) => <Kbd key={key} size="xs">{key}</Kbd>)}</Group></Table.Td><Table.Td><Text size="xs" c="dimmed">{row.text}</Text></Table.Td></Table.Tr>)}
           </Table.Tbody></Table>
         </Table.ScrollContainer>
+        <Text size="sm" c="dimmed" mt="sm">App shortcuts, and how users change or turn them off, are on <Anchor component={Link} to="/patterns/keyboard-shortcuts" size="sm">Keyboard Shortcuts</Anchor>.</Text>
       </Section>
       <Section id="color-independence" title="Beyond color" description="A schedule must remain understandable in grayscale, for color-vision differences and on a dim in-vehicle display. Pair color with an icon and a readable label.">
         <Preview title="Icon + label + color">

@@ -1,0 +1,76 @@
+.withKeys {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* Preferences mock */
+.prefs {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 24px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-body-alt);
+}
+
+.prefRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border-default);
+}
+
+.topBar {
+  padding: 4px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-body-alt);
+}
+
+/* Row states */
+.state {
+  padding: 16px;
+  border: 1px solid var(--intime-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--intime-surface);
+}
+
+.stateRow {
+  padding: 0 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+}
+
+.bare {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Test pad */
+.pad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  min-height: 72px;
+  padding: 16px 20px;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-default);
+  color: var(--text-dimmed);
+  cursor: text;
+}
+
+.pad:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+  border-style: solid;
+  border-color: var(--border-primary-default);
+  color: var(--text-default);
+}

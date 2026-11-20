@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Layers,
+  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Keyboard, Layers,
   LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -148,6 +148,13 @@ export const pages: PageDef[] = [
     keywords: ['approvals', 'approve', 'reject', 'clear status', 'timesheet', 'unsubmitted', 'submit', 'leave', 'trade', 'activity', 'hold over', 'overtime', 'multi-select', 'bulk', 'select all', 'required approvals', 'approval level', 'scheduler note', 'alerts', 'prevent', 'warnings', 'payout', 'comp time', 'visibility', 'sort', 'splitter', 'resize', 'panel', 'bottom sheet', 'mobile'],
     sections: s(['desktop', 'Desktop'], ['types', 'Request types'], ['statuses', 'Statuses and actions'], ['required-approvals', 'Required approvals'], ['visibility', 'Visibility and sort'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/Approvals')),
+  },
+  {
+    path: '/patterns/keyboard-shortcuts', title: 'Keyboard Shortcuts', group: 'Patterns', icon: Keyboard, status: 'confirmed', updated: '2026-11-20',
+    description: 'How power users look up, change and turn off keyboard shortcuts, from a modal in Preferences.',
+    keywords: ['keyboard', 'shortcut', 'shortcuts', 'hotkey', 'keybinding', 'remap', 'rebind', 'key', 'kbd', 'preferences', 'settings', 'power user', 'wcag 2.1.4', 'character key', 'aria-keyshortcuts', 'cheat sheet', 'help', 'touch', 'ctrl', 'cmd', 'command'],
+    sections: s(['modal', 'Shortcuts modal'], ['changing', 'Changing a shortcut'], ['allowed-keys', 'Allowed keys'], ['entry-points', 'Where to find it'], ['revealing', 'Showing shortcuts'], ['touch', 'Touch devices'], ['defaults', 'Default shortcuts'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/KeyboardShortcuts')),
   },
   {
     path: '/patterns/schedule-views', title: 'Schedule Views', group: 'Patterns', icon: Clock, status: 'draft', updated: '2026-11-12', hidden: true,
