@@ -16,7 +16,7 @@ import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeSte
 import { FilterSheet, type MobileFilters, type SortDirection } from '../../components/schedule/FilterSheet'
 import { SortModal } from '../../components/sort/SortModal'
 import { teamSections } from '../../components/schedule/sections'
-import { EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
+import { CoverageDrawerSpecimen, EmployeeDetailsModal } from '../../components/schedule/ScheduleDetails'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
 import { memberProfile, type EmployeeProfile } from '../../components/schedule/profiles'
 import { DayDetailsModal } from '../../components/day-details/DayDetails'
@@ -24,7 +24,7 @@ import { chipDayEvents } from '../../components/day-details/resolve'
 import type { CalendarEvent } from '../../components/calendar/events'
 import {
   MOCK_TODAY, formatFullDate, formatRange, rangeDays, scheduleUnits, sortMembers, type Chip, type ScheduleGroup, type ScheduleMember, type ScheduleRow,
-  type ScheduleSort,
+  type ScheduleSort, type DayCoverage,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
 import classes from './TeamView.module.css'
@@ -278,6 +278,9 @@ function ExtraRowDemo() {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+/** A day that is short in the evening and over in the early morning. */
+const drawerExample: DayCoverage = { bodies: { have: 5, need: 6 }, hours: { value: 3, direction: 'down' }, timeOfDay: [{ from: 6, to: 8, level: 'over' }, { from: 17, to: 22, level: 'under' }] }
+
 export default function TeamView() {
   return (
     <>
@@ -361,21 +364,35 @@ export default function TeamView() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm">The arrow and the outline repeat what the color says, and every value has an accessible name such as “2.5 hours short”.</Text>
-          <Text size="sm">Select a time-of-day cell to open a drawer with that day’s coverage hour by hour. See <Anchor component={Link} to="/patterns/team-view?section=details" size="sm">Coverage and employee details</Anchor>.</Text>
+          <Text size="sm">Select a time-of-day cell to open a drawer with that day’s coverage hour by hour. See <Anchor component={Link} to="/patterns/team-view?section=coverage-drawer" size="sm">Coverage drawer</Anchor>.</Text>
         </Stack>
       </Section>
 
-      <Section id="details" title="Coverage and employee details" description="The grid shows a summary. Selecting a time-of-day cell or a name opens the details on top of the schedule, so the user keeps their place.">
+      <Section id="coverage-drawer" title="Coverage drawer" description="The time-of-day row only shows where a day is off target. Selecting a cell opens that day’s coverage hour by hour, so a scheduler can see which hours need people and how many.">
+        <Preview title="Patrol Alpha, one day" align="center">
+          <CoverageDrawerSpecimen title="Patrol Alpha" day={MOCK_TODAY} coverage={drawerExample} />
+        </Preview>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Header.</strong> The team and the date, so the user knows which cell they opened.</Text>
+          <Text size="sm"><strong>Legend.</strong> Names the three colors: under, met and over target.</Text>
+          <Text size="sm"><strong>As scheduled.</strong> One block per hour from 00 to 24. It shows at a glance when in the day the team is short or over.</Text>
+          <Text size="sm"><strong>Time table.</strong> The day split into stretches wherever coverage changes. Each row shows the staff required (Req), the staff scheduled (Act) and the difference. A dash means on target.</Text>
+        </Stack>
+        <Stack gap="xs" mt="lg">
+          <Text size="sm" fw={600}>Behavior</Text>
+          <Text size="sm"><strong>Opening.</strong> Click or tap a time-of-day cell, or focus it and press Enter. Try it in the Desktop and Mobile demos.</Text>
+          <Text size="sm"><strong>Desktop</strong> slides a 440px drawer in from the right. <strong>Mobile</strong> opens it as a bottom sheet. Both dim and blur the schedule behind them, so the user keeps their place.</Text>
+          <Text size="sm"><strong>Closing.</strong> The close button, Escape or a click outside. On a phone, tap the handle or outside the sheet. To see another day, close the drawer and select its cell.</Text>
+          <Text size="sm"><strong>Read only.</strong> The drawer explains the numbers. Changes to the schedule happen in the grid.</Text>
+          <Text size="sm"><strong>Not by color alone.</strong> The Diff column repeats the color as −2, +1 or a dash, and screen readers hear the bar as a list of stretches, such as “13:00–18:00 below target”.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="details" title="Employee details" description="Selecting a name opens the employee’s details on top of the schedule, so the user keeps their place.">
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead><Table.Tr><Table.Th>Select</Table.Th><Table.Th>Desktop</Table.Th><Table.Th>Mobile</Table.Th><Table.Th>Shows</Table.Th></Table.Tr></Table.Thead>
             <Table.Tbody>
-              <Table.Tr>
-                <Table.Td><Text size="sm" fw={600}>Time-of-day cell</Text></Table.Td>
-                <Table.Td><Text size="sm">Drawer from the right, 440px</Text></Table.Td>
-                <Table.Td><Text size="sm">Bottom sheet</Text></Table.Td>
-                <Table.Td><Text size="sm">The team and date, 24 hour blocks colored under, met or over, and each stretch of the day with staff required, scheduled and the difference.</Text></Table.Td>
-              </Table.Tr>
               <Table.Tr>
                 <Table.Td><Text size="sm" fw={600}>Name</Text></Table.Td>
                 <Table.Td><Text size="sm">Modal, 480px</Text></Table.Td>
@@ -386,9 +403,8 @@ export default function TeamView() {
           </Table>
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
-          <Text size="sm"><strong>Try it</strong> in the Desktop and Mobile demos. Both overlays dim and blur the schedule behind them.</Text>
+          <Text size="sm"><strong>Try it</strong> in the Desktop and Mobile demos. The overlay dims and blurs the schedule behind it.</Text>
           <Text size="sm"><strong>Closing.</strong> The close button, Escape or a click outside. On a phone, tap the handle or outside the sheet.</Text>
-          <Text size="sm"><strong>Colors with labels.</strong> The legend names each color, and the Diff column repeats it as −1, +1 or a dash.</Text>
           <Text size="sm"><strong>Contact links.</strong> The email opens a new message and the mobile number starts a call on a phone.</Text>
         </Stack>
       </Section>

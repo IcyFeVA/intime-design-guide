@@ -10,6 +10,15 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-20',
+    page: null,
+    summary: 'Team View and Location View explain the coverage drawer in its own section.',
+    changes: [
+      'New Coverage drawer section on both pages: an example drawer, its parts and how it opens and closes.',
+      'Team View’s Coverage and employee details section is now Employee details.',
+    ],
+  },
+  {
     date: '2026-11-19',
     page: null,
     summary: 'Light background tokens are translucent again. The Figma export had dropped their opacity.',

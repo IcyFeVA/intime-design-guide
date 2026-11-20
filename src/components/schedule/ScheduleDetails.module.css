@@ -78,6 +78,22 @@
   line-height: 1.25;
 }
 
+/* Static copy of the drawer for docs */
+.specimen {
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-body-alt);
+}
+
+.specimenHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
 /* ---------- Coverage ---------- */
 
 .dot {

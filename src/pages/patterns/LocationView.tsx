@@ -12,9 +12,10 @@ import ShiftChip from '../../components/schedule/ShiftChip'
 import LocationPath from '../../components/schedule/LocationPath'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { useCoverageDrawer } from '../../components/schedule/useCoverageDrawer'
+import { CoverageDrawerSpecimen } from '../../components/schedule/ScheduleDetails'
 import { FilterSheet } from '../../components/schedule/FilterSheet'
 import { locationPeopleSections, locationSections, postTime } from '../../components/schedule/sections'
-import { MOCK_TODAY, formatFullDate, formatRange, rangeDays, type Chip } from '../../components/schedule/data'
+import { MOCK_TODAY, formatFullDate, formatRange, rangeDays, type Chip, type DayCoverage } from '../../components/schedule/data'
 import { fullName, locationSites, personForChip, scheduleLocations, type ScheduleLocation } from '../../components/schedule/locations'
 import { scheduleRanges, type ScheduleRange } from '../../tokens/schedule'
 import classes from './LocationView.module.css'
@@ -196,6 +197,9 @@ const specimens: { name: string; meaning: string; chip: Chip | null }[] = [
   { name: 'Open position', meaning: 'Nobody holds the position. On mobile the empty cell is tinted.', chip: null },
 ]
 
+/** An event day that is short through the afternoon. */
+const drawerExample: DayCoverage = { bodies: { have: 2, need: 3 }, hours: { value: 10, direction: 'down' }, timeOfDay: [{ from: 13, to: 18, level: 'under' }] }
+
 export default function LocationView() {
   return (
     <>
@@ -261,8 +265,27 @@ export default function LocationView() {
 
       <Section id="coverage" title="Coverage" description="Coverage works as in Team View, per location instead of per team. It sits above the location’s posts.">
         <Text size="sm">Bodies, hours and time of day use the same colors, arrows and outlines. See <Anchor component={Link} to="/patterns/team-view?section=coverage">Team View coverage</Anchor>.</Text>
-        <Text size="sm" mt="xs">Select a time-of-day cell to open a drawer with that day’s coverage for the location, hour by hour. It is the same drawer as in <Anchor component={Link} to="/patterns/team-view?section=details">Team View</Anchor>: from the right on desktop, a bottom sheet on a phone.</Text>
+        <Text size="sm" mt="xs">Select a time-of-day cell to open that day’s coverage for the location, hour by hour. See <Anchor component={Link} to="/patterns/location-view?section=coverage-drawer">Coverage drawer</Anchor>.</Text>
         <Text size="sm" mt="xs">On the mobile day view, a location with nobody on duty shows only its header, without coverage.</Text>
+      </Section>
+
+      <Section id="coverage-drawer" title="Coverage drawer" description="Selecting a time-of-day cell opens that day’s coverage for the location, hour by hour. It shows which hours of an event or post are short of people, and by how many.">
+        <Preview title="Convention Centre, one day" align="center">
+          <CoverageDrawerSpecimen title="Convention Centre" day={MOCK_TODAY} coverage={drawerExample} />
+        </Preview>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Header.</strong> The location and the date. A nested location shows its full path, such as Convention Centre › North › Entrances › A.</Text>
+          <Text size="sm"><strong>Legend.</strong> Names the three colors: under, met and over target.</Text>
+          <Text size="sm"><strong>As scheduled.</strong> One block per hour from 00 to 24, so a gap in the afternoon stands out.</Text>
+          <Text size="sm"><strong>Time table.</strong> The day split into stretches wherever coverage changes, with the staff required (Req), scheduled (Act) and the difference. A dash means on target.</Text>
+        </Stack>
+        <Stack gap="xs" mt="lg">
+          <Text size="sm" fw={600}>Behavior</Text>
+          <Text size="sm"><strong>Same drawer as Team View.</strong> It slides in from the right on desktop and opens as a bottom sheet on a phone. Try it in the Desktop and Mobile demos.</Text>
+          <Text size="sm"><strong>One location per drawer.</strong> Coverage belongs to the location whose header the cell sits under. Parent and child locations each have their own.</Text>
+          <Text size="sm"><strong>Closing.</strong> The close button, Escape or a click outside. On a phone, tap the handle or outside the sheet.</Text>
+          <Text size="sm"><strong>Not by color alone.</strong> The Diff column repeats the color as a number or a dash, and screen readers hear the bar as a list of stretches. More on the parts in <Anchor component={Link} to="/patterns/team-view?section=coverage-drawer">Team View</Anchor>.</Text>
+        </Stack>
       </Section>
 
       <Section id="mobile" title="Mobile" description="Week shows posts with one strip per position. Day switches to people: who is on duty at each location, on a timeline.">

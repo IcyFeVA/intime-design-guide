@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Anchor, Avatar, Badge, Button, Divider, Drawer, Group, Modal, Stack, Table, Text, UnstyledButton } from '@mantine/core'
+import { ActionIcon, Anchor, Avatar, Badge, Button, Divider, Drawer, Group, Modal, Stack, Table, Text, UnstyledButton } from '@mantine/core'
+import { X } from 'lucide-react'
 import { coverageWindows, formatHeader, formatHour, hourLevels, type CoverageLevel, type DayCoverage } from './data'
 import { formatEmployed, formatTenure, type EmployeeProfile } from './profiles'
 import classes from './ScheduleDetails.module.css'
@@ -117,6 +118,25 @@ export function CoverageDrawer({ selection, onClose, variant = 'desktop', contai
     >
       {selection && <CoverageDetails coverage={selection.coverage} />}
     </Drawer>
+  )
+}
+
+/**
+ * The desktop coverage drawer drawn in place, without the overlay, for documentation.
+ * It uses the same header and body as CoverageDrawer.
+ */
+export function CoverageDrawerSpecimen({ title, day, coverage }: { title: ReactNode; day: number; coverage: DayCoverage }) {
+  return (
+    <div className={classes.specimen}>
+      <div className={`${classes.drawerHeader} ${classes.specimenHeader}`}>
+        <div className={classes.drawerTitle}>
+          <span className={classes.eyebrow}>{title}</span>
+          <span className={classes.heading}>{formatHeader(day)}</span>
+        </div>
+        <ActionIcon variant="subtle" color="gray" aria-label="Close (example)" tabIndex={-1}><X size={18} aria-hidden /></ActionIcon>
+      </div>
+      <div className={classes.drawerBody}><CoverageDetails coverage={coverage} /></div>
+    </div>
   )
 }
 
