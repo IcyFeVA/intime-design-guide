@@ -113,21 +113,24 @@ export const startOfWeek = (day: number) => day - weekdayIndex(day)
 const startOfMonth = (day: number) => { const d = toDate(day); return dayOf(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) }
 const daysInMonth = (day: number) => { const d = toDate(day); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate() }
 
-/** Visible days for a range that contains `anchor`. */
-export function rangeDays(range: ScheduleRange, anchor: number): number[] {
+/** Visible days for a range that contains `anchor`. `day` is just the anchor. */
+export function rangeDays(range: ScheduleRange | 'day', anchor: number): number[] {
+  if (range === 'day') return [anchor]
   const start = range === 'month' ? startOfMonth(anchor) : startOfWeek(anchor)
   const count = range === 'month' ? daysInMonth(anchor) : { week: 7, '2weeks': 14, '3weeks': 21 }[range]
   return Array.from({ length: count }, (_, index) => start + index)
 }
 
 /** Move the anchor one range forward or back. */
-export function shiftRange(range: ScheduleRange, anchor: number, direction: 1 | -1): number {
+export function shiftRange(range: ScheduleRange | 'day', anchor: number, direction: 1 | -1): number {
+  if (range === 'day') return anchor + direction
   if (range !== 'month') return anchor + direction * { week: 7, '2weeks': 14, '3weeks': 21 }[range]
   const d = toDate(anchor)
   return dayOf(d.getUTCFullYear(), d.getUTCMonth() + 1 + direction, 1)
 }
 
 export function formatRange(days: number[]): string {
+  if (days.length === 1) return `${formatHeader(days[0])}, ${toDate(days[0]).getUTCFullYear()}`
   const first = toDate(days[0])
   const last = toDate(days[days.length - 1])
   return `${formatMonthDay(days[0])} – ${formatMonthDay(days[days.length - 1])}, ${(first.getUTCFullYear() === last.getUTCFullYear() ? last : first).getUTCFullYear()}`
@@ -173,7 +176,7 @@ export function describeChip(chip: Chip): string {
 /* ------------------------------------------------------------------ */
 
 /** Deterministic pseudo-random number in [0, 1) */
-function rand(seed: number) {
+export function rand(seed: number) {
   let x = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b)
   x ^= x >>> 13
   x = Math.imul(x, 0xc2b2ae35)

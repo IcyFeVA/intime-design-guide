@@ -1,0 +1,323 @@
+import { useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
+
+/* ------------------------------------------------------------------ */
+/* Excel-like selection and roving focus for a grid of rows × days.    */
+/* Knows nothing about schedules: rows are keys, days are numbers.     */
+/*                                                                     */
+/* Every focusable element in the grid carries `data-row` and          */
+/* `data-day` (a day number, or "label" for the row-header column).    */
+/* A cell that spans all days carries `data-span` instead of a day.    */
+/* ------------------------------------------------------------------ */
+
+export type CellKey = `${string}@${number}`
+export interface CellRef { row: string; day: number }
+/** `day: null` is the row-header column */
+export interface CellPos { row: string; day: number | null }
+
+export const cellKey = (row: string, day: number): CellKey => `${row}@${day}`
+const parseKey = (key: CellKey): CellRef => {
+  const at = key.lastIndexOf('@')
+  return { row: key.slice(0, at), day: Number(key.slice(at + 1)) }
+}
+
+interface SelectionState {
+  /** Cells selected before the current range started (Ctrl/⌘-click keeps adding to it) */
+  base: ReadonlySet<CellKey>
+  /** Corners of the current rectangle */
+  anchor: CellRef | null
+  focus: CellRef | null
+  /** The cell the keyboard and the panel work on */
+  active: CellPos | null
+  /** Rows and days the state was made for. When they change, cells that are gone are dropped. */
+  signature: string
+}
+
+export interface GridSelectionOptions {
+  rows: readonly string[]
+  days: readonly number[]
+  isSelectable: (row: string, day: number) => boolean
+  /** Column for the first tab stop, e.g. today. Defaults to the first day. */
+  preferredDay?: number
+  /** A click, a drag or Enter on a selectable cell ended. Open the details here. */
+  onActivate?: (via: 'pointer' | 'keyboard') => void
+  /** Escape with at most one cell selected. Return `true` if it did something, e.g. closed a panel. */
+  onEscape?: () => boolean
+  /** `onEscape` will handle Escape right now (e.g. a panel is open). Keeps a surrounding Mantine modal from closing too. */
+  escapeHandled?: boolean
+}
+
+type Indexes = { rowIndex: Map<string, number>; dayIndex: Map<number, number> }
+
+function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, rows: readonly string[], days: readonly number[], isSelectable: GridSelectionOptions['isSelectable']) {
+  const result = new Set<CellKey>()
+  for (const key of state.base) {
+    const { row, day } = parseKey(key)
+    if (rowIndex.has(row) && dayIndex.has(day) && isSelectable(row, day)) result.add(key)
+  }
+  if (state.anchor && state.focus) {
+    const r1 = rowIndex.get(state.anchor.row)
+    const r2 = rowIndex.get(state.focus.row)
+    const d1 = dayIndex.get(state.anchor.day)
+    const d2 = dayIndex.get(state.focus.day)
+    if (r1 !== undefined && r2 !== undefined && d1 !== undefined && d2 !== undefined) {
+      for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r += 1) {
+        for (let d = Math.min(d1, d2); d <= Math.max(d1, d2); d += 1) {
+          if (isSelectable(rows[r], days[d])) result.add(cellKey(rows[r], days[d]))
+        }
+      }
+    }
+  }
+  return result
+}
+
+const samePos = (a: CellPos | null, b: CellPos | null) => a?.row === b?.row && a?.day === b?.day
+
+export function useGridSelection({ rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false }: GridSelectionOptions) {
+  const gridRef = useRef<HTMLDivElement>(null)
+  const signature = `${rows.join('|')}#${days.join(',')}`
+  const [state, setState] = useState<SelectionState>({ base: new Set(), anchor: null, focus: null, active: null, signature })
+  const [dragging, setDragging] = useState(false)
+
+  const indexes = useMemo<Indexes>(() => ({
+    rowIndex: new Map(rows.map((row, index) => [row, index])),
+    dayIndex: new Map(days.map((day, index) => [day, index])),
+  }), [rows, days])
+
+  // Rows or days changed (range, date, collapse, sort, filter): keep only cells that are still on screen.
+  if (state.signature !== signature) {
+    const kept = materialize(state, indexes, rows, days, isSelectable)
+    const visible = (pos: CellPos | null) => !!pos && indexes.rowIndex.has(pos.row) && (pos.day === null || indexes.dayIndex.has(pos.day))
+    setState({
+      base: kept,
+      anchor: null,
+      focus: null,
+      active: visible(state.active) ? state.active : null,
+      signature,
+    })
+  }
+
+  const selected = useMemo(() => materialize(state, indexes, rows, days, isSelectable), [state, indexes, rows, days, isSelectable])
+
+  const stopEscape = selected.size > 1 || escapeHandled
+  const escapeProps = useMemo((): Record<string, string> => (stopEscape ? { 'data-mantine-stop-propagation': 'true' } : {}), [stopEscape])
+
+  const ordered = useMemo(() => [...selected].map(parseKey).sort((a, b) =>
+    (indexes.rowIndex.get(a.row)! - indexes.rowIndex.get(b.row)!) || (indexes.dayIndex.get(a.day)! - indexes.dayIndex.get(b.day)!)), [selected, indexes])
+
+  const tabStop = useMemo<CellPos | null>(() => {
+    if (state.active) return state.active
+    const day = preferredDay !== undefined && indexes.dayIndex.has(preferredDay) ? preferredDay : days[0]
+    if (day === undefined) return rows[0] ? { row: rows[0], day: null } : null
+    const row = rows.find((key) => isSelectable(key, day))
+    return row ? { row, day } : rows[0] ? { row: rows[0], day: null } : null
+  }, [state.active, preferredDay, indexes, days, rows, isSelectable])
+
+  // End a drag wherever the pointer is released, then open the details.
+  useEffect(() => {
+    if (!dragging) return
+    const end = () => {
+      setDragging(false)
+      onActivate?.('pointer')
+      // Opening a panel narrows the grid: keep the clicked cell in view
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const focused = document.activeElement
+        if (focused instanceof HTMLElement && gridRef.current?.contains(focused)) focused.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      }))
+    }
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
+    return () => {
+      window.removeEventListener('pointerup', end)
+      window.removeEventListener('pointercancel', end)
+    }
+  }, [dragging, onActivate])
+
+  /* ---------- Helpers ---------- */
+
+  const posFrom = (element: EventTarget | null): CellPos | null => {
+    const target = (element as HTMLElement | null)?.closest?.<HTMLElement>('[data-row]')
+    if (!target || !gridRef.current?.contains(target)) return null
+    const row = target.dataset.row!
+    if (target.dataset.span !== undefined) return { row, day: state.active?.row === row ? state.active.day : days[0] ?? null }
+    const day = target.dataset.day
+    return { row, day: day === undefined || day === 'label' ? null : Number(day) }
+  }
+
+  const elementAt = (pos: CellPos) => {
+    const grid = gridRef.current
+    if (!grid) return null
+    const row = CSS.escape(pos.row)
+    return grid.querySelector<HTMLElement>(`[data-row="${row}"][data-day="${pos.day ?? 'label'}"]`)
+      ?? grid.querySelector<HTMLElement>(`[data-row="${row}"][data-span]`)
+  }
+
+  const focusAt = (pos: CellPos) => {
+    const element = elementAt(pos)
+    if (!element) return
+    element.focus({ preventScroll: true })
+    element.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+  }
+
+  const isCell = (pos: CellPos | null): pos is CellRef => !!pos && pos.day !== null
+  const canSelect = (pos: CellPos | null): pos is CellRef => isCell(pos) && isSelectable(pos.row, pos.day)
+
+  const selectOnly = (cell: CellRef) => setState((s) => ({ ...s, base: new Set(), anchor: cell, focus: cell, active: cell }))
+  const extendTo = (cell: CellRef) => setState((s) => ({
+    ...s,
+    anchor: s.anchor ?? (isCell(s.active) ? s.active : cell),
+    focus: cell,
+    active: s.anchor || isCell(s.active) ? s.active : cell,
+  }))
+  const toggle = (cell: CellRef) => {
+    const key = cellKey(cell.row, cell.day)
+    const next = new Set(selected)
+    const removing = next.has(key)
+    if (removing) next.delete(key)
+    setState((s) => ({ ...s, base: next, anchor: cell, focus: removing ? null : cell, active: cell }))
+  }
+  const selectAll = () => {
+    const firstRow = rows.find((row) => days.some((day) => isSelectable(row, day)))
+    const lastRow = [...rows].reverse().find((row) => days.some((day) => isSelectable(row, day)))
+    if (!firstRow || !lastRow) return
+    setState((s) => ({ ...s, base: new Set(), anchor: { row: firstRow, day: days[0] }, focus: { row: lastRow, day: days[days.length - 1] } }))
+  }
+
+  /* ---------- Pointer ---------- */
+
+  const onPointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.button !== 0) return
+    const pos = posFrom(event.target)
+    if (!canSelect(pos)) return
+    if (event.shiftKey) extendTo(pos)
+    else if (event.ctrlKey || event.metaKey) toggle(pos)
+    else selectOnly(pos)
+    setDragging(true)
+  }
+
+  // A double click would select text around the grid (the grid itself has user-select: none)
+  const onMouseDown = (event: MouseEvent<HTMLElement>) => {
+    if (event.detail > 1) event.preventDefault()
+  }
+
+  const onPointerOver = (event: PointerEvent<HTMLElement>) => {
+    if (!dragging) return
+    const pos = posFrom(event.target)
+    if (!isCell(pos)) return
+    setState((s) => (s.focus && samePos(s.focus, pos) ? s : { ...s, anchor: s.anchor ?? pos, focus: pos }))
+  }
+
+  /* ---------- Keyboard ---------- */
+
+  const move = (from: CellPos, key: string, jump: boolean): CellPos | null => {
+    const rowAt = indexes.rowIndex.get(from.row)
+    if (rowAt === undefined) return null
+    const columns = [null, ...days]
+    const colAt = from.day === null ? 0 : (indexes.dayIndex.get(from.day) ?? 0) + 1
+    let r = rowAt
+    let c = colAt
+    switch (key) {
+      case 'ArrowUp': r = jump ? 0 : r - 1; break
+      case 'ArrowDown': r = jump ? rows.length - 1 : r + 1; break
+      case 'ArrowLeft': c = jump ? 1 : c - 1; break
+      case 'ArrowRight': c = jump ? columns.length - 1 : c + 1; break
+      case 'Home': c = 1; if (jump) r = 0; break
+      case 'End': c = columns.length - 1; if (jump) r = rows.length - 1; break
+      case 'PageUp': r -= 10; break
+      case 'PageDown': r += 10; break
+      default: return null
+    }
+    r = Math.max(0, Math.min(rows.length - 1, r))
+    c = Math.max(0, Math.min(columns.length - 1, c))
+    return { row: rows[r], day: columns[c] }
+  }
+
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    const pos = posFrom(event.target)
+    if (!pos) return
+    const mod = event.ctrlKey || event.metaKey
+    const handled = () => { event.preventDefault(); event.stopPropagation() }
+
+    const next = move(pos, event.key, mod)
+    if (next) {
+      handled()
+      if (event.shiftKey && isCell(next)) {
+        setState((s) => ({ ...s, anchor: s.anchor ?? (isCell(pos) ? pos : next), focus: next, active: next }))
+      } else if (canSelect(next)) {
+        selectOnly(next)
+      } else {
+        setState((s) => ({ ...s, active: next }))
+      }
+      focusAt(next)
+      return
+    }
+
+    if (mod && event.key.toLowerCase() === 'a') { handled(); selectAll(); return }
+
+    if (event.key === ' ' && canSelect(pos)) {
+      handled()
+      if (event.shiftKey) setState((s) => ({ ...s, base: new Set(), anchor: { row: pos.row, day: days[0] }, focus: { row: pos.row, day: days[days.length - 1] } }))
+      else toggle(pos)
+      return
+    }
+
+    if (event.key === 'Enter' && canSelect(pos)) {
+      handled()
+      if (!selected.has(cellKey(pos.row, pos.day))) selectOnly(pos)
+      onActivate?.('keyboard')
+      return
+    }
+
+    if (event.key === 'Escape') {
+      if (selected.size > 1) {
+        handled()
+        if (canSelect(state.active)) selectOnly(state.active)
+        else setState((s) => ({ ...s, base: new Set(), anchor: null, focus: null }))
+      } else if (onEscape?.()) {
+        handled()
+      }
+    }
+  }
+
+  const onFocus = (event: FocusEvent<HTMLElement>) => {
+    const pos = posFrom(event.target)
+    if (pos && !samePos(pos, state.active)) setState((s) => ({ ...s, active: pos }))
+  }
+
+  /* ---------- Rendering helpers ---------- */
+
+  /** Which sides of a selected cell are on the edge of its range: "t r b l" */
+  const edges = (row: string, day: number) => {
+    const r = indexes.rowIndex.get(row)
+    const d = indexes.dayIndex.get(day)
+    if (r === undefined || d === undefined) return ''
+    const has = (rr: number, dd: number) => rr >= 0 && rr < rows.length && dd >= 0 && dd < days.length && selected.has(cellKey(rows[rr], days[dd]))
+    return [!has(r - 1, d) && 't', !has(r, d + 1) && 'r', !has(r + 1, d) && 'b', !has(r, d - 1) && 'l'].filter(Boolean).join(' ')
+  }
+
+  return {
+    selected,
+    /** Selected cells, top to bottom, then left to right */
+    ordered,
+    active: state.active,
+    dragging,
+    isSelected: (row: string, day: number) => selected.has(cellKey(row, day)),
+    isTabStop: (row: string, day: number | null) => !!tabStop && tabStop.row === row && tabStop.day === day,
+    /** For cells spanning all days */
+    isRowTabStop: (row: string) => tabStop?.row === row,
+    edges,
+    /**
+     * Spread on every focusable element in the grid. Mantine modals close on Escape from a window listener that runs
+     * before the grid's; this attribute tells them the grid uses Escape right now.
+     */
+    escapeProps,
+    clear: () => setState((s) => ({ ...s, base: new Set(), anchor: null, focus: null })),
+    /** Back to nothing selected and no active cell, e.g. for Reset demo */
+    reset: () => setState({ base: new Set(), anchor: null, focus: null, active: null, signature }),
+    /** Puts focus back on the active cell, e.g. after closing the panel */
+    focusActive: () => { if (state.active) focusAt(state.active) },
+    /** Spread on the grid element */
+    gridProps: { ref: gridRef, onKeyDown, onPointerDown, onMouseDown, onPointerOver, onFocus },
+  }
+}
+
+export type GridSelection = ReturnType<typeof useGridSelection>

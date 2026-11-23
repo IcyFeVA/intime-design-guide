@@ -4,11 +4,14 @@ import classes from './Schedule.module.css'
 
 const levelText = { under: 'below target', over: 'above target', met: 'on target' }
 
-/** Scheduled against needed staff, e.g. "8/10". */
-export function BodiesValue({ bodies }: { bodies: DayCoverage['bodies'] }) {
-  const level = coverageLevel(bodies.have, bodies.need)
+/**
+ * Scheduled against needed staff, e.g. "8/10". `noun` names what is counted in the accessible name (default "staff").
+ * `minimum`: the need is a floor, so more than needed is on target (e.g. supervisors).
+ */
+export function BodiesValue({ bodies, noun = 'staff', minimum = false }: { bodies: DayCoverage['bodies']; noun?: string; minimum?: boolean }) {
+  const level = minimum && bodies.have >= bodies.need ? 'met' : coverageLevel(bodies.have, bodies.need)
   return (
-    <div className={`${classes.coverage} tabular`} data-level={level} aria-label={`${bodies.have} of ${bodies.need} staff, ${levelText[level]}`}>
+    <div className={`${classes.coverage} tabular`} data-level={level} aria-label={`${bodies.have} of ${bodies.need} ${noun}, ${levelText[level]}`}>
       {bodies.have}/{bodies.need}
     </div>
   )

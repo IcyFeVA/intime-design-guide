@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Keyboard, Layers,
-  LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin,
+  LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin, Grid3x3,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 import { isHiddenSection } from './flags'
@@ -127,6 +127,13 @@ export const pages: PageDef[] = [
     keywords: ['location', 'site', 'post', 'position', 'open position', 'breadcrumb', 'paid duty', 'event', 'coverage alert', 'shortfall', 'notification', 'toast', 'day view', 'mobile', 'schedule'],
     sections: s(['desktop', 'Desktop'], ['posts', 'Posts and positions'], ['locations', 'Location headers'], ['coverage', 'Coverage'], ['coverage-drawer', 'Coverage drawer'], ['mobile', 'Mobile'], ['coverage-alert', 'Coverage alert'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/LocationView')),
+  },
+  {
+    path: '/patterns/workforce-scheduling', title: 'Workforce Scheduling', group: 'Patterns', icon: Grid3x3, status: 'draft', updated: '2026-11-23',
+    description: 'The scheduler’s grid: open shifts, watches with their staffing, and people’s shifts. Select cells like in a spreadsheet and edit them in a panel beside the grid.',
+    keywords: ['workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'density', 'detailed', 'compact', 'stacked', 'day view'],
+    sections: s(['desktop', 'Desktop'], ['selection', 'Selecting cells'], ['panel', 'Details panel'], ['rows', 'Groups and staffing'], ['views', 'Views and densities'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/WorkforceScheduling')),
   },
   {
     path: '/patterns/calendar', title: 'Calendar', group: 'Patterns', icon: CalendarDays, status: 'confirmed', updated: '2026-11-17',

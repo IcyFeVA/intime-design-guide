@@ -26,9 +26,11 @@ export interface ShiftCode {
 export const shiftCodes: ShiftCode[] = [
   { code: 'PatD', label: 'Day patrol', kind: 'regular', start: 7, end: 17 },
   { code: 'PatG', label: 'General patrol', kind: 'regular', start: 8, end: 18 },
+  { code: 'PatS', label: 'Swing patrol', kind: 'regular', start: 12, end: 22 },
   { code: 'PatN', label: 'Night patrol', kind: 'regular', start: 19, end: 24 },
   { code: 'ExP', label: 'Extra patrol', kind: 'regular', start: 17, end: 20 },
   { code: 'C-AM', label: 'Court, morning', kind: 'regular', start: 8, end: 12 },
+  { code: 'C-PM', label: 'Court, afternoon', kind: 'regular', start: 12, end: 16 },
   { code: 'Court', label: 'Court', kind: 'regular', start: 13, end: 17 },
   { code: 'Train', label: 'Training', kind: 'regular', start: 8, end: 16 },
   { code: 'Spe', label: 'Special detail', kind: 'regular', start: 10, end: 18 },

@@ -133,25 +133,26 @@ export function ToolbarDivider() {
   return <span className={classes.toolbarDivider} aria-hidden="true" />
 }
 
-/** Previous, date range, next and Today. Arrows move by the selected range; the date button opens a week or month picker. */
+/** Previous, date range, next and Today. Arrows move by the selected range; the date button opens a day, week or month picker. */
 export function RangeStepper({ range, days, anchor, onAnchorChange }: {
-  range: ScheduleRange
+  range: ScheduleRange | 'day'
   days: number[]
   anchor: number
   onAnchorChange: Dispatch<SetStateAction<number>>
 }) {
-  const unit = range === 'month' ? 'month' : 'range'
+  const unit = range === 'month' ? 'month' : range === 'day' ? 'day' : 'range'
+  const pick = range === 'month' ? 'a month' : range === 'day' ? 'a day' : 'a start week'
   return (
     <>
       <Tooltip label={`Previous ${unit}`}>
         <ActionIcon variant="default" size={36} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, -1))}><ChevronLeft size={18} /></ActionIcon>
       </Tooltip>
       <PeriodPicker
-        mode={range === 'month' ? { kind: 'month' } : { kind: 'block', length: days.length, align: 'week' }}
+        mode={range === 'month' ? { kind: 'month' } : range === 'day' ? { kind: 'day' } : { kind: 'block', length: days.length, align: 'week' }}
         anchor={anchor}
         onChange={onAnchorChange}
         target={
-          <Button variant="default" size="sm" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} aria-label={`Date range: ${formatRange(days)}. Pick ${range === 'month' ? 'a month' : 'a start week'}`}>
+          <Button variant="default" size="sm" fw={400} leftSection={<CalendarDays size={18} aria-hidden="true" />} aria-label={`Date${range === 'day' ? '' : ' range'}: ${formatRange(days)}. Pick ${pick}`}>
             <span className="tabular">{formatRange(days)}</span>
           </Button>
         }

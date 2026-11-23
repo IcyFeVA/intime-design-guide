@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-23',
+    page: '/patterns/workforce-scheduling',
+    summary: 'New Workforce Scheduling page (draft): a scheduler’s grid with open shifts, Day, Swing and Night watches and their staffing, cells you can select like a spreadsheet, and a details panel beside the grid.',
+    changes: [
+      'Click, drag, Shift-click, Ctrl/⌘-click and the keyboard select cells; the panel shows one activity, a new activity or several cells.',
+      'Five ranges (Day is coming) and a view density menu (Compact and Stacked are coming).',
+      'Added the PatS (Swing patrol) and C-PM (Court, afternoon) shift codes.',
+    ],
+  },
+  {
+    date: '2026-11-23',
     page: '/patterns/approvals',
     summary: 'On a phone, Configure visibility and Sort now open full screen below the status bar, with Cancel and Apply at the bottom.',
   },
