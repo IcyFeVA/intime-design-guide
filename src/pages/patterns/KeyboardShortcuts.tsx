@@ -3,18 +3,17 @@ import {
   ActionIcon, Button, Code, Group, List, Menu, SegmentedControl, Select, SimpleGrid, Spoiler, Stack, Switch, Table, Text, Tooltip,
 } from '@mantine/core'
 import {
-  CalendarDays, ChevronDown, ChevronLeft, ChevronRight, ClipboardCheck, House, Keyboard, LogOut, MousePointer2, RotateCcw, Search, Settings, Smartphone, UserRound, Users,
+  ChevronDown, ChevronLeft, ChevronRight, Keyboard, LogOut, PanelBottom, RotateCcw, Search, Settings, UserRound,
 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
-import DoDont from '../../components/DoDont'
 import CopyValue from '../../components/CopyValue'
 import PropsTable from '../../components/PropsTable'
 import FigmaSlot from '../../components/FigmaSlot'
 import ShortcutsModal, { ShortcutRow, type RowMessage } from '../../components/shortcuts/ShortcutsModal'
 import ShortcutKeys from '../../components/shortcuts/ShortcutKeys'
-import DockedShortcutsPanel, { ShortcutsPanel, type PanelTab } from '../../components/shortcuts/ShortcutsPanel'
+import DockedShortcutsPanel from '../../components/shortcuts/ShortcutsPanel'
 import {
   activeKeys, ariaKeyShortcuts, blockedReason, comboToKeys, defaultShortcutSettings, detectPlatform, findAction, keysText, matchAction,
   readKeyPress, type Platform, type ShortcutBinding, type ShortcutSettings,
@@ -38,15 +37,14 @@ function WithKeys({ label, keys, platform }: { label: string; keys: string | nul
 /* Mocks                                                               */
 /* ------------------------------------------------------------------ */
 
-/** The user menu in the top bar. On touch-only devices the shortcuts item and the key hints are left out. */
-function UserMenuMock({ settings, platform, touch = false, onOpen, onHint }: {
+/** The user menu in the top bar. */
+function UserMenuMock({ settings, platform, onOpen, onHint }: {
   settings: ShortcutSettings
   platform: Platform
-  touch?: boolean
   onOpen: () => void
   onHint: (hint: string) => void
 }) {
-  const keys = touch ? null : activeKeys(settings, 'show-shortcuts')
+  const keys = activeKeys(settings, 'show-shortcuts')
   const notInDemo = () => onHint('That item is not part of this demo.')
   return (
     <Menu position="bottom-end" width={260} offset={4}>
@@ -58,16 +56,14 @@ function UserMenuMock({ settings, platform, touch = false, onOpen, onHint }: {
       <Menu.Dropdown>
         <Menu.Item leftSection={<UserRound size={16} aria-hidden="true" />} onClick={notInDemo}>Profile</Menu.Item>
         <Menu.Item leftSection={<Settings size={16} aria-hidden="true" />} onClick={notInDemo}>Preferences</Menu.Item>
-        {!touch && (
-          <Menu.Item
-            leftSection={<Keyboard size={16} aria-hidden="true" />}
-            rightSection={keys ? <ShortcutKeys keys={keys} platform={platform} size="xs" /> : undefined}
-            aria-keyshortcuts={keys ? ariaKeyShortcuts(keys, platform) : undefined}
-            onClick={onOpen}
-          >
-            Keyboard shortcuts
-          </Menu.Item>
-        )}
+        <Menu.Item
+          leftSection={<Keyboard size={16} aria-hidden="true" />}
+          rightSection={keys ? <ShortcutKeys keys={keys} platform={platform} size="xs" /> : undefined}
+          aria-keyshortcuts={keys ? ariaKeyShortcuts(keys, platform) : undefined}
+          onClick={onOpen}
+        >
+          Keyboard shortcuts
+        </Menu.Item>
         <Menu.Divider />
         <Menu.Item leftSection={<LogOut size={16} aria-hidden="true" />} onClick={notInDemo}>Sign out</Menu.Item>
       </Menu.Dropdown>
@@ -88,7 +84,7 @@ function PreferenceRow({ title, description, control }: { title: string; descrip
 }
 
 /** The Preferences page, with Keyboard shortcuts next to the theme and color settings. */
-function PreferencesMock({ touch = false, onOpen }: { touch?: boolean; onOpen: () => void }) {
+function PreferencesMock({ onOpen }: { onOpen: () => void }) {
   const [theme, setTheme] = useState<string | null>('Dark')
   const [safeColors, setSafeColors] = useState(false)
   return (
@@ -104,13 +100,11 @@ function PreferencesMock({ touch = false, onOpen }: { touch?: boolean; onOpen: (
         description="Shift and coverage colors that stay distinct."
         control={<Switch checked={safeColors} onChange={(event) => setSafeColors(event.currentTarget.checked)} aria-label="Color-blind friendly colors" />}
       />
-      {!touch && (
-        <PreferenceRow
-          title="Keyboard shortcuts"
-          description="Look up, change or turn off shortcuts."
-          control={<Button variant="default" size="sm" leftSection={<Keyboard size={16} aria-hidden="true" />} onClick={onOpen}>Customize</Button>}
-        />
-      )}
+      <PreferenceRow
+        title="Keyboard shortcuts"
+        description="Look up, change or turn off shortcuts."
+        control={<Button variant="default" size="sm" leftSection={<Keyboard size={16} aria-hidden="true" />} onClick={onOpen}>Customize</Button>}
+      />
     </div>
   )
 }
@@ -219,74 +213,6 @@ function RevealDemo({ settings, platform }: { settings: ShortcutSettings; platfo
 }
 
 /* ------------------------------------------------------------------ */
-/* Shortcuts panel demo                                                */
-/* ------------------------------------------------------------------ */
-
-const demoPages: { value: PanelTab; label: string; icon: typeof House }[] = [
-  { value: 'global', label: 'Home', icon: House },
-  { value: 'schedule', label: 'Team View', icon: Users },
-  { value: 'calendar', label: 'Calendar', icon: CalendarDays },
-  { value: 'approvals', label: 'Approvals', icon: ClipboardCheck },
-]
-
-/** An app window with the panel docked at the bottom. The current page decides which tab the panel opens on. */
-function PanelDemo({ settings, platform, platformControl, onCustomize, onOpenDocked }: {
-  settings: ShortcutSettings
-  platform: Platform
-  platformControl: ReactNode
-  onCustomize: () => void
-  onOpenDocked: () => void
-}) {
-  const [page, setPage] = useState<PanelTab>('calendar')
-  const [tab, setTab] = useState<PanelTab>('calendar')
-  const [shown, setShown] = useState(true)
-  const openKeys = activeKeys(settings, 'show-shortcuts')
-  const goTo = (value: PanelTab) => {
-    setPage(value)
-    setTab(value)
-  }
-  const reset = () => {
-    goTo('calendar')
-    setShown(true)
-  }
-  return (
-    <Preview title="Shortcuts panel" flush align="start">
-      <div className={classes.panelDemo}>
-        <div className={classes.panelToolbar}>
-          <SegmentedControl
-            size="xs"
-            value={page}
-            onChange={(value) => goTo(value as PanelTab)}
-            aria-label="Current page"
-            data={demoPages.map(({ value, label, icon: Icon }) => ({ value, label: <Group gap={6} wrap="nowrap"><Icon size={14} aria-hidden="true" />{label}</Group> }))}
-          />
-          <Group gap="sm">
-            {platformControl}
-            <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={reset}>Reset demo</Button>
-          </Group>
-        </div>
-        <div className={classes.panelPage}>
-          <Stack gap={6} align="center" maw={420} ta="center">
-            <Text fw={600}>{demoPages.find((item) => item.value === page)!.label}</Text>
-            <Text size="sm" c="dimmed">
-              The panel opens on this page’s tab.{' '}
-              {openKeys && openKeys !== 'mod+K' ? <>Press <ShortcutKeys keys={openKeys} platform={platform} size="xs" /> to open the real one, docked to this window.</> : null}
-            </Text>
-            <Group gap="sm" mt={4}>
-              {!shown && <Button size="xs" variant="default" leftSection={<Keyboard size={14} aria-hidden="true" />} onClick={() => setShown(true)}>Show panel</Button>}
-              <Button size="xs" variant="subtle" onClick={onOpenDocked}>Open docked panel</Button>
-            </Group>
-          </Stack>
-        </div>
-        {shown && (
-          <ShortcutsPanel value={settings} platform={platform} tab={tab} onTabChange={setTab} onCustomize={onCustomize} onClose={() => setShown(false)} />
-        )}
-      </div>
-    </Preview>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -300,7 +226,6 @@ export default function KeyboardShortcuts() {
   const [panelOpened, setPanelOpened] = useState(false)
   const [hint, setHint] = useState<string | null>(null)
   const [menuHint, setMenuHint] = useState<string | null>(null)
-  const [device, setDevice] = useState<'pointer' | 'touch'>('pointer')
   const openKeys = activeKeys(settings, 'show-shortcuts')
 
   // The demo listens for "Show keyboard shortcuts", as the product would: the keys open and close the panel.
@@ -347,12 +272,13 @@ export default function KeyboardShortcuts() {
     <>
       <PageHeader />
 
-      <Section id="modal" title="Shortcuts modal" description="One place to look up every shortcut, change its keys or turn it off. It opens from Preferences and from Customize in the shortcuts panel, and lists shortcuts by the page they work on.">
-        <Preview title="Try the modal" align="start" code={'const [settings, setSettings] = useState(defaultShortcutSettings)\n\n<ShortcutsModal\n  opened={opened}\n  value={settings}\n  platform={detectPlatform()}\n  onClose={close}\n  onSave={setSettings}\n/>'}>
+      <Section id="modal" title="Shortcuts modal and panel" description="The panel is a quick reference for the most used shortcuts. It docks to the bottom of the window and opens on the tab for the page the user is on. The modal is where users look up every shortcut, change its keys or turn it off.">
+        <Preview title="Try the modal and the panel" align="start" code={'const [settings, setSettings] = useState(defaultShortcutSettings)\n\n<ShortcutsPanel\n  opened={panelOpened}\n  value={settings}\n  platform={detectPlatform()}\n  defaultTab="calendar"\n  onCustomize={openModal}\n  onClose={closePanel}\n/>\n\n<ShortcutsModal\n  opened={opened}\n  value={settings}\n  platform={detectPlatform()}\n  onClose={close}\n  onSave={setSettings}\n/>'}>
           <Stack gap="md" w="100%">
             <Group justify="space-between" gap="sm">
               <Group gap="sm">
                 <Button leftSection={<Keyboard size={16} aria-hidden="true" />} onClick={open}>Open keyboard shortcuts</Button>
+                <Button variant="default" leftSection={<PanelBottom size={16} aria-hidden="true" />} onClick={openPanel} aria-keyshortcuts={openKeys ? ariaKeyShortcuts(openKeys, platform) : undefined}>Open keyboard panel</Button>
               </Group>
               <Group gap="sm">
                 {platformControl}
@@ -362,26 +288,6 @@ export default function KeyboardShortcuts() {
             <Text size="xs" c="dimmed" role="status">{hint ?? 'Preview only. Changes last until you leave this page and are used in the demos below.'}</Text>
           </Stack>
         </Preview>
-        <List size="sm" spacing="xs" mt="md">
-          <List.Item><Text span fw={600}>Search</Text> matches action names and keys: “team”, “ctrl k” or “shift” all work.</List.Item>
-          <List.Item><Text span fw={600}>Use shortcuts</Text> turns every shortcut off at once. Standard keys such as Tab and Esc keep working.</List.Item>
-          <List.Item><Text span fw={600}>Groups</Text> follow where a shortcut works: Everywhere, then each page. The same keys can do different things on different pages.</List.Item>
-          <List.Item><Text span fw={600}>Each row</Text> has the action, its keys (a button that records new keys), reset, and a switch to turn that shortcut off.</List.Item>
-          <List.Item><Text span fw={600}>Standard keys</Text> close the list, for reference. They can’t be changed.</List.Item>
-          <List.Item><Text span fw={600}>Save</Text> applies the changes and stores them on the account, so they follow the user to every device. Cancel, Esc and the close button discard them. Reset all goes back to the defaults, and still needs Save.</List.Item>
-        </List>
-      </Section>
-
-      <Section id="panel" title="Shortcuts panel" description="A quick reference for the most used shortcuts. It docks to the bottom of the window and opens on the tab for the page the user is on.">
-        <PanelDemo settings={settings} platform={platform} platformControl={platformControl} onCustomize={open} onOpenDocked={openPanel} />
-        <List size="sm" spacing="xs" mt="md">
-          <List.Item><Text span fw={600}>Open it</Text> with {openKeys ? <ShortcutKeys keys={openKeys} platform={platform} size="xs" /> : 'Show keyboard shortcuts'} on any page, or Keyboard shortcuts in the user menu. The same keys close it.</List.Item>
-          <List.Item><Text span fw={600}>Tabs</Text> follow where shortcuts work. The panel opens on the current page’s tab, so the shortcuts that work right now come first. Standard keys is last.</List.Item>
-          <List.Item><Text span fw={600}>Columns</Text> group related shortcuts under a short heading, such as “Go to” or “Views”. Each row is the action, then its keys.</List.Item>
-          <List.Item><Text span fw={600}>Current keys.</Text> Rows show the user’s keys. A shortcut that is turned off says “Off”, and one whose keys were given away says “No keys”.</List.Item>
-          <List.Item><Text span fw={600}>It doesn’t block the page.</Text> The user keeps working and can try a shortcut while the panel is open. Esc or the close button closes it, and focus goes back where it was.</List.Item>
-          <List.Item><Text span fw={600}>Customize</Text> closes the panel and opens the shortcuts modal, where keys are changed.</List.Item>
-        </List>
       </Section>
 
       <Section id="changing" title="Changing a shortcut" description="The user clicks the keys and presses new ones. There is no separate confirm step: valid keys are taken on the spot, anything else is explained in the row.">
@@ -477,36 +383,6 @@ export default function KeyboardShortcuts() {
         </List>
       </Section>
 
-      <Section id="touch" title="Touch devices" description="Phones and tablets without a keyboard don’t show anything about shortcuts. A tablet with a keyboard or trackpad does.">
-        <Preview title="Compare devices" align="start">
-          <Stack gap="md" w="100%">
-            <SegmentedControl
-              value={device}
-              onChange={(value) => setDevice(value as 'pointer' | 'touch')}
-              aria-label="Device"
-              w="fit-content"
-              data={[
-                { value: 'pointer', label: <Group gap={6} wrap="nowrap"><MousePointer2 size={14} aria-hidden="true" />Mouse or trackpad</Group> },
-                { value: 'touch', label: <Group gap={6} wrap="nowrap"><Smartphone size={14} aria-hidden="true" />Touch only</Group> },
-              ]}
-            />
-            <Group align="flex-start" gap="lg">
-              <PreferencesMock touch={device === 'touch'} onOpen={open} />
-              <UserMenuMock settings={settings} platform={platform} touch={device === 'touch'} onOpen={openPanel} onHint={setMenuHint} />
-            </Group>
-          </Stack>
-        </Preview>
-        <Table.ScrollContainer minWidth={560} className="doc-table" mt="md">
-          <Table verticalSpacing="sm" horizontalSpacing="md">
-            <Table.Tbody>
-              <Table.Tr><Table.Td w={180}><Text size="sm" fw={600}>Shown when</Text></Table.Td><Table.Td><Text size="sm">The device has a fine pointer, <CopyValue value="(any-pointer: fine)" />, or the user has pressed Ctrl, ⌘ or Alt during the session. Software keyboards don’t send those keys.</Text></Table.Td></Table.Tr>
-              <Table.Tr><Table.Td><Text size="sm" fw={600}>Hidden</Text></Table.Td><Table.Td><Text size="sm">The Preferences row, the user menu item and the key hints in tooltips and menus.</Text></Table.Td></Table.Tr>
-              <Table.Tr><Table.Td><Text size="sm" fw={600}>Unchanged</Text></Table.Td><Table.Td><Text size="sm">The saved settings. Shortcuts keep working if a keyboard is connected later.</Text></Table.Td></Table.Tr>
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
-      </Section>
-
       <Section id="defaults" title="Default shortcuts" description="Every default uses Ctrl/⌘ or Alt/⌥ and avoids browser, system and screen reader keys. Most use Alt + Shift, which browsers leave free.">
         <Table.ScrollContainer minWidth={720} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
@@ -539,29 +415,6 @@ export default function KeyboardShortcuts() {
           { prop: 'keys / alternatives / combo', type: 'string / string[] / Combo', description: 'ShortcutKeys. Key caps for mod+shift+K-style keys, hidden from screen readers.' },
         ]} />
         <Text size="sm" c="dimmed" mt="sm">Actions, standard keys and blocked keys live in <Code>src/tokens/shortcuts.ts</Code>. Reading, checking and matching key presses is in <Code>src/components/shortcuts/keys.ts</Code>: <Code>readKeyPress</Code>, <Code>blockedReason</Code>, <Code>findConflict</Code>, <Code>matchAction</Code>, <Code>ariaKeyShortcuts</Code> and <Code>spokenKeys</Code>.</Text>
-      </Section>
-
-      <Section id="guidelines" title="Guidelines">
-        <DoDont
-          doItems={[
-            'Give every shortcut Ctrl/⌘ or Alt/⌥, and let users change it or turn it off.',
-            'Show the user’s current keys in tooltips and menus, and set aria-keyshortcuts to match.',
-            'Explain in the row why keys aren’t allowed, and let the user try again straight away.',
-            'Ask before taking keys from another action, and name that action.',
-            'Keep a visible control for everything a shortcut does.',
-            'Open the shortcuts panel on the tab for the current page.',
-            'Hide shortcut settings and key hints on touch-only devices.',
-          ]}
-          dontItems={[
-            'Ship a single-letter or Shift-plus-letter shortcut, even as an option.',
-            'Take over browser, system or screen reader keys such as Ctrl/⌘ W, Alt ← or F6.',
-            'Let Esc close the modal while a row is recording.',
-            'Trap focus in the recorder. Tab always moves on.',
-            'Run shortcuts while the user types in a field, except Esc.',
-            'Show default keys in a hint after the user has changed them.',
-            'Block the page with the shortcuts panel. Users try shortcuts while it is open.',
-          ]}
-        />
       </Section>
 
       <Section id="figma" title="Figma reference">

@@ -106,14 +106,6 @@ export default function Layout() {
             ))}
           </nav>
         </AppShell.Section>
-        <AppShell.Section px="md" py="sm" className="shell-navbar__footer">
-          <Group gap={6}>
-            <span className="status-dot" data-status="draft" aria-hidden="true" />
-            <Text size="xs" c="dimmed">
-              Draft: awaiting Figma confirmation
-            </Text>
-          </Group>
-        </AppShell.Section>
       </AppShell.Navbar>
 
       <AppShell.Aside className="shell-aside" p="md" withBorder={false}>

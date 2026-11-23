@@ -10,6 +10,16 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-23',
+    page: '/patterns/keyboard-shortcuts',
+    summary: 'Keyboard Shortcuts is confirmed again, including the shortcuts panel and its groups.',
+  },
+  {
+    date: '2026-11-23',
+    page: '/patterns/keyboard-shortcuts',
+    summary: 'The shortcuts modal and panel now share one demo, with a button for each. Removed the Touch devices and Guidelines sections.',
+  },
+  {
     date: '2026-11-20',
     page: '/patterns/keyboard-shortcuts',
     summary: 'New shortcuts panel for discovering the most used shortcuts. The page is back in review.',
