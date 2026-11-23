@@ -8,6 +8,15 @@
   border-inline-start: 1px solid var(--border-default);
 }
 
+.panel[data-placement='drawer'] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  box-shadow: var(--mantine-shadow-xl);
+}
+
 .header {
   display: flex;
   align-items: flex-start;

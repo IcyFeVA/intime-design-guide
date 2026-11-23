@@ -1,5 +1,6 @@
 /* Grid and details panel side by side. The panel has a fixed width; the grid takes the rest. */
 .workspace {
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;

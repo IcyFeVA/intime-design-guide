@@ -12,6 +12,9 @@
 
 .grid {
   composes: grid from '../schedule/Schedule.module.css';
+  /* Days share the width (minmax(0, 1fr) columns): never wider than the scroller, so no sideways scrolling */
+  width: 100%;
+  min-width: 0;
   user-select: none;
 }
 
@@ -62,6 +65,18 @@
   flex: none;
 }
 
+.dayHeader[data-density='mini'] {
+  padding: 0;
+}
+
+.stackedDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
 /* ---------- Open shifts (pinned under the dates) ---------- */
 
 .openRow > .openLabel,
@@ -96,6 +111,10 @@
 
 .openCell {
   padding-block: 4px;
+}
+
+.openCell[data-density='mini'] {
+  padding-inline: 2px;
 }
 
 .openChip {
@@ -172,11 +191,28 @@
   padding: 4px 7px;
 }
 
+.groupCell[data-density='mini'] {
+  justify-content: center;
+  padding-inline: 1px;
+}
+
+/* No room for the arrow: the color and the Bodies row below still say it */
+.groupCell[data-density='mini'] .badge {
+  gap: 0;
+  padding: 1px 2px;
+  font-size: 11px;
+}
+
+.groupCell[data-density='mini'] .badge svg {
+  display: none;
+}
+
 .groupCell[data-boundary] {
   box-shadow: inset 2px 0 0 var(--schedule-boundary);
 }
 
 .toggle {
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -206,6 +242,8 @@
 }
 
 .groupCount {
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -286,6 +324,15 @@
   composes: coverageCell from '../schedule/Schedule.module.css';
 }
 
+.coverageCell[data-density='mini'] {
+  padding-inline: 1px;
+}
+
+.coverageCell[data-density='mini'] > * {
+  gap: 1px;
+  font-size: 11px;
+}
+
 .coverageCell[data-boundary] {
   box-shadow: inset 2px 0 0 var(--schedule-boundary);
 }
@@ -298,6 +345,8 @@
 
 .label {
   composes: label from '../schedule/Schedule.module.css';
+  /* Rank badges and supervisor icons hide when the name column is too narrow for them */
+  container-type: inline-size;
   padding-inline-start: 12px;
   transition: box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
 }
@@ -348,6 +397,13 @@
   color: var(--text-dimmed);
 }
 
+@container (max-width: 200px) {
+  .rank,
+  .supervisor {
+    display: none;
+  }
+}
+
 /* ---------- Selectable cells ---------- */
 
 .cell {
@@ -357,6 +413,10 @@
 
 .cell[data-selectable] {
   cursor: cell;
+}
+
+.cell[data-density='mini'] {
+  padding-inline: 2px;
 }
 
 /* Layered on the body color so pinned (open shift) cells stay opaque */

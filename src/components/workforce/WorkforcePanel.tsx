@@ -5,9 +5,10 @@ import {
 import { DatePickerInput, TimeInput } from '@mantine/dates'
 import {
   ArrowLeftRight, Ban, ChevronDown, ChevronsUpDown, Clock, Copy, Crosshair, Ellipsis, Megaphone, MousePointerClick, Paperclip, PlaneTakeoff,
-  Plus, Radio, StickyNote, Trash2, UserPlus, UserSearch, X,
+  Pin, Plus, Radio, StickyNote, Trash2, UserPlus, UserSearch, X,
 } from 'lucide-react'
 import { navUnits } from '../../tokens/navigation'
+import type { PanelPlacement } from '../../tokens/workforce'
 import { shiftCodeMap, shiftCodes } from '../../tokens/schedule'
 import { formatHour, formatMonthDay, segmentHours, segmentKind, type Segment } from '../schedule/data'
 import { allMembers, findWatch, formatLongDay, openStatus, rankLabels, shortName, watches, type WatchId } from './data'
@@ -69,8 +70,11 @@ type Preview = (action: string) => void
  * Docked panel beside the grid. One cell: tabs with the activity's details. Several cells: a summary
  * with fields that apply to all. Nothing: a hint. Edits stay in the panel; the grid does not change yet.
  */
-export default function WorkforcePanel({ content, onClose, onPreview, focusTick = 0, style }: {
+export default function WorkforcePanel({ content, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
   content: PanelContent
+  /** `docked`: beside the grid, which gets narrower. `drawer`: over the grid's right edge, which keeps its width. */
+  placement?: PanelPlacement
+  onPlacementChange?: (placement: PanelPlacement) => void
   onClose: () => void
   /** A control that is not built yet was used. Show it in the demo's status line. */
   onPreview: Preview
@@ -90,6 +94,7 @@ export default function WorkforcePanel({ content, onClose, onPreview, focusTick 
   return (
     <aside
       className={classes.panel}
+      data-placement={placement}
       style={style}
       aria-labelledby={headingId}
       onKeyDown={(event) => {
@@ -104,9 +109,25 @@ export default function WorkforcePanel({ content, onClose, onPreview, focusTick 
           <h4 className={classes.title} id={headingId} ref={headingRef} tabIndex={-1}>{title}</h4>
           {subtitle && <Text size="sm" c="dimmed" lh={1.3}>{subtitle}</Text>}
         </div>
-        <Tooltip label="Close panel">
-          <ActionIcon variant="subtle" color="gray" size={32} onClick={onClose} aria-label="Close panel"><X size={18} /></ActionIcon>
-        </Tooltip>
+        <Group gap={2} wrap="nowrap">
+          {onPlacementChange && (
+            <Tooltip label={placement === 'docked' ? 'Unpin: show as a drawer over the grid' : 'Pin beside the grid'}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                size={32}
+                aria-label="Pin panel beside the grid"
+                aria-pressed={placement === 'docked'}
+                onClick={() => onPlacementChange(placement === 'docked' ? 'drawer' : 'docked')}
+              >
+                <Pin size={17} strokeWidth={1.75} fill={placement === 'docked' ? 'currentColor' : 'none'} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          <Tooltip label="Close panel">
+            <ActionIcon variant="subtle" color="gray" size={32} onClick={onClose} aria-label="Close panel"><X size={18} /></ActionIcon>
+          </Tooltip>
+        </Group>
       </div>
 
       {content.mode === 'none' && (

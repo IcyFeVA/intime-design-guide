@@ -12,7 +12,9 @@ import WorkforceDemo from '../../components/workforce/WorkforceDemo'
 import OpenShiftChip from '../../components/workforce/OpenShiftChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
 import { MOCK_TODAY } from '../../components/schedule/data'
-import { viewDensities, workforceRanges, workforceTokens } from '../../tokens/workforce'
+import { cellLayouts, panelPlacements, viewDensities, workforceRanges, workforceTokens } from '../../tokens/workforce'
+import ShiftChip from '../../components/schedule/ShiftChip'
+import type { Chip } from '../../components/schedule/data'
 import classes from './WorkforceScheduling.module.css'
 
 const mouse: [string, string][] = [
@@ -42,6 +44,13 @@ const modes: { mode: string; when: string; shows: string; footer: string }[] = [
   { mode: 'New activity', when: 'An empty cell in a person’s row', shows: '“New activity: …” with the person filled in, a shift code and its default times.', footer: 'Assign, more' },
   { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
+]
+
+const layoutSpecimens: Chip[] = [
+  { segments: [{ code: 'PatD' }] },
+  { segments: [{ code: 'PatD', overtime: 'partial' }] },
+  { segments: [{ code: 'Train' }], outOfUnit: true },
+  { segments: [{ code: 'Vac' }] },
 ]
 
 const specimen = (status: OpenShift['status']): OpenShift => ({
@@ -116,6 +125,7 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
+          <Text size="sm"><strong>Docked or drawer.</strong> The pin in the panel header switches between {panelPlacements.map((item) => `${item.label.toLowerCase()} (${item.description.charAt(0).toLowerCase()}${item.description.slice(1, -1)})`).join(' and ')}. Docked is the default; the drawer suits a month, where every column counts.</Text>
           <Text size="sm"><strong>One cell</strong> has three tabs: Details, Attachments and Notes. Attachments and Notes are coming.</Text>
           <Text size="sm"><strong>In this demo,</strong> the fields can be changed but nothing is saved, and the grid doesn’t change. Assign, Leave and the segment buttons say so in the status line.</Text>
         </Stack>
@@ -144,7 +154,7 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
-      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities. Day, Compact and Stacked are coming; the demo shows them as not available yet.">
+      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities. Day, Compact and Stacked are coming; the demo shows them as not available yet. Every range fits the width.">
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
@@ -171,8 +181,29 @@ export default function WorkforceScheduling() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
-          <Text size="sm">Cells follow the range as in Team View: full codes for a week, compact cells for two weeks and longer.</Text>
         </Stack>
+        <Text size="sm" fw={600} mb="xs" mt="lg">Every range fits the screen</Text>
+        <Text size="sm" mb="sm">The days always share the full width, so schedulers never scroll sideways, from one week to a month, with or without the docked panel. The cell layout follows how wide a day column is, not the range. When columns would be narrower than 48px, the name column narrows to 168px and rank badges and supervisor icons hide if they don’t fit.</Text>
+        <Table.ScrollContainer minWidth={640} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th w={110}>Layout</Table.Th><Table.Th w={110}>Column</Table.Th><Table.Th w={170}>Cells</Table.Th><Table.Th>Shows</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {cellLayouts.map((layout, index) => (
+                <Table.Tr key={layout.key}>
+                  <Table.Td><Text size="sm" fw={600}>{layout.label}</Text></Table.Td>
+                  <Table.Td><Text size="sm" className="tabular">{index === 0 ? `${layout.minWidth}px and wider` : `${layout.minWidth ? `${layout.minWidth}–` : 'Under '}${cellLayouts[index - 1].minWidth}px`}</Text></Table.Td>
+                  <Table.Td>
+                    <div className={classes.layoutSpecimens} data-layout={layout.key}>
+                      {layoutSpecimens.map((chip, chipIndex) => <ShiftChip key={chipIndex} chip={chip} density={layout.key} context="Specimen" />)}
+                    </div>
+                  </Table.Td>
+                  <Table.Td><Text size="sm">{layout.shows}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Text size="xs" c="dimmed" mt="xs">At 1512 × 982 (a 14-inch MacBook): one week gets 174px columns (120px with the panel docked), two weeks 87px (60px), three weeks 58px (43px) and a month 43px (30px).</Text>
       </Section>
 
       <Section id="component" title="Using the components" description="The demo is built from the components in src/components/workforce, on top of the schedule components.">
@@ -180,8 +211,6 @@ export default function WorkforceScheduling() {
         <PropsTable rows={[
           { prop: 'model', type: 'GridModel', description: 'Rows to render. Build it with buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter }) and memoise it on those inputs, not on the selection.' },
           { prop: 'selection', type: 'GridSelection', description: 'From useGridSelection({ rows: model.rowKeys, days: model.days, isSelectable: model.isSelectable }).' },
-          { prop: 'density', type: "'comfortable' | 'compact'", description: 'Cell layout, from the range.' },
-          { prop: 'columnMin', type: 'number', description: 'Minimum day column width in px.' },
           { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. Set as data-view on the grid; only detailed is styled yet.' },
           { prop: 'onToggleGroup / onToggleStaffing', type: '(watch) => void', description: 'Collapse or expand a watch or its staffing rows.' },
           { prop: 'onMemberClick', type: '(member) => void', description: 'A name was selected. The demo opens EmployeeDetailsModal.' },
@@ -195,10 +224,13 @@ export default function WorkforceScheduling() {
           { prop: 'onActivate', type: "(via: 'pointer' | 'keyboard') => void", description: 'A click, drag or Enter ended on a cell. Open the panel here.' },
           { prop: 'onEscape', type: '() => boolean', description: 'Escape with one cell selected. Return true if it closed something.' },
         ]} />
+        <Text size="sm" c="dimmed" mt="sm">The grid measures its own width: day columns are minmax(0, 1fr), and the cell layout and name column width follow from cellLayouts in src/tokens/workforce.ts.</Text>
         <Text size="sm" c="dimmed" mt="sm">The hook returns the selection (selected, ordered, active), helpers for the cells (isSelected, isTabStop, edges) and gridProps to spread on the grid element. Every focusable element in the grid carries data-row and data-day.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">WorkforcePanel</Text>
         <PropsTable rows={[
           { prop: 'content', type: 'PanelContent', description: 'From panelContent(model, selection.ordered): none, single (open shift, assigned or new) or bulk.' },
+          { prop: 'placement', type: "'docked' | 'drawer'", default: "'docked'", description: 'Beside the grid, or over its right edge. The workspace needs position: relative for the drawer.' },
+          { prop: 'onPlacementChange', type: '(placement) => void', description: 'Shows the pin button in the header.' },
           { prop: 'onClose', type: '() => void', description: 'The close button.' },
           { prop: 'onPreview', type: '(action: string) => void', description: 'A control that isn’t built yet was used.' },
           { prop: 'focusTick', type: 'number', description: 'Change it to move focus to the panel’s heading, e.g. after Enter.' },
@@ -243,6 +275,7 @@ export default function WorkforceScheduling() {
             'Use the shift fills for open shifts. They have no holder yet, so they have no fill.',
             'Put a separate button inside each cell. The cell itself is the target.',
             'Clear the selection when a range gets longer. Keep the cells that are still in view.',
+            'Make schedulers scroll sideways to see the rest of a week or month.',
           ]}
         />
       </Section>

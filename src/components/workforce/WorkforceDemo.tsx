@@ -8,7 +8,7 @@ import { SortModal } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import type { EmployeeProfile } from '../schedule/profiles'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
-import { workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
+import { workforceRanges, type PanelPlacement, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
 import { watches, workforceProfile, workforceTeams, type Watch, type WatchId, type WorkforceMember, type WorkforceSort } from './data'
 import { buildGridModel, panelContent, type EmployeeFilter } from './model'
 import { useGridSelection } from './useGridSelection'
@@ -46,6 +46,7 @@ export default function WorkforceDemo() {
   const [collapsed, setCollapsed] = useState<ReadonlySet<WatchId>>(new Set())
   const [staffingCollapsed, setStaffingCollapsed] = useState(DEFAULT_STAFFING)
   const [panelOpen, setPanelOpen] = useState(false)
+  const [placement, setPlacement] = useState<PanelPlacement>('docked')
   const [focusTick, setFocusTick] = useState(0)
   const [hint, setHint] = useState<string | null>(null)
   const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
@@ -98,7 +99,7 @@ export default function WorkforceDemo() {
 
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setFilter('all'); setView('detailed'); setSort('watch'); setDirection('asc')
-    setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
+    setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setPlacement('docked'); setFocusTick(0); setHint(null)
     setCoverage(null); setProfile(null); selection.reset()
   }
 
@@ -146,8 +147,6 @@ export default function WorkforceDemo() {
             <WorkforceGrid
               model={model}
               selection={selection}
-              density={rangeDef.density}
-              columnMin={rangeDef.columnMin}
               view={view}
               today={MOCK_TODAY}
               onToggleGroup={(id) => setCollapsed((set) => toggle(set, id))}
@@ -158,7 +157,7 @@ export default function WorkforceDemo() {
           )}
         </div>
         <Transition mounted={panelOpen} transition={panelSlide} duration={reduceMotion ? 0 : 220} timingFunction="cubic-bezier(0.2, 0, 0, 1)">
-          {(style) => <WorkforcePanel style={style} content={content} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
+          {(style) => <WorkforcePanel style={style} content={content} placement={placement} onPlacementChange={setPlacement} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
         </Transition>
         <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} contained />
         <EmployeeDetailsModal profile={profile} onClose={() => setProfile(null)} contained />

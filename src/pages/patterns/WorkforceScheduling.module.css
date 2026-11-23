@@ -47,3 +47,24 @@
   width: auto;
   max-width: 100%;
 }
+
+.layoutSpecimens {
+  display: flex;
+  gap: 4px;
+}
+
+.layoutSpecimens > * {
+  width: 120px;
+}
+
+.layoutSpecimens[data-layout='compact'] > * {
+  width: 52px;
+}
+
+.layoutSpecimens[data-layout='mini'] > * {
+  width: 30px;
+}
+
+.layoutSpecimens[data-layout='comfortable'] {
+  flex-direction: column;
+}

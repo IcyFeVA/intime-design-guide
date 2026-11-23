@@ -6,11 +6,11 @@ import classes from './Workforce.module.css'
 
 /**
  * An open or live shift: Team View's cell shape with no fill and a dashed outline.
- * Comfortable shows icon, label and code; compact shows icon and code (the label is in the tooltip).
+ * Comfortable shows icon, label and code; compact shows icon and code; mini shows the icon only (the rest is in the tooltip).
  */
 export default function OpenShiftChip({ shift, density = 'comfortable', tooltip = true }: {
   shift: OpenShift
-  density?: 'comfortable' | 'compact'
+  density?: 'comfortable' | 'compact' | 'mini'
   tooltip?: boolean
 }) {
   const status = openStatus[shift.status]
@@ -30,9 +30,9 @@ export default function OpenShiftChip({ shift, density = 'comfortable', tooltip 
       )}
     >
       <span className={classes.openChip} data-status={shift.status} data-density={density} aria-hidden="true">
-        <Icon size={density === 'compact' ? 13 : 15} strokeWidth={2} className={classes.openIcon} />
+        <Icon size={density === 'comfortable' ? 15 : 13} strokeWidth={2} className={classes.openIcon} />
         {density === 'comfortable' && <span className={classes.openStatus}>{status.label}</span>}
-        <span className={classes.openCode}>{shift.code}</span>
+        {density !== 'mini' && <span className={classes.openCode}>{shift.code}</span>}
       </span>
     </Tooltip>
   )

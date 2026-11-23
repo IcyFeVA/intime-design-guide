@@ -1,24 +1,37 @@
 import { memo, type CSSProperties } from 'react'
+import { useElementSize } from '@mantine/hooks'
 import { Badge, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, ShieldCheck, Triangle } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
-import type { ViewDensity } from '../../tokens/workforce'
+import { NARROW_LABEL_BELOW, cellLayoutFor, workforceTokens, type CellLayout, type ViewDensity } from '../../tokens/workforce'
 import OpenShiftChip from './OpenShiftChip'
 import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId, type WorkforceMember } from './data'
 import { staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
 
-type CellDensity = 'comfortable' | 'compact'
+type CellDensity = CellLayout
+
+const px = (name: string) => parseFloat(workforceTokens.find((token) => token.name === name)!.value)
+const LABEL_WIDTH = px('--workforce-label-width')
+const LABEL_WIDTH_NARROW = px('--workforce-label-width-narrow')
+
+/**
+ * Days always share the full width. Measures the width and picks the name column width and the cell layout:
+ * the wide name column while day columns stay at least NARROW_LABEL_BELOW px, else the narrow one.
+ */
+function fitColumns(width: number, dayCount: number) {
+  const wide = (width - LABEL_WIDTH) / Math.max(1, dayCount)
+  const narrowLabel = width > 0 && wide < NARROW_LABEL_BELOW
+  const column = narrowLabel ? (width - LABEL_WIDTH_NARROW) / Math.max(1, dayCount) : wide
+  return { narrowLabel, column, layout: width > 0 ? cellLayoutFor(column) : 'comfortable' as CellLayout }
+}
 
 export interface WorkforceGridProps {
   model: GridModel
   selection: GridSelection
-  /** Cell layout. Follows the range, as in Team View. */
-  density: CellDensity
-  columnMin: number
   /** Row layout. Only `detailed` is built; the others will override row and chip heights under `[data-view]`. */
   view: ViewDensity
   today: number
@@ -134,7 +147,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
           <div role="gridcell" className={classes.coverageCell} data-density={density} data-boundary={isPeriodStart(day) || undefined} key={day} {...(metric === 'timeOfDay' ? {} : focus)}>
             {metric === 'bodies' && <BodiesValue bodies={coverage.bodies} />}
             {metric === 'supervisors' && <BodiesValue bodies={coverage.supervisors} noun="supervisors" minimum />}
-            {metric === 'hours' && <HoursValue hours={coverage.hours} />}
+            {metric === 'hours' && <HoursValue hours={coverage.hours} digits={density === 'mini' ? 0 : 1} />}
             {metric === 'timeOfDay' && (
               <UnstyledButton
                 {...focus}
@@ -162,15 +175,18 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, density, columnMin, view, today, onToggleGroup, onToggleStaffing, onMemberClick, onCoverageClick,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onMemberClick, onCoverageClick,
 }: WorkforceGridProps) {
   const { days } = model
-  const compact = density === 'compact'
+  const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
+  const { narrowLabel, layout: density } = fitColumns(width, days.length)
+  const compact = density !== 'comfortable'
+  const mini = density === 'mini'
   const active = selection.active
   const activeRow = active ? model.byKey.get(active.row) : undefined
   const activeDay = activeRow && (activeRow.kind === 'member' || activeRow.kind === 'open') ? active?.day ?? null : null
   const openLines = model.rows.filter((row) => row.kind === 'open').length
-  const style = { gridTemplateColumns: `var(--workforce-label-width) repeat(${days.length}, minmax(${columnMin}px, 1fr))` } as CSSProperties
+  const style = { gridTemplateColumns: `var(--workforce-label-width) repeat(${days.length}, minmax(0, 1fr))` } as CSSProperties
 
   const esc = selection.escapeProps
 
@@ -235,7 +251,7 @@ export default function WorkforceGrid({
               </UnstyledButton>
             </div>
             {days.map((day) => (
-              <div role="gridcell" className={classes.groupCell} {...esc} data-row={row.key} data-day={day} tabIndex={selection.isTabStop(row.key, day) ? 0 : -1} data-boundary={isPeriodStart(day) || undefined} key={day}>
+              <div role="gridcell" className={classes.groupCell} data-density={density} {...esc} data-row={row.key} data-day={day} tabIndex={selection.isTabStop(row.key, day) ? 0 : -1} data-boundary={isPeriodStart(day) || undefined} key={day}>
                 <BodiesBadge bodies={row.watch.coverage(day).bodies} />
               </div>
             ))}
@@ -337,7 +353,12 @@ export default function WorkforceGrid({
   }
 
   return (
-    <div className={classes.scroller} style={{ '--open-lines': openLines } as CSSProperties}>
+    <div
+      ref={scrollerRef}
+      className={classes.scroller}
+      style={{ '--open-lines': openLines, ...(narrowLabel ? { '--workforce-label-width': 'var(--workforce-label-width-narrow)' } : {}) } as CSSProperties}
+      data-layout={density}
+    >
       <div
         {...selection.gridProps}
         className={classes.grid}
@@ -363,7 +384,9 @@ export default function WorkforceGrid({
               title={compact ? formatFullDate(day) : undefined}
             >
               <span aria-hidden="true" className="tabular">
-                {compact ? (
+                {mini ? (
+                  <span className={classes.stackedDate}><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span>{dayNumber(day)}</span>
+                ) : compact ? (
                   <><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span> {dayNumber(day)}</>
                 ) : (
                   <><span className={classes.weekday}>{formatWeekday(day)}</span> {formatHeader(day).split(', ')[1]}</>

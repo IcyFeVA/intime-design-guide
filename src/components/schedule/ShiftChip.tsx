@@ -5,11 +5,14 @@ import { shiftCodeMap } from '../../tokens/schedule'
 import { chipFills, chipHasOvertime, describeChip, formatHour, segmentHours, type Chip } from './data'
 import classes from './Schedule.module.css'
 
-export type ChipDensity = 'comfortable' | 'compact' | 'strip'
+export type ChipDensity = 'comfortable' | 'compact' | 'mini' | 'strip'
 
 export interface ShiftChipProps {
   chip: Chip
-  /** `comfortable`: one week. `compact`: two weeks and longer. `strip`: mobile week, tags only. */
+  /**
+   * `comfortable`: one week. `compact`: two weeks and longer. `mini`: very narrow desktop columns, no codes (fill, OU stripes
+   * and arrow, cancelled bar). `strip`: mobile week, tags only.
+   */
   density?: ChipDensity
   /** Who and when, for the tooltip and accessible name, e.g. "Marino, Thu, Jun 4" */
   context?: string
@@ -72,18 +75,18 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
     'data-density': density,
     'data-out-of-unit': chip.outOfUnit || undefined,
     'data-tagged': (chip.outOfUnit || overtime) || undefined,
-    'data-cancelled': (density === 'strip' && cancelled) || undefined,
+    'data-cancelled': ((density === 'strip' || density === 'mini') && cancelled) || undefined,
     style: fillStyle(chip),
   }
   const content = (
     <>
-      {density !== 'strip' && visible.map((segment, index) => (
+      {density !== 'strip' && density !== 'mini' && visible.map((segment, index) => (
         <span className={classes.segment} data-cancelled={segment.cancelled || undefined} data-last={index === visible.length - 1 || undefined} key={index}>
           <span className={classes.code}>{segment.label ?? segment.code}</span>
         </span>
       ))}
       {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}
-      <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'strip' ? 'single' : 'full'} />
+      <ChipTags chip={chip} mode={density === 'compact' || density === 'mini' ? 'icons' : density === 'strip' ? 'single' : 'full'} />
     </>
   )
   return (

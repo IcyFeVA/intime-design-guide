@@ -204,6 +204,20 @@ Add a changelog entry at the top of `src/content/changelog.ts`.
 - A drag or click reveals the clicked cell after the panel opens (double rAF + `scrollIntoView`); a double click no longer selects page text.
 - Page sections: desktop, selection, panel, rows, views, component (hidden), tokens, guidelines, figma (hidden).
 
+## Fit to width and panel placement (2026-11-23, confirmed with user)
+
+Requirement: schedulers see every day of every range without a horizontal scrollbar. Target resolution **1512 × 982** (14-inch MacBook, overlay scrollbars).
+
+- [x] Day columns are `minmax(0, 1fr)` and the grid is `width: 100%`; no minimum column width. `workforceRanges` no longer carries `density`/`columnMin`.
+- [x] The grid measures its scroller (`useElementSize`) and picks the **cell layout from the column width**, not the range (`cellLayouts` / `cellLayoutFor` in `src/tokens/workforce.ts`): Full ≥ 96px, Compact 48–96px, Mini < 48px.
+- [x] Mini (`ShiftChip` density `mini`, shared): no codes; keeps the fill (incl. diagonal splits), out-of-unit hatching and OU arrow, and a bar for cancelled. Open shifts show the icon only. Coverage values drop to 11px; hours lose decimals (`HoursValue digits`); the group badge drops its arrow.
+- [x] When columns would be < 48px with the 232px name column, the name column switches to `--workforce-label-width-narrow` (168px, set inline on the scroller). Rank badges and the supervisor shield hide via a container query when the name column is under 200px (user: OK to hide them).
+- [x] Mini date headers stack the weekday over the date.
+- [x] Panel placement: `docked` (default) or `drawer` (absolute over the grid's right edge, shadow, grid keeps full width). Switched with a pin in the panel header (same pattern as pinning AppNav). Reset demo returns to docked.
+- Measured at 1512 × 982 in Full screen: week 174px (docked 120), 2 weeks 87 (60), 3 weeks 58 (43, Mini), month 43 (30), all Mini for the month; overflowX = 0 in every case.
+
+Ideas not built yet: collapse the name column to initials; a per-user setting that remembers docked vs drawer; show the drawer over the grid without covering the selected cell (e.g. scroll or flip side).
+
 ## Later (out of scope now, keep room for them)
 
 - Compact and Stacked densities (override `--schedule-row-height` / `--schedule-chip-height` under `[data-view]`); 15 range × density combinations.
