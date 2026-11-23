@@ -2,6 +2,8 @@ import { useState, type ReactNode } from 'react'
 import { Button, Group, Modal, Radio, SegmentedControl, Stack, Text } from '@mantine/core'
 import { ChevronsDown, ChevronsUp } from 'lucide-react'
 import classes from './SortModal.module.css'
+import { PhoneModalBody } from '../phone-modal/PhoneModalBody'
+import { phoneModalProps } from '../phone-modal/phoneModalProps'
 
 export type SortDirection = 'asc' | 'desc'
 
@@ -20,9 +22,9 @@ export interface SortField<F extends string> {
 
 /**
  * Sort dialog: direction, then one field. Changes apply on Apply; Cancel and close discard them.
- * Pass `contained` to keep it inside a demo frame.
+ * Pass `contained` to keep it inside a demo frame, and `fullScreen` on a phone.
  */
-export function SortModal<F extends string>({ opened, value, fields, onClose, onApply, footnote, contained }: {
+export function SortModal<F extends string>({ opened, value, fields, onClose, onApply, footnote, contained, fullScreen }: {
   opened: boolean
   value: SortValue<F>
   fields: SortField<F>[]
@@ -31,7 +33,16 @@ export function SortModal<F extends string>({ opened, value, fields, onClose, on
   /** Short note under the options */
   footnote?: ReactNode
   contained?: boolean
+  /** Full screen below the status bar, for phones */
+  fullScreen?: boolean
 }) {
+  if (fullScreen) {
+    return (
+      <Modal opened={opened} onClose={onClose} title="Sort" withinPortal={!contained} lockScroll={!contained} {...phoneModalProps}>
+        {opened && <SortForm value={value} fields={fields} onClose={onClose} onApply={onApply} footnote={footnote} fullScreen />}
+      </Modal>
+    )
+  }
   return (
     <Modal
       opened={opened}
@@ -50,15 +61,22 @@ export function SortModal<F extends string>({ opened, value, fields, onClose, on
   )
 }
 
-function SortForm<F extends string>({ value, fields, onClose, onApply, footnote }: {
+function SortForm<F extends string>({ value, fields, onClose, onApply, footnote, fullScreen }: {
   value: SortValue<F>
   fields: SortField<F>[]
   onClose: () => void
   onApply: (value: SortValue<F>) => void
   footnote?: ReactNode
+  fullScreen?: boolean
 }) {
   const [draft, setDraft] = useState(value)
-  return (
+  const buttons = (
+    <>
+      <Button variant="default" onClick={onClose}>Cancel</Button>
+      <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
+    </>
+  )
+  const form = (
     <>
       <SegmentedControl
         fullWidth
@@ -84,10 +102,13 @@ function SortForm<F extends string>({ value, fields, onClose, onApply, footnote 
         </Stack>
       </Radio.Group>
       {footnote && <Text size="xs" c="dimmed" mt="md">{footnote}</Text>}
-      <Group justify="flex-end" gap="sm" mt="xl">
-        <Button variant="default" onClick={onClose}>Cancel</Button>
-        <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
-      </Group>
+    </>
+  )
+  if (fullScreen) return <PhoneModalBody footer={buttons}>{form}</PhoneModalBody>
+  return (
+    <>
+      {form}
+      <Group justify="flex-end" gap="sm" mt="xl">{buttons}</Group>
     </>
   )
 }

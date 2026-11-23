@@ -115,7 +115,7 @@ function PhoneHeader({ state, onVisibility }: { state: ApprovalsState; onVisibil
           className={classes.phoneSearch}
         />
         <Tooltip label="Visibility"><ActionIcon variant="default" size={42} aria-label="Visibility" onClick={onVisibility}><Eye size={20} /></ActionIcon></Tooltip>
-        <SortControl size={42} state={state} contained />
+        <SortControl size={42} state={state} contained fullScreen />
       </div>
       {state.kind === 'timesheet' && <div className={classes.phoneSwitch}><ListSwitch state={state} fullWidth /></div>}
     </div>
@@ -160,7 +160,7 @@ function MobileDemo() {
             ? <ApprovalDetail compact request={detail} onLink={(label) => state.setHint(`“${label}” opens in the app. Preview only.`)} />
             : <div className={classes.phoneList}><ApprovalListItems state={state} card autoActive={false} /></div>}
           <ApprovalActionsSheet state={state} opened={sheet} onClose={() => setSheet(false)} />
-          <VisibilityModal key={String(visibility)} opened={visibility} kind={state.kind} visible={state.visible} onClose={() => setVisibility(false)} onApply={state.setVisible} contained />
+          <VisibilityModal key={String(visibility)} opened={visibility} kind={state.kind} visible={state.visible} onClose={() => setVisibility(false)} onApply={state.setVisible} contained fullScreen />
         </PhoneFrame>
       </MobileStage>
     </Preview>
@@ -298,7 +298,7 @@ export default function Approvals() {
           { prop: 'ApprovalDetail', type: '{ request, onLink, compact? }', description: 'Submitted on, the request’s details, alerts, payout and notes.' },
           { prop: 'ApprovalActions', type: '{ state, withApprovers? }', description: 'The action panel for the open request or the selection.' },
           { prop: 'ApprovalActionsSheet', type: '{ state, opened, onClose }', description: 'The action panel as a bottom sheet, inside a phone frame.' },
-          { prop: 'VisibilityModal', type: '{ opened, kind, visible, onClose, onApply, contained? }', description: 'Pick the properties each item shows.' },
+          { prop: 'VisibilityModal', type: '{ opened, kind, visible, onClose, onApply, contained?, fullScreen? }', description: 'Pick the properties each item shows.' },
         ]} />
         <Text size="sm" c="dimmed" mt="sm">Mock requests and the approve, reject, clear and submit logic are in src/components/approvals/data.ts. Tabs, properties, sort options and panel states are in src/tokens/approvals.ts. Status badges reuse RequestStatusBadge.</Text>
       </Section>

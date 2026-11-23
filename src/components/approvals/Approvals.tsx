@@ -11,6 +11,8 @@ import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import { SortModal as SortDialog } from '../sort/SortModal'
+import { PhoneModalBody } from '../phone-modal/PhoneModalBody'
+import { phoneModalProps } from '../phone-modal/phoneModalProps'
 import {
   approvalKind, approvalKinds, approvalProperties, approvalSortFields, approvalStatusBadge, type ApprovalKind, type ApprovalProperty, type ApprovalSort,
 } from '../../tokens/approvals'
@@ -273,7 +275,7 @@ export function ListSwitch({ state, fullWidth }: { state: ApprovalsState; fullWi
 }
 
 /** Sort dialog for approvals. Properties that are hidden in the list are disabled. */
-export function SortModal({ opened, kind, sort, visible, onClose, onApply, contained }: {
+export function SortModal({ opened, kind, sort, visible, onClose, onApply, contained, fullScreen }: {
   opened: boolean
   kind: ApprovalKind
   sort: ApprovalSort
@@ -281,6 +283,8 @@ export function SortModal({ opened, kind, sort, visible, onClose, onApply, conta
   onClose: () => void
   onApply: (sort: ApprovalSort) => void
   contained?: boolean
+  /** Full screen below the status bar, for phones */
+  fullScreen?: boolean
 }) {
   const fields = approvalSortFields(kind).map((field) => {
     const hidden = !!field.property && !visible.includes(field.key as ApprovalProperty)
@@ -295,12 +299,13 @@ export function SortModal({ opened, kind, sort, visible, onClose, onApply, conta
       onApply={onApply}
       footnote="Properties turned off in Visibility can’t be sorted by."
       contained={contained}
+      fullScreen={fullScreen}
     />
   )
 }
 
-/** Sort button and its dialog. */
-export function SortControl({ state, wide, size = 30, contained }: { state: ApprovalsState; wide?: boolean; size?: number; contained?: boolean }) {
+/** Sort button and its dialog. `fullScreen` opens the dialog full screen, on a phone. */
+export function SortControl({ state, wide, size = 30, contained, fullScreen }: { state: ApprovalsState; wide?: boolean; size?: number; contained?: boolean; fullScreen?: boolean }) {
   const [opened, setOpened] = useState(false)
   return (
     <>
@@ -309,7 +314,7 @@ export function SortControl({ state, wide, size = 30, contained }: { state: Appr
       ) : (
         <Tooltip label="Sort"><ActionIcon variant="default" size={size} aria-label="Sort" onClick={() => setOpened(true)}><ArrowDownUp size={size > 30 ? 20 : 16} /></ActionIcon></Tooltip>
       )}
-      <SortModal opened={opened} kind={state.kind} sort={state.sort} visible={state.visible} onClose={() => setOpened(false)} onApply={state.setSort} contained={contained} />
+      <SortModal opened={opened} kind={state.kind} sort={state.sort} visible={state.visible} onClose={() => setOpened(false)} onApply={state.setSort} contained={contained} fullScreen={fullScreen} />
     </>
   )
 }
@@ -676,7 +681,7 @@ export function ApprovalActionsPane({ state }: { state: ApprovalsState }) {
 /* ------------------------------------------------------------------ */
 
 /** Pick which properties each list item shows. Changes apply on Apply. */
-export function VisibilityModal({ opened, kind, visible, onClose, onApply, contained }: {
+export function VisibilityModal({ opened, kind, visible, onClose, onApply, contained, fullScreen }: {
   opened: boolean
   kind: ApprovalKind
   visible: ApprovalProperty[]
@@ -684,9 +689,31 @@ export function VisibilityModal({ opened, kind, visible, onClose, onApply, conta
   onApply: (visible: ApprovalProperty[]) => void
   /** Render inside the demo frame instead of a portal */
   contained?: boolean
+  /** Full screen below the status bar, for phones */
+  fullScreen?: boolean
 }) {
   const [draft, setDraft] = useState(visible)
   const options = approvalProperties.filter((property) => property.kinds.includes(kind))
+  const checkboxes = (
+    <Checkbox.Group value={draft} onChange={(value) => setDraft(value as ApprovalProperty[])} label={<Eyebrow>Properties</Eyebrow>}>
+      <Stack gap="sm" mt="sm">
+        {options.map((option) => <Checkbox key={option.key} value={option.key} label={option.label} />)}
+      </Stack>
+    </Checkbox.Group>
+  )
+  const buttons = (
+    <>
+      <Button variant="default" onClick={onClose}>Cancel</Button>
+      <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
+    </>
+  )
+  if (fullScreen) {
+    return (
+      <Modal opened={opened} onClose={onClose} title="Configure visibility" withinPortal={!contained} lockScroll={!contained} {...phoneModalProps}>
+        <PhoneModalBody footer={buttons}>{checkboxes}</PhoneModalBody>
+      </Modal>
+    )
+  }
   return (
     <Modal
       opened={opened}
@@ -699,15 +726,8 @@ export function VisibilityModal({ opened, kind, visible, onClose, onApply, conta
       overlayProps={{ backgroundOpacity: 0.45, blur: 3 }}
       classNames={{ inner: classes.inner, title: classes.modalTitle }}
     >
-      <Checkbox.Group value={draft} onChange={(value) => setDraft(value as ApprovalProperty[])} label={<Eyebrow>Properties</Eyebrow>}>
-        <Stack gap="sm" mt="sm">
-          {options.map((option) => <Checkbox key={option.key} value={option.key} label={option.label} />)}
-        </Stack>
-      </Checkbox.Group>
-      <Group justify="flex-end" gap="sm" mt="xl">
-        <Button variant="default" onClick={onClose}>Cancel</Button>
-        <Button variant="default" onClick={() => { onApply(draft); onClose() }}>Apply</Button>
-      </Group>
+      {checkboxes}
+      <Group justify="flex-end" gap="sm" mt="xl">{buttons}</Group>
     </Modal>
   )
 }

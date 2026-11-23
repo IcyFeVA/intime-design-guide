@@ -109,6 +109,8 @@
 }
 
 .phone {
+  /* Full-screen dialogs start below the status bar */
+  --phone-status-height: 44px;
   position: relative;
   /* Holds bottom sheets inside the phone */
   transform: translateZ(0);
@@ -124,6 +126,9 @@
 }
 
 .statusBar {
+  flex: none;
+  box-sizing: border-box;
+  height: var(--phone-status-height);
   display: flex;
   align-items: center;
   justify-content: space-between;

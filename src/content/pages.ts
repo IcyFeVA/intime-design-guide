@@ -143,7 +143,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/DayDetails')),
   },
   {
-    path: '/patterns/approvals', title: 'Approvals', group: 'Patterns', icon: ListCheck, status: 'confirmed', updated: '2026-11-16',
+    path: '/patterns/approvals', title: 'Approvals', group: 'Patterns', icon: ListCheck, status: 'confirmed', updated: '2026-11-23',
     description: 'How schedulers approve timesheets, leave, trades and activity: a list, the open request and a resizable action panel, with multi-select and a phone layout.',
     keywords: ['approvals', 'approve', 'reject', 'clear status', 'timesheet', 'unsubmitted', 'submit', 'leave', 'trade', 'activity', 'hold over', 'overtime', 'multi-select', 'bulk', 'select all', 'required approvals', 'approval level', 'scheduler note', 'alerts', 'prevent', 'warnings', 'payout', 'comp time', 'visibility', 'sort', 'splitter', 'resize', 'panel', 'bottom sheet', 'mobile'],
     sections: s(['desktop', 'Desktop'], ['types', 'Request types'], ['statuses', 'Statuses and actions'], ['required-approvals', 'Required approvals'], ['visibility', 'Visibility and sort'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),

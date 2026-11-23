@@ -11,6 +11,11 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-23',
+    page: '/patterns/approvals',
+    summary: 'On a phone, Configure visibility and Sort now open full screen below the status bar, with Cancel and Apply at the bottom.',
+  },
+  {
+    date: '2026-11-23',
     page: '/patterns/keyboard-shortcuts',
     summary: 'Keyboard Shortcuts is confirmed again, including the shortcuts panel and its groups.',
   },

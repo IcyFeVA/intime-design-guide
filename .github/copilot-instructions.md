@@ -18,6 +18,7 @@
 - Keep the Mantine core, dates and spotlight stylesheets imported in `src/main.tsx`, and keep the app wrapped in `MantineProvider` and `DatesProvider` (weeks start on Monday). The default scheme is dark.
 - Date buttons open `PeriodPicker` (month, day or a block of days) or `RangePicker` (start and end day) from `src/components/date-picker/DatePickers.tsx`. On phones, the schedule's sliders button opens `FilterSheet` (`src/components/schedule/FilterSheet.tsx`).
 - Desktop Sort buttons open `SortModal` (`src/components/sort/SortModal.tsx`): direction, then one field, Cancel/Apply. Don't use a dropdown for sorting.
+- Dialogs inside a phone demo are full screen below the status bar: spread `phoneModalProps` (`src/components/phone-modal/phoneModalProps.ts`) over the `Modal` and wrap the content in `PhoneModalBody`. `SortModal` and the Approvals `VisibilityModal` take `fullScreen` for this.
 - Keyboard shortcuts use `ShortcutsModal`, `ShortcutsPanel` (the quick reference Ctrl/⌘ / opens, docked at the bottom, on the current page's tab) and `ShortcutKeys` (`src/components/shortcuts/`); actions and blocked keys live in `src/tokens/shortcuts.ts`. Every shortcut needs Ctrl/⌘ or Alt/⌥ (or is a function key), can be changed or turned off, shows its current keys in tooltips and menus with `aria-keyshortcuts`, and is hidden on touch-only devices.
 - Prefer Mantine components and theme tokens over hand-built equivalents.
 - Use CSS variables (`--intime-surface`, `--intime-surface-raised`, `--intime-border`, `--mantine-color-*`) so both color schemes work.
