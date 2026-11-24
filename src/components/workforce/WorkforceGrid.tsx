@@ -376,7 +376,6 @@ export default function WorkforceGrid({
                   <><span className={classes.weekday}>{formatWeekday(day)}</span> {formatHeader(day).split(', ')[1]}</>
                 )}
               </span>
-              {!compact && day === today && <Badge size="xs" variant="filled" color="intime" className={classes.todayBadge} aria-hidden="true">Today</Badge>}
             </div>
           ))}
         </div>

@@ -70,7 +70,7 @@ const layoutDetails: [string, string, string, string][] = [
   ['Fills and stripes', 'Yes', 'Yes', 'Yes, including diagonal splits'],
   ['Cancelled', 'Code struck through', 'Code struck through', 'Bar across the cell'],
   ['Open shifts', 'Icon, label and code', 'Icon over code', 'Icon only'],
-  ['Date header', '“Fri Jun 5” and Today badge', '“Fr 5”', '“Fr” over “5”'],
+  ['Date header', '“Fri Jun 5”', '“Fr 5”', '“Fr” over “5”'],
   ['Coverage', 'As Team View', 'As Team View, 13px', '11px; hours without decimals; no arrow in the group badge'],
 ]
 
