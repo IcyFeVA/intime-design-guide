@@ -12,6 +12,15 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'More ways to sort, and Collapse all / Expand all for the watches.',
+    changes: [
+      'Sort adds Rank then effective date, Rank then precedence, Precedence, and Precedence then rank, next to Watch order, Name and Rank.',
+      'Collapse all (next to Sort) closes every watch and its staffing rows. When all are closed, the button becomes Expand all.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Target resolution button on the desktop demo: full screen, but no wider than 1512px (a 14-inch MacBook), for screenshots at the size we design for.',
   },
   {

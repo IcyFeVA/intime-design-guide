@@ -21,6 +21,10 @@ export interface WorkforceMember {
   last: string
   initials: string
   rank: WorkforceRank
+  /** Day the current rank took effect (day number, as `dayOf`) */
+  rankEffective: number
+  /** Precedence number: a lower number comes first. People can share one. */
+  precedence: number
   /** Sergeants and lieutenants count towards the watch's supervisors */
   supervisor: boolean
   watch: WatchId
@@ -157,6 +161,8 @@ const buildMembers = (watch: WatchId): WorkforceMember[] => specs[watch].map(([i
   last,
   initials: `${first[0]}${last[0]}`,
   rank,
+  rankEffective: dayOf(2025 - ((watchSeeds[watch] / 100 + index * 3) % 9), ((index * 5 + offset) % 12) + 1, ((index * 11) % 27) + 1),
+  precedence: 1 + ((watchSeeds[watch] / 100 + index * 7) % 5),
   supervisor: rank === 'Sgt' || rank === 'Lt',
   watch,
   chips: week ? curated(watchSeeds[watch] + index, watch, offset, week) : rotation(watchSeeds[watch] + index, watch, offset),
@@ -301,11 +307,32 @@ export const workforceTeams = [
 /* Sorting and employee details                                        */
 /* ------------------------------------------------------------------ */
 
-export type WorkforceSort = 'watch' | 'name' | 'rank'
+export type WorkforceSort = 'watch' | 'name' | 'rank' | 'rankEffective' | 'rankPrecedence' | 'precedence' | 'precedenceRank'
+
+type Compare = (a: WorkforceMember, b: WorkforceMember) => number
+const byName: Compare = (a, b) => a.last.localeCompare(b.last) || a.first.localeCompare(b.first)
+const byRank: Compare = (a, b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank)
+const byRankEffective: Compare = (a, b) => a.rankEffective - b.rankEffective
+const byPrecedence: Compare = (a, b) => a.precedence - b.precedence
+
+/** Each sort compares by these in turn; the name breaks any tie. `watch` keeps the roster order. */
+const sortKeys: Record<Exclude<WorkforceSort, 'watch'>, Compare[]> = {
+  name: [],
+  rank: [byRank],
+  rankEffective: [byRank, byRankEffective],
+  rankPrecedence: [byRank, byPrecedence],
+  precedence: [byPrecedence],
+  precedenceRank: [byPrecedence, byRank],
+}
 
 export const sortWorkforce = (members: WorkforceMember[], sort: WorkforceSort, direction: 'asc' | 'desc') => {
-  const sorted = sort === 'watch' ? members : [...members].sort((a, b) =>
-    (sort === 'rank' ? rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank) : 0) || a.last.localeCompare(b.last) || a.first.localeCompare(b.first))
+  const sorted = sort === 'watch' ? members : [...members].sort((a, b) => {
+    for (const compare of sortKeys[sort]) {
+      const result = compare(a, b)
+      if (result) return result
+    }
+    return byName(a, b)
+  })
   return direction === 'desc' ? [...sorted].reverse() : sorted
 }
 

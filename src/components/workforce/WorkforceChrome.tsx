@@ -1,7 +1,7 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
-import { ActionIcon, Badge, Button, Group, Menu, Text } from '@mantine/core'
+import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
-  ArrowUpDown, Check, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
+  ArrowUpDown, Check, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
 } from 'lucide-react'
 import { PickerMenu, RangeStepper, ToolbarDivider } from '../schedule/ScheduleChrome'
 import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
@@ -100,21 +100,30 @@ export function WorkforceToolbar({
   )
 }
 
-/** Search, sort, density, undo and the panel toggle: the right side of the title row. */
-export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, onPreview }: {
+/** Sort, collapse/expand all, density, undo and the panel toggle: the right side of the title row. */
+export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, allCollapsed, onCollapseAll, onPreview }: {
   density: ViewDensity
   onDensity: (density: ViewDensity) => void
   panelOpen: boolean
   onTogglePanel: () => void
   onSort: () => void
+  /** Every watch is collapsed: the toggle offers Expand all */
+  allCollapsed: boolean
+  /** true collapses every watch and its staffing rows, false expands them all */
+  onCollapseAll: (collapse: boolean) => void
   onPreview: (action: string) => void
 }) {
   const icon = (label: string, Icon: typeof Search, onClick: () => void) => (
-    <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
+    <Tooltip label={label}>
+      <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
+    </Tooltip>
   )
   return (
     <Group gap={8} wrap="nowrap">
       {icon('Sort', ArrowUpDown, onSort)}
+      {allCollapsed
+        ? icon('Expand all', ChevronsUpDown, () => onCollapseAll(false))
+        : icon('Collapse all', ChevronsDownUp, () => onCollapseAll(true))}
       <DensityMenu value={density} onChange={onDensity} />
       {icon('Undo', Undo2, () => onPreview('Undo'))}
       <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>

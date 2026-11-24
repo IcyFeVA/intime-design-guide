@@ -190,9 +190,10 @@ export default function WorkforceScheduling() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Open shifts</strong> are the first rows under the dates and scroll with the grid. A shift nobody holds yet has a dashed outline and no fill, with an icon and a label: Open, or Live once it is posted to employees. Two weeks and longer show the icon and code only.</Text>
-          <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch.</Text>
+          <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch. Collapse all, next to Sort, closes every watch and its staffing rows; once all are closed it turns into Expand all.</Text>
           <Text size="sm"><strong>Staffing</strong> uses Team View’s coverage rows: Bodies, Supervisors, Hours and Time of day. Collapsed, it says how many days in the range are below target.</Text>
           <Text size="sm"><strong>Names</strong> show the rank for corporals and up, and a shield for supervisors.</Text>
+          <Text size="sm"><strong>Sort</strong> orders the people inside each watch: by watch order, name, rank or precedence, or by rank then effective date or precedence, or precedence then rank. The name breaks any remaining tie. Ascending puts the highest rank and the lowest precedence number first.</Text>
         </Stack>
       </Section>
 

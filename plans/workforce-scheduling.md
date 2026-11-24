@@ -243,6 +243,11 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] One Day replaces the placeholder: the same grid with one day column, at most `--workforce-day-max-width` (800px, names included) wide and centered with side borders, like the calendar's day view (user). `WorkforceGrid` fits the columns to `min(width, DAY_MAX_WIDTH)` and sets `data-single-day` on the scroller. The header shows the full date. All three densities work. The Day range token stays `draft` until approved.
 - Not built: an hour timeline inside the day (see the prototype screenshot and `calendar/TimeGridView`).
 
+## Sort fields and collapse all (2026-11-24, user, from a screenshot of the current app's sort menu)
+
+- [x] Sort fields: Watch order, Name, Rank, Rank then effective date, Rank then precedence, Precedence, Precedence then rank (`WorkforceSort`, `sortKeys` in `data.ts`). The name breaks remaining ties; Descending reverses the whole list. Members got mock `rankEffective` (day number) and `precedence` (1–5, shared by several people).
+- [x] Collapse all / Expand all: an icon button after Sort in the title row (`ChevronsDownUp` / `ChevronsUpDown`, tooltip). It collapses or expands every watch and its staffing block at once. It is a separate button, not part of the Sort modal, because it acts at once while the modal applies on Apply. The title-row icon buttons now have tooltips.
+
 ## Later (out of scope now, keep room for them)
 
 - Employee search: filter the member rows by the corner input (name, rank, badge).
@@ -261,6 +266,7 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
 - Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
+- Precedence and the rank effective date aren't shown anywhere in the demo, so those sorts look arbitrary. What exactly is "precedence" in InTime, and should either value appear (e.g. in the name tooltip or employee details)?
 - How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
 

@@ -4,7 +4,7 @@ import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
 import { DesktopDemoFrame } from '../schedule/ScheduleChrome'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
-import { SortModal } from '../sort/SortModal'
+import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
@@ -16,11 +16,17 @@ import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
 import classes from './WorkforceDemo.module.css'
 
-const sortFields: { key: WorkforceSort; label: string }[] = [
+const sortFields: SortField<WorkforceSort>[] = [
   { key: 'watch', label: 'Watch order' },
   { key: 'name', label: 'Name' },
   { key: 'rank', label: 'Rank' },
+  { key: 'rankEffective', label: 'Rank, then effective date', description: 'Same rank: by the date the rank took effect' },
+  { key: 'rankPrecedence', label: 'Rank, then precedence' },
+  { key: 'precedence', label: 'Precedence' },
+  { key: 'precedenceRank', label: 'Precedence, then rank' },
 ]
+
+const ALL_WATCHES: ReadonlySet<WatchId> = new Set(watches.map((watch) => watch.id))
 
 const panelSlide = {
   in: { opacity: 1, transform: 'translateX(0)' },
@@ -115,6 +121,11 @@ export default function WorkforceDemo() {
           panelOpen={panelOpen}
           onTogglePanel={() => (panelOpen ? closePanel() : setPanelOpen(true))}
           onSort={() => setSortOpen(true)}
+          allCollapsed={collapsed.size === ALL_WATCHES.size}
+          onCollapseAll={(collapse) => {
+            setCollapsed(collapse ? ALL_WATCHES : new Set())
+            setStaffingCollapsed(collapse ? ALL_WATCHES : new Set())
+          }}
           onPreview={preview}
         />
       )}
