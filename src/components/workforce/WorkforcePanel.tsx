@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import {
-  ActionIcon, Avatar, Button, Checkbox, Group, Menu, Select, SimpleGrid, Stack, Tabs, Text, TextInput, Tooltip, UnstyledButton,
+  ActionIcon, Avatar, Button, Checkbox, Group, Menu, Select, SimpleGrid, Stack, Tabs, Text, TextInput, UnstyledButton,
 } from '@mantine/core'
 import { DatePickerInput, TimeInput } from '@mantine/dates'
 import {
@@ -111,22 +111,18 @@ export default function WorkforcePanel({ content, placement = 'docked', onPlacem
         </div>
         <Group gap={2} wrap="nowrap">
           {onPlacementChange && (
-            <Tooltip label={placement === 'docked' ? 'Unpin: show as a drawer over the grid' : 'Pin beside the grid'}>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size={32}
-                aria-label="Pin panel beside the grid"
-                aria-pressed={placement === 'docked'}
-                onClick={() => onPlacementChange(placement === 'docked' ? 'drawer' : 'docked')}
-              >
-                <Pin size={17} strokeWidth={1.75} fill={placement === 'docked' ? 'currentColor' : 'none'} />
-              </ActionIcon>
-            </Tooltip>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size={32}
+              aria-label="Pin panel beside the grid"
+              aria-pressed={placement === 'docked'}
+              onClick={() => onPlacementChange(placement === 'docked' ? 'drawer' : 'docked')}
+            >
+              <Pin size={17} strokeWidth={1.75} fill={placement === 'docked' ? 'currentColor' : 'none'} />
+            </ActionIcon>
           )}
-          <Tooltip label="Close panel">
-            <ActionIcon variant="subtle" color="gray" size={32} onClick={onClose} aria-label="Close panel"><X size={18} /></ActionIcon>
-          </Tooltip>
+          <ActionIcon variant="subtle" color="gray" size={32} onClick={onClose} aria-label="Close panel"><X size={18} /></ActionIcon>
         </Group>
       </div>
 
@@ -246,12 +242,8 @@ function SingleItem({ item, onPreview }: { item: PanelItem; onPreview: Preview }
                 }}
               />
               <Button variant="default" size="xs" h={32} leftSection={<Clock size={14} aria-hidden="true" />} onClick={() => onPreview('Hours')}>Hours</Button>
-              <Tooltip label="Show in schedule">
-                <ActionIcon variant="default" size={32} aria-label="Show in schedule" onClick={() => onPreview('Show in schedule')}><Crosshair size={16} /></ActionIcon>
-              </Tooltip>
-              <Tooltip label="More about this employee">
-                <ActionIcon variant="subtle" color="gray" size={32} aria-label="More about this employee" onClick={() => onPreview('More about this employee')}><ChevronDown size={16} /></ActionIcon>
-              </Tooltip>
+              <ActionIcon variant="default" size={32} aria-label="Show in schedule" onClick={() => onPreview('Show in schedule')}><Crosshair size={16} /></ActionIcon>
+              <ActionIcon variant="subtle" color="gray" size={32} aria-label="More about this employee" onClick={() => onPreview('More about this employee')}><ChevronDown size={16} /></ActionIcon>
             </div>
 
             <Group gap="sm" wrap="nowrap">
@@ -288,9 +280,7 @@ function SingleItem({ item, onPreview }: { item: PanelItem; onPreview: Preview }
                       ['Cancel segment', Ban],
                       ['More segment actions', Ellipsis],
                     ] as const).map(([label, Icon]) => (
-                      <Tooltip label={label} key={label}>
-                        <ActionIcon variant="subtle" color="gray" size={30} aria-label={label} onClick={() => onPreview(label)}><Icon size={16} /></ActionIcon>
-                      </Tooltip>
+                      <ActionIcon variant="subtle" color="gray" size={30} aria-label={label} onClick={() => onPreview(label)}><Icon size={16} /></ActionIcon>
                     ))}
                   </div>
                 ))}
@@ -409,9 +399,7 @@ function Footer({ onPreview, leave }: { onPreview: Preview; leave: boolean }) {
       {leave && <Button variant="default" leftSection={<PlaneTakeoff size={16} aria-hidden="true" />} onClick={() => onPreview('Leave')}>Leave</Button>}
       <Menu position="top-end" offset={6}>
         <Menu.Target>
-          <Tooltip label="More actions">
-            <ActionIcon variant="default" size={36} aria-label="More actions"><Ellipsis size={18} /></ActionIcon>
-          </Tooltip>
+          <ActionIcon variant="default" size={36} aria-label="More actions"><Ellipsis size={18} /></ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item leftSection={<Copy size={16} aria-hidden="true" />} onClick={() => onPreview('Copy')}>Copy</Menu.Item>

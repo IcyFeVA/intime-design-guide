@@ -1,5 +1,5 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
-import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
+import { ActionIcon, Badge, Button, Group, Menu, Text } from '@mantine/core'
 import {
   ArrowUpDown, Check, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
 } from 'lucide-react'
@@ -15,9 +15,7 @@ export function DensityMenu({ value, onChange }: { value: ViewDensity; onChange:
   return (
     <Menu position="bottom-end" offset={6} width={280}>
       <Menu.Target>
-        <Tooltip label="View density">
-          <ActionIcon variant="default" size={36} aria-label={`View density: ${current.label}`}><Rows3 size={18} /></ActionIcon>
-        </Tooltip>
+        <ActionIcon variant="default" size={36} aria-label={`View density: ${current.label}`}><Rows3 size={18} /></ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>View density</Menu.Label>
@@ -63,20 +61,18 @@ export function WorkforceToolbar({
   onPreview: (action: string) => void
 }) {
   const labelled = (label: string, Icon: typeof Search, count?: ReactNode) => (
-    <Tooltip label={label}>
-      <Button
-        variant="default"
-        size="sm"
-        fw={400}
-        aria-label={label}
-        leftSection={<Icon size={16} aria-hidden="true" />}
-        rightSection={count}
-        onClick={() => onPreview(label)}
-        classNames={{ label: classes.collapsibleLabel, section: classes.collapsibleSection }}
-      >
-        {label}
-      </Button>
-    </Tooltip>
+    <Button
+      variant="default"
+      size="sm"
+      fw={400}
+      aria-label={label}
+      leftSection={<Icon size={16} aria-hidden="true" />}
+      rightSection={count}
+      onClick={() => onPreview(label)}
+      classNames={{ label: classes.collapsibleLabel, section: classes.collapsibleSection }}
+    >
+      {label}
+    </Button>
   )
   return (
     <div className={classes.toolbar}>
@@ -86,19 +82,17 @@ export function WorkforceToolbar({
       <PickerMenu label="Team" value={team} options={workforceTeams} onChange={onTeam} />
       <PickerMenu label="Employees" value={filter} options={employeeFilters} onChange={onFilter} />
       <div className={classes.spacer} />
-      <Tooltip label={`${underCount} understaffed: watch-days below the staff target in this range`}>
-        <Button
-          aria-label={`${underCount} understaffed`}
-          variant="light"
-          color={underCount ? 'red' : 'gray'}
-          size="sm"
-          fw={500}
-          leftSection={<TriangleAlert size={16} aria-hidden="true" />}
-          onClick={() => onPreview('Understaffed')}
-        >
-          <span className="tabular">{underCount}</span><span className={classes.collapsibleText}>&nbsp;understaffed</span>
-        </Button>
-      </Tooltip>
+      <Button
+        aria-label={`${underCount} understaffed`}
+        variant="light"
+        color={underCount ? 'red' : 'gray'}
+        size="sm"
+        fw={500}
+        leftSection={<TriangleAlert size={16} aria-hidden="true" />}
+        onClick={() => onPreview('Understaffed')}
+      >
+        <span className="tabular">{underCount}</span><span className={classes.collapsibleText}>&nbsp;understaffed</span>
+      </Button>
       {labelled('Approvals', Inbox, <Count value={3} color="red" />)}
       {labelled('Posts', Megaphone, <Count value={2} />)}
       {labelled('Mandate', UserRoundPlus)}
@@ -116,9 +110,7 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
   onPreview: (action: string) => void
 }) {
   const icon = (label: string, Icon: typeof Search, onClick: () => void) => (
-    <Tooltip label={label}>
-      <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
-    </Tooltip>
+    <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
   )
   return (
     <Group gap={8} wrap="nowrap">
@@ -126,11 +118,9 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
       {icon('Sort', ArrowUpDown, onSort)}
       <DensityMenu value={density} onChange={onDensity} />
       {icon('Undo', Undo2, () => onPreview('Undo'))}
-      <Tooltip label={panelOpen ? 'Hide details panel' : 'Show details panel'}>
-        <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>
-          {panelOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
-        </ActionIcon>
-      </Tooltip>
+      <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>
+        {panelOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
+      </ActionIcon>
     </Group>
   )
 }

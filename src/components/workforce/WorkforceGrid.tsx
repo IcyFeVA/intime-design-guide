@@ -1,6 +1,6 @@
 import { memo, type CSSProperties } from 'react'
 import { useElementSize } from '@mantine/hooks'
-import { Badge, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { Badge, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, ShieldCheck, Triangle } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
@@ -53,7 +53,6 @@ interface CellState {
   tabStop: boolean
   density: CellDensity
   boundary: boolean
-  tooltip: boolean
   /** The grid uses Escape right now (see `escapeProps`) */
   stopEscape: boolean
 }
@@ -82,7 +81,7 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, ...state }: 
       aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}`}
     >
       {chip ? (
-        <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tooltip={state.tooltip} />
+        <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tooltip={false} />
       ) : state.selectable && (
         <Plus size={18} strokeWidth={1.75} className={classes.add} aria-hidden="true" />
       )}
@@ -97,7 +96,7 @@ const OpenCell = memo(function OpenCell({ shift, ...state }: CellState & { shift
       className={`${classes.cell} ${classes.openCell}`}
       aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}`}
     >
-      {shift && <OpenShiftChip shift={shift} density={state.density} tooltip={state.tooltip} />}
+      {shift && <OpenShiftChip shift={shift} density={state.density} />}
     </div>
   )
 })
@@ -190,7 +189,6 @@ export default function WorkforceGrid({
       tabStop: selection.isTabStop(row, day),
       density,
       boundary: dayIndex > 0 && isPeriodStart(day),
-      tooltip: !selection.dragging,
       stopEscape: 'data-mantine-stop-propagation' in selection.escapeProps,
     }
   }
@@ -309,9 +307,7 @@ export default function WorkforceGrid({
                   <span className={classes.name}>{name}</span>
                   {member.rank !== 'PO' && <Badge size="xs" radius="xs" variant="default" className={classes.rank} aria-hidden="true">{member.rank}</Badge>}
                   {member.supervisor && (
-                    <Tooltip label="Supervisor">
-                      <ShieldCheck size={15} strokeWidth={1.75} className={classes.supervisor} aria-hidden="true" />
-                    </Tooltip>
+                    <ShieldCheck size={15} strokeWidth={1.75} className={classes.supervisor} aria-hidden="true" />
                   )}
                 </span>
               </div>
@@ -384,7 +380,6 @@ export default function WorkforceGrid({
               tabIndex={selection.isTabStop(HEADER_ROW, day) ? 0 : -1}
               data-density={density}
               aria-label={`${formatFullDate(day)}${day === today ? ', today' : ''}`}
-              title={compact ? formatFullDate(day) : undefined}
             >
               <span aria-hidden="true" className="tabular">
                 {mini ? (
