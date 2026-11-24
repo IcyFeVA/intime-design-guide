@@ -12,6 +12,21 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/team-view',
+    summary: 'Expired employees and cell patterns are confirmed, including --schedule-expired-hatch and --schedule-expired-text.',
+  },
+  {
+    date: '2026-11-24',
+    page: null,
+    summary: 'Schedule colors now come from the shift cell colors on the Colors page, with no literal values. Team View has a new Cell patterns section with Copy CSS for each pattern.',
+    changes: [
+      'Team View: --schedule-regular, --schedule-leave, --schedule-overtime, --schedule-hatch and --schedule-expired-hatch point at cell tokens (dark: --base3, --base5, --deep6, --soft3, --base8; light: --soft3, --soft5, --deep7, --base3, --deep8). Light-mode fills change to match the Colors page.',
+      'Team View: Cell patterns shows the mixed-day split, out-of-unit stripes and expired stripes. Copy CSS gives each pattern with the variables it reads.',
+      'Colors: Shift cell colors adds stripe tokens to Activity (out of unit/branch) and a new Expired row, for every theme.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/team-view',
     summary: 'New expired state: from an employee’s expiry day on, their cells are hatched in gray with one “Expired” label, in every range and on mobile.',
     changes: [
       'Added the Expired employees section with a demo. Detective Tanaka in Patrol Alpha expires on Wednesday, June 3.',

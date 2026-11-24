@@ -49,3 +49,28 @@
   width: 100%;
   min-width: 0;
 }
+
+/* ---------- Cell patterns ---------- */
+
+.patternSample {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 96px;
+}
+
+.patternChip {
+  width: 150px;
+}
+
+.patternExpired {
+  display: flex;
+  align-items: center;
+  width: 150px;
+  height: var(--schedule-row-height);
+  padding: 6px 7px;
+  border: 1px solid var(--border-default);
+  background-color: var(--mantine-color-body);
+}

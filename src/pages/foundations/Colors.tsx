@@ -16,6 +16,7 @@ import {
   textSignalSwatches, textSwatches, themes, type SwatchDef, type ThemeDef,
 } from '../../tokens/themes'
 import { cellColors, cellColorsStatus, cellKinds } from '../../tokens/cellColors'
+import { hatchStripes } from '../../tokens/cellPatterns'
 import { composite, contrastRatio, isHexColor } from '../../lib/color'
 import TokenSwatch, { type CopyFormat } from './TokenSwatch'
 import classes from './Colors.module.css'
@@ -209,7 +210,7 @@ function AllTokens() {
   )
 }
 
-function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
+function CellSample({ theme, kind, sample = 'PatD' }: { theme: ThemeDef; kind: string; sample?: string }) {
   const color = cellColors[theme.id]?.[kind]
   const hex = (name?: string) => (name ? theme.tokens[name]?.value : undefined)
   const background = hex(color?.background)
@@ -217,21 +218,23 @@ function CellSample({ theme, kind }: { theme: ThemeDef; kind: string }) {
   const body = theme.tokens['background-body'].value
   const border = hex(color.border)
   const text = hex(color.text) ?? theme.tokens['text-default'].value
+  const hatch = hex(color.hatch)
   return (
     <Stack gap={4} style={{ minWidth: 0 }}>
       <div
         className={classes.cellSample}
         style={{
           background: isHexColor(background) ? composite(background, body) : background,
-          borderColor: border ?? 'transparent',
+          backgroundImage: hatch && hatchStripes[kind]?.(hatch),
+          borderColor: border ?? (color.background === 'background-body' ? theme.tokens['border-default'].value : 'transparent'),
           color: text,
         }}
         aria-hidden="true"
       >
-        PatD
+        {sample}
       </div>
       <Stack gap={0}>
-        {[color.background, color.border, color.text].filter(Boolean).map((name) => (
+        {[color.background, color.border, color.text, color.hatch].filter(Boolean).map((name) => (
           <Text key={name} size="xs" ff="monospace" c={name === color.background ? undefined : 'dimmed'} truncate>
             --{name}
           </Text>
@@ -262,7 +265,7 @@ function CellColorTable() {
               </Table.Td>
               {themes.map((theme) => (
                 <Table.Td key={theme.id}>
-                  <CellSample theme={theme} kind={kind.key} />
+                  <CellSample theme={theme} kind={kind.key} sample={kind.sample} />
                 </Table.Td>
               ))}
             </Table.Tr>
@@ -481,7 +484,7 @@ export default function Colors() {
         <Stack gap="sm">
           <Group gap="xs">
             <StatusBadge status={cellColorsStatus} />
-            <Text size="xs" c="dimmed">Labels use each theme's --text-default unless a text token is listed.</Text>
+            <Text size="xs" c="dimmed">Labels use each theme's --text-default unless a text token is listed. The last token on striped cells is the stripe color.</Text>
           </Group>
           <CellColorTable />
         </Stack>

@@ -1,4 +1,5 @@
 import type { TokenStatus } from './types'
+import { cellColors, type CellColor } from './cellColors'
 
 /* ------------------------------------------------------------------ */
 /* Shift kinds and codes                                               */
@@ -73,18 +74,27 @@ const t = (name: ScheduleToken['name'], value: string, kind: ScheduleToken['kind
 
 const mix = (token: string, percent: number) => `color-mix(in srgb, var(${token}) ${percent}%, transparent)`
 
+/** A variable that points at the shift cell color for `cell` (Colors page), in the dark and light themes. */
+const fromCell = (name: ScheduleToken['name'], cell: string, field: keyof CellColor, usage: string, status: TokenStatus = 'confirmed'): ScheduleToken => {
+  const dark = `var(--${cellColors.dark[cell][field]})`
+  const light = `var(--${cellColors.light[cell][field]})`
+  return { name, value: dark, light: light === dark ? undefined : light, kind: 'color', usage, status }
+}
+
 /**
- * Schedule grid variables. Shift fills are per-scheme literals (no theme token matches them yet).
- * Everything else aliases theme tokens, so it follows the dark and light schemes.
+ * Schedule grid variables. Fills and stripes point at the shift cell colors (`cellColors.ts`) per scheme.
+ * Everything else aliases theme tokens, so it follows the dark and light schemes. No literal colors.
  */
 export const scheduleTokens: ScheduleToken[] = [
   t('--schedule-label-width', '200px', 'size', 'Width of the pinned name column on desktop.'),
   t('--schedule-row-height', '52px', 'size', 'Height of a member row, an overflow row and a coverage row.'),
   t('--schedule-chip-height', '40px', 'size', 'Height of a shift cell. Leaves 6px above and below inside the row.'),
-  t('--schedule-regular', '#253f66', 'color', 'Fill for regular shifts and assignments.', '#cfe0f6'),
-  t('--schedule-leave', '#6c6400', 'color', 'Fill for sick, PTO and vacation.', '#f0e49c'),
-  t('--schedule-overtime', '#8f2626', 'color', 'Fill for overtime.', '#f6c6c6'),
-  t('--schedule-hatch', '#46638f', 'color', 'Stripes laid over a cell when the member works out of unit.', '#9dbbe4'),
+  fromCell('--schedule-regular', 'activity', 'background', 'Fill for regular shifts and assignments.'),
+  fromCell('--schedule-leave', 'leave', 'background', 'Fill for sick, PTO and vacation.'),
+  fromCell('--schedule-overtime', 'overtime', 'background', 'Fill for overtime.'),
+  fromCell('--schedule-hatch', 'activity-out', 'hatch', 'Stripes laid over a cell when the member works out of unit.'),
+  fromCell('--schedule-expired-hatch', 'expired', 'hatch', 'Thin stripes over the cells of an expired employee, from the expiry day on. Also the dashed outline of their initials.'),
+  t('--schedule-expired-text', 'var(--text-dimmed)', 'color', 'The “Expired” label and icon on the first expired day.'),
   t('--schedule-chip-text', 'var(--text-default)', 'color', 'Codes and tags inside a shift cell.'),
   t('--schedule-chip-divider', mix('--neutral-black', 25), 'color', 'Line between two assignments in one cell.'),
   t('--schedule-boundary', 'var(--text-info)', 'color', 'Vertical line where a new schedule period starts.'),
@@ -100,8 +110,6 @@ export const scheduleTokens: ScheduleToken[] = [
   t('--schedule-met-text', 'var(--text-success-default)', 'color', 'Coverage value on target.'),
   t('--schedule-hour-under', 'var(--text-error-default)', 'color', 'Hour blocks and markers below target in the coverage details.'),
   t('--schedule-hour-met', 'var(--text-dimmed)', 'color', 'Hour blocks and markers on target in the coverage details.'),
-  { ...t('--schedule-expired-hatch', mix('--text-dimmed', 28), 'color', 'Thin stripes over the cells of an expired employee, from the expiry day on. Also the dashed outline of their initials.'), status: 'draft' },
-  { ...t('--schedule-expired-text', 'var(--text-dimmed)', 'color', 'The “Expired” label and icon on the first expired day.'), status: 'draft' },
   t('--schedule-hour-over', 'var(--text-warning-default)', 'color', 'Hour blocks and markers above target in the coverage details.'),
 ]
 

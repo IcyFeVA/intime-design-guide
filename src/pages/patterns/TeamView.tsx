@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
-import { Anchor, Button, Group, Stack, Table, Text } from '@mantine/core'
-import { ArrowUpDown } from 'lucide-react'
+import { Anchor, Button, CopyButton, Group, SimpleGrid, Stack, Table, Text } from '@mantine/core'
+import { ArrowUpDown, Check, Copy } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
@@ -10,7 +10,8 @@ import CopyValue from '../../components/CopyValue'
 import PropsTable from '../../components/PropsTable'
 import ScheduleGrid from '../../components/schedule/ScheduleGrid'
 import MobileSchedule from '../../components/schedule/MobileSchedule'
-import ShiftChip from '../../components/schedule/ShiftChip'
+import ShiftChip, { ExpiredMark } from '../../components/schedule/ShiftChip'
+import StatusBadge from '../../components/StatusBadge'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../../components/schedule/Coverage'
 import { CoWorkerSearch, DesktopDemoFrame, MobileDemoFrame, PickerMenu, RangeStepper, ToolbarDivider } from '../../components/schedule/ScheduleChrome'
 import { FilterSheet, type MobileFilters, type SortDirection } from '../../components/schedule/FilterSheet'
@@ -27,6 +28,7 @@ import {
   type ScheduleSort, type DayCoverage,
 } from '../../components/schedule/data'
 import { scheduleRanges, scheduleTokens, type ScheduleRange } from '../../tokens/schedule'
+import { cellPatterns, hatchStripes, type CellPattern, type CellPatternKey } from '../../tokens/cellPatterns'
 import classes from './TeamView.module.css'
 
 const sortOptions: { key: ScheduleSort; label: string }[] = [
@@ -304,6 +306,72 @@ function ExpiredDemo() {
 }
 
 /* ------------------------------------------------------------------ */
+/* Cell patterns                                                       */
+/* ------------------------------------------------------------------ */
+
+/** The pattern's CSS plus the variables it reads, so a developer can paste it as is. */
+function patternCss(pattern: CellPattern) {
+  const tokens = pattern.tokens.map((name) => scheduleTokens.find((token) => token.name === name)!)
+  const block = (selector: string, lines: string[]) => lines.length ? `${selector} {\n${lines.join('\n')}\n}` : ''
+  const vars = [
+    block(':root', tokens.filter((token) => !token.light).map((token) => `  ${token.name}: ${token.value};`)),
+    block(":root[data-mantine-color-scheme='dark']", tokens.filter((token) => token.light).map((token) => `  ${token.name}: ${token.value};`)),
+    block(":root[data-mantine-color-scheme='light']", tokens.filter((token) => token.light).map((token) => `  ${token.name}: ${token.light};`)),
+  ].filter(Boolean)
+  return `/* Variables. They point at theme tokens (Colors > Shift cell colors). */\n${vars.join('\n\n')}\n\n${pattern.css}\n`
+}
+
+const patternSamples: Record<CellPatternKey, ReactNode> = {
+  mixed: (
+    <>
+      <div className={classes.patternChip}><ShiftChip chip={{ segments: [{ code: 'PatD', overtime: 'partial' }] }} context="Regular and overtime" /></div>
+      <div className={classes.patternChip}><ShiftChip chip={{ segments: [{ code: 'PatD' }, { code: 'PTO' }] }} context="Regular and leave" /></div>
+    </>
+  ),
+  'out-of-unit': <div className={classes.patternChip}><ShiftChip chip={{ segments: [{ code: 'C-AM' }], outOfUnit: true }} context="Out of unit" /></div>,
+  expired: (
+    <div className={classes.patternExpired} style={{ backgroundImage: hatchStripes.expired('var(--schedule-expired-hatch)') }} role="img" aria-label="Expired cell">
+      <ExpiredMark />
+    </div>
+  ),
+}
+
+function CellPatterns() {
+  return (
+    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
+      {cellPatterns.map((pattern) => (
+        <Stack key={pattern.key} gap="sm">
+          <Preview><div className={classes.patternSample}>{patternSamples[pattern.key]}</div></Preview>
+          <Group gap="xs" wrap="nowrap" justify="space-between">
+            <Text size="sm" fw={600}>{pattern.label}</Text>
+            <StatusBadge status={pattern.status} />
+          </Group>
+          <Text size="sm">{pattern.usage}</Text>
+          <Group gap={6}>
+            {pattern.tokens.map((token) => <CopyValue key={token} value={`var(${token})`} display={token} />)}
+          </Group>
+          <CopyButton value={patternCss(pattern)} timeout={1500}>
+            {({ copied, copy }) => (
+              <Button
+                variant="default"
+                size="sm"
+                fw={400}
+                onClick={copy}
+                leftSection={copied ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
+                aria-label={copied ? 'Copied' : `Copy CSS for the ${pattern.label.toLowerCase()} pattern`}
+                style={{ alignSelf: 'flex-start' }}
+              >
+                {copied ? 'Copied' : 'Copy CSS'}
+              </Button>
+            )}
+          </CopyButton>
+        </Stack>
+      ))}
+    </SimpleGrid>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -493,7 +561,7 @@ export default function TeamView() {
         <Text size="sm" c="dimmed" mt="sm">Shift codes, kinds, ranges and CSS variables live in src/tokens/schedule.ts. Mock members and date helpers live in src/components/schedule/data.ts, section builders in sections.tsx, and the demo shell in ScheduleChrome.tsx.</Text>
       </Section>
 
-      <Section id="tokens" title="CSS variables" description="Shift fills are their own colors per scheme. Everything else points at theme tokens, so it follows dark and light.">
+      <Section id="tokens" title="CSS variables" description="Every color points at a theme token, so it follows dark and light. Fills and stripes use the shift cell colors on the Colors page.">
         <Table.ScrollContainer minWidth={640} className="doc-table">
           <Table verticalSpacing="xs" horizontalSpacing="md">
             <Table.Thead><Table.Tr><Table.Th>Variable</Table.Th><Table.Th>Value</Table.Th><Table.Th>Usage</Table.Th></Table.Tr></Table.Thead>
@@ -513,7 +581,11 @@ export default function TeamView() {
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
-        <Text size="xs" c="dimmed" mt="xs">Two values are dark / light.</Text>
+        <Text size="xs" c="dimmed" mt="xs">Two values are dark / light. To change a fill or stripe color, change it in <Anchor component={Link} to="/foundations/colors?section=cell-colors" size="xs">Shift cell colors</Anchor>; these variables follow.</Text>
+      </Section>
+
+      <Section id="patterns" title="Cell patterns" description="The diagonal split, the out-of-unit stripes and the expired stripes are drawn in CSS, from the variables above. Copy CSS gives the pattern together with the variables it reads.">
+        <CellPatterns />
       </Section>
 
       <Section id="guidelines" title="Guidelines">

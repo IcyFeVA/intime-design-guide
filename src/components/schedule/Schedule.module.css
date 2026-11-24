@@ -139,7 +139,8 @@
   box-shadow: inset 2px 0 0 var(--schedule-boundary);
 }
 
-/* Expired: from the expiry day on, a quiet hatch instead of shifts. Comes after data-overflow so the hatch sits on its fill. */
+/* Expired: from the expiry day on, a quiet hatch instead of shifts. Comes after data-overflow so the hatch sits on its fill.
+   Stripe geometry matches src/tokens/cellPatterns.ts. */
 .cell[data-expired] {
   background-image: repeating-linear-gradient(135deg, var(--schedule-expired-hatch) 0 1px, transparent 1px 8px);
 }
@@ -202,6 +203,7 @@
   filter: brightness(1.12);
 }
 
+/* Stripe geometry matches src/tokens/cellPatterns.ts */
 .chip[data-out-of-unit]::before {
   content: '';
   position: absolute;
