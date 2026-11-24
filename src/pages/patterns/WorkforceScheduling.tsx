@@ -227,6 +227,7 @@ export default function WorkforceScheduling() {
         <Text size="xs" c="dimmed" mt="xs">Shows Compact: the days are too narrow for Detailed even on a 1920px screen, so the grid shows Compact cells.</Text>
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
+          <Text size="sm"><strong>Legend:</strong> the book button in the title row explains each kind of cell, drawn as the current density shows it. It only lists cells the grid can show.</Text>
         </Stack>
         <Text size="sm" mt="md"><strong>One day</strong> is a single centered column, at most {DAY_MAX_WIDTH}px wide with the names, as in the calendar’s day view. Its header gives the full date. All three densities work.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>

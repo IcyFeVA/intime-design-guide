@@ -262,6 +262,11 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - [x] The Understaffed button opens `workforce/CoverageAlerts.tsx`, a Mantine `Popover` (`trapFocus`, Escape closes): "Coverage alerts", "Days below the section minimum for Patrol · full unit", then one row per watch-day below the bodies minimum (`model.underAlerts`, by watch then day; `underCount` is its length): red triangle, "Day · Mon, Jun 1, 2026", "6 of 8 minimum scheduled", and two icon buttons with tooltips: Post this shift (`Radio`) and Find-Fill · Mandatory OT (`UserSearch`), filled primary on hover. **No functionality** (user): the actions close the popover and show a "Preview only" hint. Scrolls past 360px (month view).
 
+## Legend (2026-11-24, user, from a screenshot of the current app)
+
+- [x] `workforce/WorkforceLegend.tsx`: a `BookOpen` icon button (tooltip "Legend") between Undo and the panel toggle opens a `Popover` (bottom-end, 440px, `trapFocus`). Each row draws the **real cell for the current view density** (`ShiftChip` / `DetailedChip` / `StackedChip` / `OpenShiftChip`, Full layout) next to its name and meaning. Rows and copy are draft tokens: `legendItems` in `src/tokens/workforce.ts`.
+- Only cells the grid shows today are listed (my default; the user didn't pick between leaving them out and "Coming soon" rows). Left out from the current app's legend until the grid shows them: Officer in charge (cross-hatched, shield), On-Call (dashed, phone), Trainee pairing (graduation cap, "Train Meet"), Pending leave request (hourglass badge in the corner), Pre-fill with OT (red border + OT tag), Statutory holiday (Hol badge in the day header), Leave over shift (diagonal stripes, leave icon + label).
+
 ## Later (out of scope now, keep room for them)
 
 - Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
@@ -270,6 +275,7 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
+- Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
 - Keyboard shortcuts scope in `src/tokens/shortcuts.ts`; copy/paste of cells; resizable panel.
 - Mobile layout.

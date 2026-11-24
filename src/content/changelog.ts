@@ -12,6 +12,15 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Legend button in the title row: a popover that explains each kind of cell, drawn with the real cells in the current view density.',
+    changes: [
+      'Scheduled shift, two or more assignments, overtime, runs into overtime, leave, out of unit, open and live shifts.',
+      'Names and meanings are draft tokens (legendItems in src/tokens/workforce.ts).',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Understaffed opens Coverage alerts: every watch and day below the minimum in the range, with Post this shift and Find-Fill · Mandatory OT.',
     changes: ['The list comes from the same counts as the watch badges, so it always matches the button’s number. The actions are preview only.'],
   },
