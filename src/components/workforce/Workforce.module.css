@@ -40,6 +40,22 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-dimmed);
+  gap: 4px;
+}
+
+/* The search input replaces the label and fills the cell */
+.cornerSearch {
+  flex: 1;
+  min-width: 0;
+  margin-inline: -10px;
+  cursor: auto;
+}
+
+.cornerSearchInput {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .dayHeader {
@@ -66,15 +82,13 @@
   box-shadow: inset 0 -2px 0 var(--workforce-header-active-text);
 }
 
-/* Headers select, as in a spreadsheet: a date selects its day, a name its row, the corner everything */
-.corner,
+/* Headers select, as in a spreadsheet: a date selects its day, a name its row */
 .dayHeader,
 .label[data-row-header],
 .openLabel[data-row-header] {
   cursor: pointer;
 }
 
-.corner:hover,
 .dayHeader:hover,
 .label[data-row-header]:hover,
 .openLabel[data-row-header]:hover {

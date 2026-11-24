@@ -114,7 +114,6 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
   )
   return (
     <Group gap={8} wrap="nowrap">
-      {icon('Search employees', Search, () => onPreview('Search'))}
       {icon('Sort', ArrowUpDown, onSort)}
       <DensityMenu value={density} onChange={onDensity} />
       {icon('Undo', Undo2, () => onPreview('Undo'))}

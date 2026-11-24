@@ -12,6 +12,15 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Employee search moved from the toolbar to the “Employee” header, and clicking “Employee” no longer selects everything.',
+    changes: [
+      'The search icon after “Employee” swaps the label for a search field; X or Escape closes it. Filtering comes later.',
+      'Ctrl/⌘+A still selects every cell in view.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Names and dates now select, as in a spreadsheet: a name selects the person’s row, a date the whole day, and “Employee” everything. Names no longer open the employee details.',
     changes: [
       'Shift-click, Ctrl/⌘-click and dragging along names or dates select several rows or days.',

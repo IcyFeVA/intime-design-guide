@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEve
 /* `data-day` (a day number, or "label" for the row-header column).    */
 /* A cell that spans all days carries `data-span` instead of a day.    */
 /* Like a spreadsheet, a row header selects its row, a column header   */
-/* (the `headerRow`) its day, and the corner everything.               */
+/* (the `headerRow`) its day. The corner only takes focus.               */
 /* ------------------------------------------------------------------ */
 
 export type CellKey = `${string}@${number}`
@@ -46,7 +46,7 @@ export interface GridSelectionOptions {
   onEscape?: () => boolean
   /** `onEscape` will handle Escape right now (e.g. a panel is open). Keeps a surrounding Mantine modal from closing too. */
   escapeHandled?: boolean
-  /** Key of the column-header row (must be `rows[0]`). Its cells select a day; its row-header cell (the corner) selects all. */
+  /** Key of the column-header row (must be `rows[0]`). Its cells select a day; its row-header cell (the corner) selects nothing. */
   headerRow?: string
   /** Rows that make up one logical row, top to bottom, e.g. a person's extra lines. Selecting a row header selects them all. */
   rowGroup?: (row: string) => readonly string[]
@@ -87,7 +87,7 @@ export function useGridSelection({
 }: GridSelectionOptions) {
   const gridRef = useRef<HTMLDivElement>(null)
   /** What a drag started on: cells draw a rectangle, a row header whole rows, a column header whole days */
-  const dragKind = useRef<'cells' | 'rows' | 'columns' | 'all'>('cells')
+  const dragKind = useRef<'cells' | 'rows' | 'columns'>('cells')
   const signature = `${rows.join('|')}#${days.join(',')}`
   const [state, setState] = useState<SelectionState>({ base: new Set(), anchor: null, focus: null, active: null, signature })
   const [dragging, setDragging] = useState(false)
@@ -257,7 +257,9 @@ export function useGridSelection({
     if (!pos) return
     const mode = modeOf(event)
     if (headerRow && pos.row === headerRow) {
-      if (pos.day === null) { selectAll(); dragKind.current = 'all' } else { selectColumns(pos.day, mode); dragKind.current = 'columns' }
+      if (pos.day === null) return
+      selectColumns(pos.day, mode)
+      dragKind.current = 'columns'
     } else if (pos.day === null) {
       if (!rowHasCells(pos.row)) return
       selectRows(pos.row, mode)
@@ -338,14 +340,13 @@ export function useGridSelection({
 
     if (mod && event.key.toLowerCase() === 'a') { handled(); selectAll(); return }
 
-    // Headers: Space or Enter selects the column, the row, or everything (the corner); Enter also opens the details
+    // Headers: Space or Enter selects the column or the row (the corner selects nothing); Enter also opens the details
     const onHeader = headerRow && pos.row === headerRow
-    if ((event.key === ' ' || event.key === 'Enter') && (onHeader || (pos.day === null && rowHasCells(pos.row)))) {
+    if ((event.key === ' ' || event.key === 'Enter') && ((onHeader && pos.day !== null) || (!onHeader && pos.day === null && rowHasCells(pos.row)))) {
       handled()
       const mode = modeOf(event)
       if (onHeader) {
-        if (pos.day === null) selectAll()
-        else selectColumns(pos.day, mode)
+        selectColumns(pos.day!, mode)
       } else {
         selectRows(pos.row, mode)
       }

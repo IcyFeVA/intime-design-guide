@@ -1,7 +1,7 @@
-import { memo, type CSSProperties } from 'react'
+import { memo, useState, type CSSProperties, type SyntheticEvent } from 'react'
 import { useElementSize } from '@mantine/hooks'
-import { Badge, UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { ChevronDown, Megaphone, Plus, ShieldCheck, Triangle } from 'lucide-react'
+import { ActionIcon, Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
@@ -23,6 +23,47 @@ export interface WorkforceGridProps {
   onToggleGroup: (watch: WatchId) => void
   onToggleStaffing: (watch: WatchId) => void
   onCoverageClick: (watch: Watch, day: number) => void
+}
+
+// Keeps clicks, keys and focus inside the search away from the grid's selection handlers
+const isolate = {
+  onPointerDown: (event: SyntheticEvent) => event.stopPropagation(),
+  onKeyDown: (event: SyntheticEvent) => event.stopPropagation(),
+  onFocus: (event: SyntheticEvent) => event.stopPropagation(),
+}
+
+/** "Employee" with a search button. The button swaps the label for a filter input; X (or Escape) swaps it back. Filtering isn't built yet. */
+function EmployeeSearch() {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const close = () => { setOpen(false); setQuery('') }
+  if (!open) {
+    return (
+      <>
+        <span>Employee</span>
+        <ActionIcon {...isolate} variant="subtle" color="gray" size={28} aria-label="Search employees" onClick={() => setOpen(true)}>
+          <Search size={16} strokeWidth={1.75} aria-hidden="true" />
+        </ActionIcon>
+      </>
+    )
+  }
+  return (
+    <TextInput
+      {...isolate}
+      onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape') close() }}
+      data-mantine-stop-propagation="true"
+      className={classes.cornerSearch}
+      classNames={{ input: classes.cornerSearchInput }}
+      size="sm"
+      autoFocus
+      aria-label="Search employees"
+      placeholder="Search employees…"
+      value={query}
+      onChange={(event) => setQuery(event.currentTarget.value)}
+      leftSection={<Search size={16} strokeWidth={1.75} aria-hidden="true" />}
+      rightSection={<CloseButton size="sm" aria-label="Close search" onClick={close} />}
+    />
+  )
 }
 
 const levelText = { under: 'below target', over: 'above target', met: 'on target' }
@@ -362,9 +403,9 @@ export default function WorkforceGrid({
             data-day="label"
             {...esc}
             tabIndex={selection.isTabStop(HEADER_ROW, null) ? 0 : -1}
-            aria-label="Employee. Select all"
+            aria-label="Employee"
           >
-            Employee
+            <EmployeeSearch />
           </div>
           {days.map((day) => (
             <div

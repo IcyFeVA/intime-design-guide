@@ -25,7 +25,8 @@ const mouse: [string, string][] = [
   ['Shift-click', 'Selects everything between the active cell and the one you click.'],
   ['Click a name', 'Selects the person’s whole row, including their extra row. Shift-click another name for every row in between, Ctrl-click (⌘-click) to add a row, or drag down the names.'],
   ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
-  ['Click “Employee”', 'Selects every cell in view. Clicking Open shifts selects all open shifts.'],
+  ['Click Open shifts', 'Selects all open shifts.'],
+  ['Click the search icon by “Employee”', 'Opens a search field in its place. Click X or press Escape to close it.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
   ['Hover an empty cell', 'Shows a plus. Click to add an activity for that person and day.'],
 ]
@@ -316,7 +317,7 @@ export default function WorkforceScheduling() {
           { prop: 'rows / days', type: 'string[] / number[]', description: 'Rendered row keys and visible days. When they change, cells that are no longer visible are dropped.' },
           { prop: 'isSelectable', type: '(row, day) => boolean', description: 'Which cells can be selected.' },
           { prop: 'preferredDay', type: 'number', description: 'Column of the first tab stop, e.g. today.' },
-          { prop: 'headerRow', type: 'string', description: 'Key of the date row (first in rows). Its cells select a day; the corner selects everything. The grid passes model.navRows and HEADER_ROW.' },
+          { prop: 'headerRow', type: 'string', description: 'Key of the date row (first in rows). Its cells select a day; the corner selects nothing. The grid passes model.navRows and HEADER_ROW.' },
           { prop: 'rowGroup', type: '(row) => string[]', description: 'Rows that make up one person (their extra lines) or all open shifts. A row header selects the whole group. Use model.rowGroup.' },
           { prop: 'onActivate', type: "(via: 'pointer' | 'keyboard') => void", description: 'A click, drag or Enter ended on a cell. Open the panel here.' },
           { prop: 'onEscape', type: '() => boolean', description: 'Escape with one cell selected. Return true if it closed something.' },
