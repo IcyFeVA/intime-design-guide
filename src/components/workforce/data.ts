@@ -248,13 +248,17 @@ export const daysUnder = (item: Watch, days: number[]) => days.filter((day) => {
 const sectors = ['Sector A', 'Sector B', 'Sector C', 'Sector D']
 const openCache = new Map<number, OpenShift[]>()
 
-/** 0–2 open or live shifts a day. Tue, Jun 2 has the open Swing Patrol shift from the Figma frame. */
+/** 0–2 open or live shifts a day. Tue, Jun 2 has three: the open Swing Patrol shift from the Figma frame, a live Day Patrol and an open Night Patrol. */
 export function openShifts(day: number): OpenShift[] {
   const cached = openCache.get(day)
   if (cached) return cached
   const shifts: OpenShift[] = []
   if (day === dayOf(2026, 6, 2)) {
-    shifts.push({ id: `open-${day}-0`, day, watch: 'swing', code: 'PatS', start: 12, end: 22, status: 'open', needed: 1, location: 'Sector B' })
+    shifts.push(
+      { id: `open-${day}-0`, day, watch: 'swing', code: 'PatS', start: 12, end: 22, status: 'open', needed: 1, location: 'Sector B' },
+      { id: `open-${day}-1`, day, watch: 'day', code: 'PatD', start: 7, end: 17, status: 'live', needed: 1, location: 'Sector A' },
+      { id: `open-${day}-2`, day, watch: 'night', code: 'PatN', start: 19, end: 24, status: 'open', needed: 2, location: 'Sector D' },
+    )
   } else {
     const r = rand(day * 131 + 7)
     const count = r < 0.4 ? 0 : r < 0.85 ? 1 : 2

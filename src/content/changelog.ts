@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Tue, Jun 2 now has three open shifts in the demo: Swing Patrol (open), Day Patrol (live) and Night Patrol (open, 2 needed).',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Removed the Today badge from the date row. Today is still shown by its highlighted column header.',
   },
   {
