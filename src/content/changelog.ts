@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
+    page: '/patterns/calendar',
+    summary: 'Calendar colors now come from the shift cell colors on the Colors page, with no literal values.',
+    changes: [
+      '--calendar-task points at --base8 (dark) and --soft8 (light). Light tasks are a little paler.',
+      'Pending, sign-ups and holiday variables point at the Pending, Sign-ups and All-day event cells: --background-warning-light, --border-warning-default, --background-primary-light, --background-info-light.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     page: '/patterns/team-view',
     summary: 'Expired employees and cell patterns are confirmed, including --schedule-expired-hatch and --schedule-expired-text.',
   },

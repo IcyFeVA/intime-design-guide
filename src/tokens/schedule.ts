@@ -1,5 +1,5 @@
 import type { TokenStatus } from './types'
-import { cellColors, type CellColor } from './cellColors'
+import { cellVar, type CellColor } from './cellColors'
 
 /* ------------------------------------------------------------------ */
 /* Shift kinds and codes                                               */
@@ -75,11 +75,8 @@ const t = (name: ScheduleToken['name'], value: string, kind: ScheduleToken['kind
 const mix = (token: string, percent: number) => `color-mix(in srgb, var(${token}) ${percent}%, transparent)`
 
 /** A variable that points at the shift cell color for `cell` (Colors page), in the dark and light themes. */
-const fromCell = (name: ScheduleToken['name'], cell: string, field: keyof CellColor, usage: string, status: TokenStatus = 'confirmed'): ScheduleToken => {
-  const dark = `var(--${cellColors.dark[cell][field]})`
-  const light = `var(--${cellColors.light[cell][field]})`
-  return { name, value: dark, light: light === dark ? undefined : light, kind: 'color', usage, status }
-}
+const fromCell = (name: ScheduleToken['name'], cell: string, field: keyof CellColor, usage: string, status: TokenStatus = 'confirmed'): ScheduleToken =>
+  ({ name, ...cellVar(cell, field), kind: 'color', usage, status })
 
 /**
  * Schedule grid variables. Fills and stripes point at the shift cell colors (`cellColors.ts`) per scheme.

@@ -1,4 +1,5 @@
 import type { TokenStatus } from './types'
+import { cellVar, type CellColor } from './cellColors'
 
 /* ------------------------------------------------------------------ */
 /* Event kinds                                                         */
@@ -53,21 +54,25 @@ const t = (name: CalendarToken['name'], value: string, kind: CalendarToken['kind
 
 const mix = (token: string, percent: number) => `color-mix(in srgb, var(${token}) ${percent}%, transparent)`
 
+/** A variable that points at the shift cell color for `cell` (Colors page), in the dark and light themes. */
+const fromCell = (name: CalendarToken['name'], cell: string, field: keyof CellColor, usage: string): CalendarToken =>
+  ({ name, ...cellVar(cell, field), kind: 'color', usage, status: 'confirmed' })
+
 /**
  * Calendar variables. Activity, overtime, leave and the out-of-unit stripes reuse the `--schedule-*` fills.
- * Task fill is a per-scheme literal; everything else aliases theme tokens.
+ * Task, pending, sign-ups and holidays point at the shift cell colors (`cellColors.ts`); the rest alias theme tokens. No literal colors.
  */
 export const calendarTokens: CalendarToken[] = [
   t('--calendar-hour-height', '48px', 'size', 'Height of one hour on the week and day timeline (40px on a phone).'),
-  t('--calendar-task', '#3a4049', 'color', 'Fill for tasks.', '#dfe3e8'),
-  t('--calendar-pending-bg', mix('--text-warning-default', 10), 'color', 'Fill under a pending event.'),
+  fromCell('--calendar-task', 'task', 'background', 'Fill for tasks.'),
+  fromCell('--calendar-pending-bg', 'pending', 'background', 'Fill under a pending event.'),
   t('--calendar-pending-stripe', mix('--text-warning-default', 28), 'color', 'Stripes on a pending event.'),
-  t('--calendar-pending-border', 'var(--text-warning-default)', 'color', 'Dashed outline of a pending event.'),
-  t('--calendar-signup-bg', mix('--background-primary-filled', 16), 'color', 'Fill of the sign-ups item.'),
-  t('--calendar-signup-border', 'var(--border-primary-default)', 'color', 'Outline of the sign-ups item.'),
+  fromCell('--calendar-pending-border', 'pending', 'border', 'Dashed outline of a pending event.'),
+  fromCell('--calendar-signup-bg', 'signups', 'background', 'Fill of the sign-ups item.'),
+  fromCell('--calendar-signup-border', 'signups', 'border', 'Outline of the sign-ups item.'),
   t('--calendar-signup-text', 'var(--text-primary-default)', 'color', 'Text of the sign-ups item.'),
-  t('--calendar-holiday-bg', mix('--background-info', 16), 'color', 'Fill of a holiday.'),
-  t('--calendar-holiday-text', 'var(--text-info)', 'color', 'Text of a holiday.'),
+  fromCell('--calendar-holiday-bg', 'all-day-event', 'background', 'Fill of a holiday.'),
+  fromCell('--calendar-holiday-text', 'all-day-event', 'text', 'Text of a holiday.'),
   t('--calendar-hover-border', 'var(--border-primary-default)', 'color', 'Outline of the day or column under the pointer, where + adds a task.'),
   t('--calendar-now', 'var(--background-error-filled)', 'color', 'Current-time line and its time label.'),
 ]

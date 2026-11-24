@@ -70,3 +70,10 @@ export const cellColors: Record<string, Record<string, CellColor>> = {
   terra: theme(         'soft6',  'soft4', 'deep7', 'soft8', 'soft2',   'base5',   'base6',    'base8'),
   candy: theme(         'base3',  'base6', 'base2', 'base8', 'base1',   'deep3',   'deep3',    'base8'),
 }
+
+/** `var(--token)` for a cell's color in the dark and light themes, for the guide's runtime variables. `light` is left out when both match. */
+export function cellVar(cell: string, field: keyof CellColor = 'background'): { value: string; light?: string } {
+  const value = `var(--${cellColors.dark[cell][field]})`
+  const light = `var(--${cellColors.light[cell][field]})`
+  return { value, light: light === value ? undefined : light }
+}

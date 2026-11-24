@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Button, Group, Stack, Table, Text } from '@mantine/core'
+import { Link } from 'react-router'
+import { Anchor, Button, Group, Stack, Table, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -335,7 +336,7 @@ export default function Calendar() {
         <Text size="sm" c="dimmed" mt="sm">It returns openEvent, openSignUps and addTask for the views, and the modals to render. EventChip, CalendarLegend, CalendarStepper and the dialogs are exported too. Kinds, views and CSS variables live in src/tokens/calendar.ts, mock data and date helpers in src/components/calendar/events.ts. The app frame is shared with Team View (ScheduleChrome.tsx).</Text>
       </Section>
 
-      <Section id="tokens" title="CSS variables" description="Activity, overtime and leave reuse the schedule fills (--schedule-regular, --schedule-overtime, --schedule-leave) and the out-of-unit stripes (--schedule-hatch). These are new for the calendar.">
+      <Section id="tokens" title="CSS variables" description="Activity, overtime and leave reuse the schedule fills (--schedule-regular, --schedule-overtime, --schedule-leave) and the out-of-unit stripes (--schedule-hatch). These are new for the calendar. Every color points at a theme token, so it follows dark and light.">
         <Table.ScrollContainer minWidth={640} className="doc-table">
           <Table verticalSpacing="xs" horizontalSpacing="md">
             <Table.Thead><Table.Tr><Table.Th>Variable</Table.Th><Table.Th>Value</Table.Th><Table.Th>Usage</Table.Th></Table.Tr></Table.Thead>
@@ -355,7 +356,7 @@ export default function Calendar() {
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
-        <Text size="xs" c="dimmed" mt="xs">Two values are dark / light.</Text>
+        <Text size="xs" c="dimmed" mt="xs">Two values are dark / light. Task, pending, sign-ups and holiday colors come from <Anchor component={Link} to="/foundations/colors?section=cell-colors" size="xs">Shift cell colors</Anchor>; change them there and these variables follow.</Text>
       </Section>
 
       <Section id="guidelines" title="Guidelines">
