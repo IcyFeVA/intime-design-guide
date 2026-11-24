@@ -297,6 +297,17 @@ export const openStatus = {
 export const describeOpenShift = (shift: OpenShift) =>
   `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${shift.needed} still needed`
 
+/** Saved employee filters, as set up in Employee Settings. Counts are for the whole unit. */
+export const savedFilters: { key: string; label: string; description?: string; count: number }[] = [
+  { key: 'all', label: 'All employees', count: 32 },
+  { key: 'spanish', label: 'Spanish Speaking', description: 'Language attribute: Spanish', count: 9 },
+  { key: 'level1', label: 'Level 1 Certified', description: 'Certification: Level 1 (active)', count: 24 },
+  { key: 'supervisors', label: 'Supervisors', description: 'Employees flagged as supervisors', count: 6 },
+  { key: 'fto', label: 'Field Training Officers', description: 'Certification: FTO', count: 5 },
+  { key: 'ot', label: 'OT Volunteers', description: 'Signed up on the voluntary OT list', count: 12 },
+  { key: 'firearms', label: 'Firearms Qualified', description: 'Certification: Firearms (current)', count: 26 },
+]
+
 export const workforceTeams = [
   { key: 'patrol', label: 'Patrol' },
   { key: 'traffic', label: 'Traffic' },

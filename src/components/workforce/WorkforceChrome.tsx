@@ -1,12 +1,11 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
-  ArrowUpDown, Check, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
+  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Filter, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
 } from 'lucide-react'
 import { PickerMenu, RangeStepper, ToolbarDivider } from '../schedule/ScheduleChrome'
 import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { employeeFilters, type EmployeeFilter } from './model'
-import { workforceTeams } from './data'
+import { savedFilters, workforceTeams } from './data'
 import classes from './Workforce.module.css'
 
 /** View density: Compact (the default), Detailed and Stacked. */
@@ -37,6 +36,50 @@ export function DensityMenu({ value, onChange }: { value: ViewDensity; onChange:
   )
 }
 
+/** Saved employee filters. Visual only for now: All employees stays selected and the others show a preview hint. */
+function SavedFiltersMenu({ onPreview }: { onPreview: (action: string) => void }) {
+  const [all, ...saved] = savedFilters
+  const item = (filter: (typeof savedFilters)[number]) => {
+    const checked = filter.key === all.key
+    return (
+      <Menu.Item
+        key={filter.key}
+        onClick={() => !checked && onPreview(`Saved filter: ${filter.label}`)}
+        leftSection={<span className={classes.savedDot} data-checked={checked || undefined} aria-hidden="true" />}
+        rightSection={<Text size="sm" c="dimmed" className="tabular">{filter.count}</Text>}
+        classNames={{ item: classes.savedItem }}
+      >
+        <Text size="sm">{filter.label}</Text>
+        {filter.description && <Text size="xs" c="dimmed">{filter.description}</Text>}
+      </Menu.Item>
+    )
+  }
+  return (
+    <Menu position="bottom-start" offset={4} width={300}>
+      <Menu.Target>
+        <Button
+          variant="default"
+          size="sm"
+          fw={400}
+          leftSection={<Filter size={16} aria-hidden="true" />}
+          rightSection={<ChevronDown size={16} aria-hidden="true" />}
+          aria-label={`Employees: ${all.label}`}
+        >
+          {all.label}
+        </Button>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>Saved filters</Menu.Label>
+        {item(all)}
+        <Menu.Divider />
+        {saved.map(item)}
+        <Menu.Divider />
+        <Text size="xs" c="dimmed" px="sm" py={6}>Filters are managed in Employee Settings. Coverage counts always include the full unit.</Text>
+      </Menu.Dropdown>
+    </Menu>
+  )
+}
+
 /** Count badge inside a toolbar button */
 const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => (
   <Badge size="sm" circle variant={color === 'red' ? 'filled' : 'light'} color={color} className="tabular">{value}</Badge>
@@ -44,7 +87,7 @@ const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => 
 
 /** Filters and status buttons: the frame's toolbar row. */
 export function WorkforceToolbar({
-  range, onRange, days, anchor, onAnchorChange, team, onTeam, filter, onFilter, underCount, onPreview,
+  range, onRange, days, anchor, onAnchorChange, team, onTeam, underCount, onPreview,
 }: {
   range: WorkforceRange
   onRange: (range: WorkforceRange) => void
@@ -53,8 +96,6 @@ export function WorkforceToolbar({
   onAnchorChange: Dispatch<SetStateAction<number>>
   team: string
   onTeam: (team: string) => void
-  filter: EmployeeFilter
-  onFilter: (filter: EmployeeFilter) => void
   /** Watch-days below target in the range */
   underCount: number
   /** A control that is not built yet was used */
@@ -80,7 +121,7 @@ export function WorkforceToolbar({
       <PickerMenu label="Range" value={range} options={workforceRanges.map(({ key, label }) => ({ key, label }))} onChange={onRange} />
       <ToolbarDivider />
       <PickerMenu label="Team" value={team} options={workforceTeams} onChange={onTeam} />
-      <PickerMenu label="Employees" value={filter} options={employeeFilters} onChange={onFilter} />
+      <SavedFiltersMenu onPreview={onPreview} />
       <div className={classes.spacer} />
       <Button
         aria-label={`${underCount} understaffed`}

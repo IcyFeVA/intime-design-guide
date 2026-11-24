@@ -17,12 +17,6 @@ export const staffingMetrics: { key: StaffingMetric; label: string }[] = [
 
 export type EmployeeFilter = 'all' | 'scheduled' | 'supervisors'
 
-export const employeeFilters: { key: EmployeeFilter; label: string }[] = [
-  { key: 'all', label: 'All employees' },
-  { key: 'scheduled', label: 'Scheduled in range' },
-  { key: 'supervisors', label: 'Supervisors' },
-]
-
 export type GridRow =
   | { kind: 'open'; key: string; line: number; lines: number; cells: (OpenShift | null)[] }
   | { kind: 'group'; key: string; watch: Watch; expanded: boolean; count: number }

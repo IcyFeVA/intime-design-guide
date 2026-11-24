@@ -12,6 +12,12 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'The employee filter is now a Saved filters menu: All employees, then filters set up in Employee Settings, each with a description and a head count.',
+    changes: ['Preview only: All employees stays selected, and the other filters show a hint.'],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'The range menu uses numerals: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month.',
   },
   {

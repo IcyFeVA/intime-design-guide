@@ -248,8 +248,13 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] Sort fields: Watch order, Name, Rank, Rank then effective date, Rank then precedence, Precedence, Precedence then rank (`WorkforceSort`, `sortKeys` in `data.ts`). The name breaks remaining ties; Descending reverses the whole list. Members got mock `rankEffective` (day number) and `precedence` (1–5, shared by several people).
 - [x] Collapse all / Expand all: an icon button after Sort in the title row (`ChevronsDownUp` / `ChevronsUpDown`, tooltip). It collapses or expands every watch and its staffing block at once. It is a separate button, not part of the Sort modal, because it acts at once while the modal applies on Apply. The title-row icon buttons now have tooltips.
 
+## Saved filters menu (2026-11-24, user, from a screenshot of the current app)
+
+- [x] The Employees picker is `SavedFiltersMenu` (`WorkforceChrome.tsx`): a funnel button "All employees", then "Saved filters" with All employees (dot) and six saved filters (label, description, count) from `savedFilters` in `data.ts`, and a footnote. **No functionality** (user): All employees stays selected; the others show a "Preview only" hint. The old All / Scheduled in range / Supervisors options are gone; `buildGridModel` keeps its `filter` input (the demo passes `'all'`).
+
 ## Later (out of scope now, keep room for them)
 
+- Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).

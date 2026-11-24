@@ -898,3 +898,24 @@
     display: none;
   }
 }
+
+/* Saved filters menu: a dot marks the current filter; the others keep its space so labels line up */
+.savedItem {
+  align-items: flex-start;
+}
+
+.savedItem [data-position] {
+  margin-top: 4px;
+}
+
+.savedDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 3px 4px 0;
+  border-radius: 50%;
+}
+
+.savedDot[data-checked] {
+  background: var(--text-default);
+}
