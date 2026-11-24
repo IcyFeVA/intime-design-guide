@@ -15,9 +15,9 @@ export interface WorkforceRangeDef {
   status: TokenStatus
 }
 
-/** Every range fits the width: day columns share the space, and the cell layout follows the column width (see `cellLayouts`). */
+/** Every range fits the width: day columns share the space, and the cell layout follows the column width (see `cellLayouts`). One day is at most `--workforce-day-max-width` wide, centered. */
 export const workforceRanges: WorkforceRangeDef[] = [
-  { key: 'day', label: 'One Day', placeholder: true, status: 'draft' },
+  { key: 'day', label: 'One Day', status: 'draft' },
   { key: 'week', label: 'One Week', status: 'confirmed' },
   { key: '2weeks', label: 'Two Weeks', status: 'confirmed' },
   { key: '3weeks', label: 'Three Weeks', status: 'confirmed' },
@@ -96,6 +96,7 @@ export const workforceTokens: WorkforceToken[] = [
   t('--workforce-detailed-row-height', '56px', 'size', 'Row height in the Detailed view: the cell plus 6px above and below.'),
   t('--workforce-stacked-chip-height', '16px', 'size', 'Height of each assignment bar in the Stacked view. More assignments make the row taller.'),
   t('--workforce-stacked-row-height', '28px', 'size', 'Row height in the Stacked view with one assignment: the bar plus 6px above and below.'),
+  t('--workforce-day-max-width', '800px', 'size', 'Widest the grid gets for one day, names included. It is centered, as in the calendar’s day view.'),
   t('--workforce-header-height', '56px', 'size', 'Height of the date row, which stays pinned while the grid scrolls.'),
   t('--workforce-panel-width', '380px', 'size', 'Width of the details panel on the right.'),
   t('--workforce-selected-bg', 'var(--background-primary-light)', 'color', 'Background of a selected cell, around its shift.'),
@@ -117,6 +118,7 @@ const tokenPx = (name: string) => parseFloat(workforceTokens.find((token) => tok
 export const LABEL_WIDTH = tokenPx('--workforce-label-width')
 export const LABEL_WIDTH_NARROW = tokenPx('--workforce-label-width-narrow')
 export const PANEL_WIDTH = tokenPx('--workforce-panel-width')
+export const DAY_MAX_WIDTH = tokenPx('--workforce-day-max-width')
 
 /**
  * Days always share the full width. From the grid's measured width (the scroll area, without a vertical scrollbar):

@@ -15,7 +15,7 @@ import StackedChip from '../../components/workforce/StackedChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
 import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, type Chip } from '../../components/schedule/data'
 import {
-  LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
+  DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import classes from './WorkforceScheduling.module.css'
@@ -67,7 +67,7 @@ const screens = [1280, 1512, 1920]
 const rangeDays: [string, number][] = [['One week', 7], ['Two weeks', 14], ['Three weeks', 21], ['One month', 30]]
 /** Detailed needs Full-width days: true when the range gets them on a 1920px screen with the panel closed */
 const detailedFits = (range: string) => {
-  const count = { week: 7, '2weeks': 14, '3weeks': 21, month: 30 }[range]
+  const count = { day: 1, week: 7, '2weeks': 14, '3weeks': 21, month: 30 }[range]
   return !!count && fitColumns(1920 - APP_CHROME, count).layout === 'comfortable'
 }
 const layoutLabel = Object.fromEntries(cellLayouts.map((layout) => [layout.key, layout.label]))
@@ -196,7 +196,7 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
-      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities: Compact (the default), Detailed and Stacked. The Day range is coming. Every range fits the width.">
+      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities: Compact (the default), Detailed and Stacked. Every range fits the width.">
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
@@ -227,6 +227,7 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
         </Stack>
+        <Text size="sm" mt="md"><strong>One day</strong> is a single centered column, at most {DAY_MAX_WIDTH}px wide with the names, as in the calendar’s day view. Its header gives the full date. All three densities work.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>
         <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with an OT tag, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
         <Preview title="Detailed cells" align="start">

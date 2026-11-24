@@ -24,7 +24,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Panel**: docked right, so the grid shrinks. Opens on a cell click (on pointer up), closes with its X, and the toolbar toggle does both. It has five modes (see Panel spec).
 - **Form**: inputs can be edited locally and reset when the selection changes. **The grid data never changes.** Assign, Leave, Add segment, Set actual and the icon buttons show a "Preview only" hint (`role="status"` demo bar).
 - **Bulk panel**: summary line, a list of the selected cells, shared fields, footer actions.
-- **Ranges**: 5 views: Day, One Week, Two Weeks, Three Weeks, One Month. **Day is a placeholder** (empty state "Day view is coming"); the stepper moves one day at a time.
+- **Ranges**: 5 views: Day, One Week, Two Weeks, Three Weeks, One Month. ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
 - **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
 - **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Approvals (3), Posts (2), Mandate and Undo render and show a "Preview only" hint.
 - **Employee search** (2026-11-24): a search button after "Employee" in the corner header swaps the label for an input ("Search employees…"); X or Escape swaps it back. The input doesn't filter yet.
@@ -238,10 +238,14 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] Page: "Detailed cells" specimens and notes in `views`; tokens; guideline; changelog.
 - [x] **Stacked** density (2026-11-24, user): `StackedChip`, the same parts as Detailed (`chipParts`) as plain bars, no text, tags or icons. Each bar 16px (`--workforce-stacked-chip-height`), gap 2px; one-bar rows 28px (`--workforce-stacked-row-height`); more bars make the row taller. Separate same-day assignments stay on the extra line (user). Applies at every width, month included (user; `cellViewFor`). Open shifts keep the Open/Live icon (user). Cancelled = a bar across, as Mini. Kinds show by color and stripes only, no OT/OU marks (confirmed by user, 2026-11-24). Every bar stays 16px, so two bars make a 45px row; most month rows end up 45px (confirmed by user, 2026-11-24). In Stacked the name column has no vertical padding and the cells 5px, so rows stay 28px.
 
+## Day view (2026-11-24, user)
+
+- [x] One Day replaces the placeholder: the same grid with one day column, at most `--workforce-day-max-width` (800px, names included) wide and centered with side borders, like the calendar's day view (user). `WorkforceGrid` fits the columns to `min(width, DAY_MAX_WIDTH)` and sets `data-single-day` on the scroller. The header shows the full date. All three densities work. The Day range token stays `draft` until approved.
+- Not built: an hour timeline inside the day (see the prototype screenshot and `calendar/TimeGridView`).
+
 ## Later (out of scope now, keep room for them)
 
 - Employee search: filter the member rows by the corner input (name, rank, badge).
-- Day range for all three densities.
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
@@ -259,7 +263,6 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
 - How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
-- Should switching to the Day placeholder close the panel? (Today it stays open and shows "Select a cell".)
 
 ## Verification
 

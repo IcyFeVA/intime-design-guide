@@ -5,7 +5,7 @@ import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle } from 'luc
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
-import { cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
+import { DAY_MAX_WIDTH, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
@@ -209,7 +209,9 @@ export default function WorkforceGrid({
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
-  const { narrowLabel, layout: density } = fitColumns(width, days.length)
+  // One day: the grid is at most DAY_MAX_WIDTH wide and centered, so fit the columns to that
+  const single = days.length === 1
+  const { narrowLabel, layout: density } = fitColumns(single ? Math.min(width, DAY_MAX_WIDTH) : width, days.length)
   const compact = density !== 'comfortable'
   const mini = density === 'mini'
   const cells = cellViewFor(view, density)
@@ -391,6 +393,7 @@ export default function WorkforceGrid({
       className={classes.scroller}
       style={{ ...(narrowLabel ? { '--workforce-label-width': 'var(--workforce-label-width-narrow)' } : {}) } as CSSProperties}
       data-layout={density}
+      data-single-day={single || undefined}
       data-cells={cells === 'codes' ? undefined : cells}
     >
       <div
@@ -432,7 +435,9 @@ export default function WorkforceGrid({
               aria-label={`${formatFullDate(day)}${day === today ? ', today' : ''}`}
             >
               <span aria-hidden="true" className="tabular">
-                {mini ? (
+                {single ? (
+                  <><span className={classes.weekday}>{formatFullDate(day).split(', ')[0]}</span>, {formatFullDate(day).split(', ').slice(1).join(', ')}</>
+                ) : mini ? (
                   <span className={classes.stackedDate}><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span>{dayNumber(day)}</span>
                 ) : compact ? (
                   <><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span> {dayNumber(day)}</>

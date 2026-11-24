@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'One Day view: a single centered column, at most 800px wide, as in the calendar’s day view.',
+    changes: [
+      'Replaces the “Day view is coming” placeholder. Compact, Detailed and Stacked all work, and the panel and selection work as in the other ranges.',
+      'The date header gives the full date, e.g. “Friday, June 5, 2026”.',
+      'New token --workforce-day-max-width (800px). The One Day range is a draft until it is approved.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Workforce Scheduling is confirmed, with its tokens: ranges, cell layouts, view densities and --workforce-* variables.',
     changes: [
       'The One Day range is still coming, so it stays a draft.',
