@@ -5,7 +5,7 @@ import { ChevronDown, Megaphone, Plus, ShieldCheck, Triangle } from 'lucide-reac
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
-import { NARROW_LABEL_BELOW, cellLayoutFor, workforceTokens, type CellLayout, type ViewDensity } from '../../tokens/workforce'
+import { fitColumns, type CellLayout, type ViewDensity } from '../../tokens/workforce'
 import OpenShiftChip from './OpenShiftChip'
 import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId, type WorkforceMember } from './data'
 import { staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
@@ -13,21 +13,6 @@ import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
 
 type CellDensity = CellLayout
-
-const px = (name: string) => parseFloat(workforceTokens.find((token) => token.name === name)!.value)
-const LABEL_WIDTH = px('--workforce-label-width')
-const LABEL_WIDTH_NARROW = px('--workforce-label-width-narrow')
-
-/**
- * Days always share the full width. Measures the width and picks the name column width and the cell layout:
- * the wide name column while day columns stay at least NARROW_LABEL_BELOW px, else the narrow one.
- */
-function fitColumns(width: number, dayCount: number) {
-  const wide = (width - LABEL_WIDTH) / Math.max(1, dayCount)
-  const narrowLabel = width > 0 && wide < NARROW_LABEL_BELOW
-  const column = narrowLabel ? (width - LABEL_WIDTH_NARROW) / Math.max(1, dayCount) : wide
-  return { narrowLabel, column, layout: width > 0 ? cellLayoutFor(column) : 'comfortable' as CellLayout }
-}
 
 export interface WorkforceGridProps {
   model: GridModel

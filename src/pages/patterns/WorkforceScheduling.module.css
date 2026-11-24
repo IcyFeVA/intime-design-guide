@@ -61,6 +61,10 @@
   width: 52px;
 }
 
+.layoutSpecimens[data-layout='mini'] {
+  --schedule-chip-height: var(--workforce-mini-chip-height);
+}
+
 .layoutSpecimens[data-layout='mini'] > * {
   width: 30px;
 }

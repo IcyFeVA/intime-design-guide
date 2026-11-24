@@ -33,7 +33,7 @@ export type CellLayout = 'comfortable' | 'compact' | 'mini'
 export const cellLayouts: { key: CellLayout; label: string; minWidth: number; shows: string; status: TokenStatus }[] = [
   { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT and OU tags with labels. Usually one week.', status: 'draft' },
   { key: 'compact', label: 'Compact', minWidth: 48, shows: 'Up to two codes stacked, OU as an icon. Usually two or three weeks.', status: 'draft' },
-  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'No codes: the fill, out-of-unit stripes and arrow, and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'draft' },
+  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'draft' },
 ]
 
 /** Day column width in px below which the name column switches to `--workforce-label-width-narrow` */
@@ -81,6 +81,8 @@ const t = (name: WorkforceToken['name'], value: string, kind: WorkforceToken['ki
 export const workforceTokens: WorkforceToken[] = [
   t('--workforce-label-width', '232px', 'size', 'Width of the pinned name column.'),
   t('--workforce-label-width-narrow', '168px', 'size', 'Name column when day columns would be narrower than 48px, e.g. a month. Rank badges and supervisor icons hide if they don’t fit.'),
+  t('--workforce-mini-chip-height', '32px', 'size', 'Shift cell height in the Mini layout (very narrow days, e.g. a month), so more people fit.'),
+  t('--workforce-mini-row-height', '44px', 'size', 'Row height in the Mini layout: the cell plus 6px above and below.'),
   t('--workforce-header-height', '56px', 'size', 'Height of the date row. The open shifts row is pinned right below it.'),
   t('--workforce-panel-width', '380px', 'size', 'Width of the details panel on the right.'),
   t('--workforce-selected-bg', 'var(--background-primary-light)', 'color', 'Background of a selected cell, around its shift.'),
@@ -93,3 +95,25 @@ export const workforceTokens: WorkforceToken[] = [
 ]
 
 export const workforceCssVariables: Record<string, string> = Object.fromEntries(workforceTokens.map((token) => [token.name, token.value]))
+
+/* ------------------------------------------------------------------ */
+/* Fitting the days to the width                                        */
+/* ------------------------------------------------------------------ */
+
+const tokenPx = (name: string) => parseFloat(workforceTokens.find((token) => token.name === name)!.value)
+export const LABEL_WIDTH = tokenPx('--workforce-label-width')
+export const LABEL_WIDTH_NARROW = tokenPx('--workforce-label-width-narrow')
+export const PANEL_WIDTH = tokenPx('--workforce-panel-width')
+
+/**
+ * Days always share the full width. From the grid's measured width (the scroll area, without a vertical scrollbar):
+ * day columns with the wide name column; if they'd be narrower than NARROW_LABEL_BELOW, the narrow name column instead;
+ * then the cell layout from the resulting column width. Deterministic, so it can't flip back and forth.
+ */
+export function fitColumns(width: number, dayCount: number) {
+  const days = Math.max(1, dayCount)
+  const wide = (width - LABEL_WIDTH) / days
+  const narrowLabel = width > 0 && wide < NARROW_LABEL_BELOW
+  const column = narrowLabel ? (width - LABEL_WIDTH_NARROW) / days : wide
+  return { narrowLabel, column, layout: width > 0 ? cellLayoutFor(column) : 'comfortable' as CellLayout }
+}

@@ -12,7 +12,9 @@ import WorkforceDemo from '../../components/workforce/WorkforceDemo'
 import OpenShiftChip from '../../components/workforce/OpenShiftChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
 import { MOCK_TODAY } from '../../components/schedule/data'
-import { cellLayouts, panelPlacements, viewDensities, workforceRanges, workforceTokens } from '../../tokens/workforce'
+import {
+  LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, panelPlacements, viewDensities, workforceRanges, workforceTokens,
+} from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import type { Chip } from '../../components/schedule/data'
 import classes from './WorkforceScheduling.module.css'
@@ -51,6 +53,25 @@ const layoutSpecimens: Chip[] = [
   { segments: [{ code: 'PatD', overtime: 'partial' }] },
   { segments: [{ code: 'Train' }], outOfUnit: true },
   { segments: [{ code: 'Vac' }] },
+]
+
+/** Collapsed nav rail and borders: the grid is this much narrower than the screen */
+const APP_CHROME = 60
+const screens = [1280, 1512, 1920]
+const rangeDays: [string, number][] = [['One week', 7], ['Two weeks', 14], ['Three weeks', 21], ['One month', 30]]
+const layoutLabel = Object.fromEntries(cellLayouts.map((layout) => [layout.key, layout.label]))
+
+/** What changes in each layout */
+const layoutDetails: [string, string, string, string][] = [
+  ['Cell height', '40px', '40px', '32px'],
+  ['Row height', '52px', '52px', '44px'],
+  ['Codes', 'All, side by side with dividers', 'Up to two, stacked; “…” for more', 'None (tooltip, accessible name and panel)'],
+  ['Tags', 'OT and OU with labels', 'OU arrow only', 'OU arrow only'],
+  ['Fills and stripes', 'Yes', 'Yes', 'Yes, including diagonal splits'],
+  ['Cancelled', 'Code struck through', 'Code struck through', 'Bar across the cell'],
+  ['Open shifts', 'Icon, label and code', 'Icon over code', 'Icon only'],
+  ['Date header', '“Fri Jun 5” and Today badge', '“Fr 5”', '“Fr” over “5”'],
+  ['Coverage', 'As Team View', 'As Team View, 13px', '11px; hours without decimals; no arrow in the group badge'],
 ]
 
 const specimen = (status: OpenShift['status']): OpenShift => ({
@@ -204,6 +225,78 @@ export default function WorkforceScheduling() {
           </Table>
         </Table.ScrollContainer>
         <Text size="xs" c="dimmed" mt="xs">At 1512 × 982 (a 14-inch MacBook): one week gets 174px columns (120px with the panel docked), two weeks 87px (60px), three weeks 58px (43px) and a month 43px (30px).</Text>
+      </Section>
+
+      <Section id="sizing" title="Sizing for screens" description="For developers: how the grid fits every range on screen and when cells switch to Compact or Mini. The rule depends on the width of a day column, not on the range or the screen.">
+        <Text size="sm" fw={600} mb="xs">How the layout is picked</Text>
+        <Stack gap={6} mb="md">
+          <Text size="sm"><strong>1. Measure the grid,</strong> not the window: the width of its scroll area without a vertical scrollbar. Measure again whenever it changes: window resize, the panel docking, undocking or closing, the navigation being pinned.</Text>
+          <Text size="sm"><strong>2. Share the width.</strong> Day columns are equal shares of what’s left after the name column, with no minimum width, so the grid never scrolls sideways.</Text>
+          <Text size="sm"><strong>3. Try the {LABEL_WIDTH}px name column.</strong> Column width = (grid width − {LABEL_WIDTH}) ÷ days. If that is under {NARROW_LABEL_BELOW}px, switch to the {LABEL_WIDTH_NARROW}px name column and work it out again. Rank badges and supervisor icons hide when the name column is under 200px.</Text>
+          <Text size="sm"><strong>4. Pick the layout from the column width:</strong> {cellLayouts.map((layout) => (layout.minWidth ? `${layout.label} from ${layout.minWidth}px` : `${layout.label} below that`)).join(', ')}.</Text>
+          <Text size="sm"><strong>5. Decide once per width.</strong> The name column is chosen from the wide-column result first, so the outcome can’t flip back and forth. No breakpoints by screen size: the same screen can show Full with the panel closed and Compact with it docked.</Text>
+        </Stack>
+
+        <Text size="sm" fw={600} mb="xs">What changes per layout</Text>
+        <Table.ScrollContainer minWidth={720} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th w={140}>Part</Table.Th>
+                {cellLayouts.map((layout, index) => (
+                  <Table.Th key={layout.key}>{layout.label} <Text span size="xs" c="dimmed" fw={400}>{index === 0 ? `≥ ${layout.minWidth}px` : layout.minWidth ? `${layout.minWidth}–${cellLayouts[index - 1].minWidth}px` : `< ${cellLayouts[index - 1].minWidth}px`}</Text></Table.Th>
+                ))}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {layoutDetails.map(([part, ...values]) => (
+                <Table.Tr key={part}>
+                  <Table.Td><Text size="sm" fw={600}>{part}</Text></Table.Td>
+                  {values.map((value, index) => <Table.Td key={index}><Text size="sm">{value}</Text></Table.Td>)}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+
+        <Text size="sm" fw={600} mb="xs" mt="lg">Examples</Text>
+        <Text size="sm" mb="sm">Day column width and layout for common screens, with the navigation collapsed. Docked takes the {PANEL_WIDTH}px panel off the grid; a drawer doesn’t, so it matches the panel closed. 1512 × 982 is the target (a 14-inch MacBook).</Text>
+        <Table.ScrollContainer minWidth={720} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Range</Table.Th>
+                {screens.map((screen) => <Table.Th key={screen} className="tabular">{screen}px: closed / docked</Table.Th>)}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {rangeDays.map(([label, count]) => (
+                <Table.Tr key={label}>
+                  <Table.Td><Text size="sm" fw={600}>{label}</Text></Table.Td>
+                  {screens.map((screen) => (
+                    <Table.Td key={screen}>
+                      <Text size="sm" className="tabular">
+                        {[screen - APP_CHROME, screen - APP_CHROME - PANEL_WIDTH].map((width) => {
+                          const fit = fitColumns(width, count)
+                          return `${Math.floor(fit.column)}px ${layoutLabel[fit.layout]}${fit.narrowLabel ? '*' : ''}`
+                        }).join(' / ')}
+                      </Text>
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Text size="xs" c="dimmed" mt="xs">* With the {LABEL_WIDTH_NARROW}px name column. A month is counted as 30 days.</Text>
+
+        <Text size="sm" fw={600} mb="xs" mt="lg">Good to know</Text>
+        <Stack gap={6}>
+          <Text size="sm"><strong>Codes are never lost.</strong> In every layout the tooltip, the cell’s accessible name and the panel give the full code, times and tags.</Text>
+          <Text size="sm"><strong>Mini changes height, not just content.</strong> It sets the chip and row heights to --workforce-mini-chip-height and --workforce-mini-row-height, so more people fit on screen.</Text>
+          <Text size="sm"><strong>Pinned rows don’t change.</strong> The date row, open shifts and watch headers keep their heights; only their content gets smaller.</Text>
+          <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. The view densities still to come (Compact, Stacked) change row height, not this rule.</Text>
+        </Stack>
       </Section>
 
       <Section id="component" title="Using the components" description="The demo is built from the components in src/components/workforce, on top of the schedule components.">

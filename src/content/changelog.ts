@@ -10,6 +10,16 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'New Sizing for screens section: how the grid fits every range on screen and when cells switch to Compact or Mini, with examples at 1280, 1512 and 1920px.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Mini cells (very narrow days, e.g. a month) are now 32px high, with 44px rows, so more people fit on screen.',
+  },
+  {
     date: '2026-11-23',
     page: '/patterns/workforce-scheduling',
     summary: 'Every range now fits the width with no sideways scrolling, and the details panel can be docked or shown as a drawer.',

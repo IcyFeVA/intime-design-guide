@@ -213,7 +213,9 @@ Requirement: schedulers see every day of every range without a horizontal scroll
 - [x] Mini (`ShiftChip` density `mini`, shared): no codes; keeps the fill (incl. diagonal splits), out-of-unit hatching and OU arrow, and a bar for cancelled. Open shifts show the icon only. Coverage values drop to 11px; hours lose decimals (`HoursValue digits`); the group badge drops its arrow.
 - [x] When columns would be < 48px with the 232px name column, the name column switches to `--workforce-label-width-narrow` (168px, set inline on the scroller). Rank badges and the supervisor shield hide via a container query when the name column is under 200px (user: OK to hide them).
 - [x] Mini date headers stack the weekday over the date.
+- [x] Mini cells are 32px high and rows 44px (`--workforce-mini-chip-height` / `--workforce-mini-row-height`, set as `--schedule-chip-height` / `--schedule-row-height` on the scroller), 2026-11-24.
 - [x] Panel placement: `docked` (default) or `drawer` (absolute over the grid's right edge, shadow, grid keeps full width). Switched with a pin in the panel header (same pattern as pinning AppNav). Reset demo returns to docked.
+- [x] Page section `sizing` ("Sizing for screens") explains the rule for developers; its example table is computed with `fitColumns` (now in `src/tokens/workforce.ts`, shared with the grid), 2026-11-24.
 - Measured at 1512 × 982 in Full screen: week 174px (docked 120), 2 weeks 87 (60), 3 weeks 58 (43, Mini), month 43 (30), all Mini for the month; overflowX = 0 in every case.
 
 Ideas not built yet: collapse the name column to initials; a per-user setting that remembers docked vs drawer; show the drawer over the grid without covering the selected cell (e.g. scroll or flip side).

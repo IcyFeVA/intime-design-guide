@@ -10,6 +10,12 @@
   scroll-padding-left: var(--workforce-label-width);
 }
 
+/* Mini layout: shorter cells and rows, so more people fit (Team View's chip and row heights are variables) */
+.scroller[data-layout='mini'] {
+  --schedule-chip-height: var(--workforce-mini-chip-height);
+  --schedule-row-height: var(--workforce-mini-row-height);
+}
+
 .grid {
   composes: grid from '../schedule/Schedule.module.css';
   /* Days share the width (minmax(0, 1fr) columns): never wider than the scroller, so no sideways scrolling */
