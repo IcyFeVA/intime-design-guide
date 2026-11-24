@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Target resolution button on the desktop demo: full screen, but no wider than 1512px (a 14-inch MacBook), for screenshots at the size we design for.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'One Day view: a single centered column, at most 800px wide, as in the calendar’s day view.',
     changes: [
       'Replaces the “Day view is coming” placeholder. Compact, Detailed and Stacked all work, and the panel and selection work as in the other ranges.',

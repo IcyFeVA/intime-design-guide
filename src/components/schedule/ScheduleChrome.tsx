@@ -4,7 +4,7 @@ import {
   ActionIcon, Button, Group, Indicator, Menu, Modal, SegmentedControl, Stack, Text, TextInput, Tooltip, UnstyledButton,
 } from '@mantine/core'
 import {
-  BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
+  BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Laptop, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
   Search, SlidersHorizontal, UserRound, Wifi,
 } from 'lucide-react'
 import { PeriodPicker } from '../date-picker/DatePickers'
@@ -71,9 +71,9 @@ export function ViewTabs({ active }: { active: ScheduleView }) {
 
 /**
  * App-shell mock for the desktop demos: collapsed nav, top bar, title with view tabs, a toolbar and the grid.
- * Includes the demo bar (status, Full screen, Reset demo).
+ * Includes the demo bar (status, Target resolution when `targetWidth` is set, Full screen, Reset demo).
  */
-export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, children }: {
+export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, children }: {
   /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
   view?: ScheduleView
   title?: string
@@ -86,11 +86,20 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   status: ReactNode
   onReset: () => void
   toolbar: ReactNode
+  /** Adds a Target resolution button: full screen, but no wider than this (px). For screenshots at the product's target size. */
+  targetWidth?: number
   children: ReactNode
 }) {
-  const [fullScreen, setFullScreen] = useState(false)
+  const [screen, setScreen] = useState<'inline' | 'full' | 'target'>('inline')
+  const fullScreen = screen !== 'inline'
+  const target = screen === 'target' && targetWidth
   const shell = (
-    <div className={classes.shell} data-full-screen={fullScreen || undefined}>
+    <div
+      className={classes.shell}
+      data-full-screen={fullScreen || undefined}
+      data-target={target ? true : undefined}
+      style={target ? { maxWidth: targetWidth } : undefined}
+    >
       <AppNav roles={['employee', 'scheduler']} defaultRole="scheduler" defaultActive="team-view" {...nav} defaultExpanded={false} defaultPinned={false} />
       <div className={classes.main}>
         <div className={classes.topBar}>
@@ -117,12 +126,24 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
       <Group justify="space-between" px="md" py="xs" className={classes.demoBar} wrap="nowrap">
         <Text size="xs" c="dimmed" role="status">{status}</Text>
         <Group gap={4} wrap="nowrap">
-          <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Maximize2 size={14} />} onClick={() => setFullScreen(true)}>Full screen</Button>
+          {targetWidth && (
+            <Tooltip label={`Full screen, no wider than ${targetWidth}px`}>
+              <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Laptop size={14} />} onClick={() => setScreen('target')}>Target resolution</Button>
+            </Tooltip>
+          )}
+          <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Maximize2 size={14} />} onClick={() => setScreen('full')}>Full screen</Button>
           <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={onReset}>Reset demo</Button>
         </Group>
       </Group>
       {!fullScreen && shell}
-      <Modal opened={fullScreen} onClose={() => setFullScreen(false)} fullScreen title={`${view === 'location' ? 'Location View' : title}, desktop`} padding={0} classNames={{ body: classes.modalBody, header: classes.modalHeader }}>
+      <Modal
+        opened={fullScreen}
+        onClose={() => setScreen('inline')}
+        fullScreen
+        title={`${view === 'location' ? 'Location View' : title}, ${target ? `${targetWidth}px wide` : 'desktop'}`}
+        padding={0}
+        classNames={{ body: classes.modalBody, header: classes.modalHeader }}
+      >
         {fullScreen && shell}
       </Modal>
     </>

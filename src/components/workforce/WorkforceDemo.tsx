@@ -7,7 +7,7 @@ import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDeta
 import { SortModal } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
-import { DEFAULT_VIEW_DENSITY, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
+import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
 import { watches, workforceTeams, type Watch, type WatchId, type WorkforceSort } from './data'
 import { HEADER_ROW, buildGridModel, panelContent, type EmployeeFilter } from './model'
 import { useGridSelection } from './useGridSelection'
@@ -107,6 +107,7 @@ export default function WorkforceDemo() {
       title="Workforce Scheduling"
       status={hint ?? DEFAULT_STATUS}
       onReset={reset}
+      targetWidth={TARGET_WIDTH}
       actions={(
         <WorkforceViewActions
           density={view}

@@ -56,6 +56,9 @@ export const panelPlacements: { key: PanelPlacement; label: string; description:
 /** How much each cell shows. Detailed only applies where its text fits (the Full cell layout); narrower days show Compact cells. Stacked fits any width. */
 export type ViewDensity = 'detailed' | 'compact' | 'stacked'
 
+/** Target screen width for the desktop design: a 14-inch MacBook Pro at its default 1512 × 982. The demo's Target resolution button opens at this width. */
+export const TARGET_WIDTH = 1512
+
 export const DEFAULT_VIEW_DENSITY: ViewDensity = 'compact'
 
 export const viewDensities: { key: ViewDensity; label: string; description: string; available: boolean; status: TokenStatus }[] = [

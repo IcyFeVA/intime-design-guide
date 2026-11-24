@@ -15,7 +15,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 ## Decisions (confirmed with the user, 2026-11-23)
 
 - **Page**: Patterns group, right after Location View. `/patterns/workforce-scheduling`, "Workforce Scheduling", status `draft`. **Confirmed 2026-11-24** (user approved; tokens confirmed too, except the Day range placeholder and the hidden `panelPlacements`).
-- **Frame**: reuse `DesktopDemoFrame` (collapsed AppNav, top bar, title row, toolbar, Full screen, Reset demo). Leave out the screenshot's breadcrumb bar and its "Layout 1 2" control.
+- **Frame**: reuse `DesktopDemoFrame` (collapsed AppNav, top bar, title row, toolbar, Target resolution, Full screen, Reset demo). Target resolution (`targetWidth={TARGET_WIDTH}`, 1512px) opens full screen but caps the width, for screenshots at the 14-inch MacBook size. Leave out the screenshot's breadcrumb bar and its "Layout 1 2" control.
 - **Visuals**: Mantine + Lucide only. Cells use Team View's `ShiftChip` design, **not** the screenshot's cells. Coverage uses Team View's `BodiesValue` / `HoursValue` / `TimeOfDayBar` and `CoverageDrawer`.
 - **Mock dates**: Team View's. Weeks start Monday, `MOCK_TODAY` = Fri, Jun 5, 2026.
 - **Grid rows**: (1) a pinned Open shifts row under the dates; (2) collapsible DAY / SWING / NIGHT watch groups with officer count and a daily bodies badge (▼8/9); (3) a collapsible Staffing block per group (Bodies, Supervisors, Hours, Time of day) that shows "▼ 7 days under" when collapsed; (4) rank badge (Cpl, Sgt, Lt) and a supervisor icon by names, plus a highlight on the active cell's row and column headers.
