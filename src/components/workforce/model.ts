@@ -30,10 +30,17 @@ export type GridRow =
   | { kind: 'staffing'; key: string; watch: Watch; metric: StaffingMetric }
   | { kind: 'member'; key: string; watch: Watch; member: WorkforceMember; line: number; overflow: boolean; cells: (Chip | null)[] }
 
+/** Key of the date row in the selection hook: its cells select a day, the corner selects everything */
+export const HEADER_ROW = 'head'
+
 export interface GridModel {
   rows: GridRow[]
-  /** Row keys in render order, for the selection hook */
+  /** Row keys in render order */
   rowKeys: string[]
+  /** `HEADER_ROW` then `rowKeys`: every row the keyboard can reach, for the selection hook */
+  navRows: string[]
+  /** All lines of a person (or all open shift lines): what a click on a row header selects */
+  rowGroup: (row: string) => readonly string[]
   byKey: Map<string, GridRow>
   days: number[]
   /** Open and live shifts in the range */
@@ -87,11 +94,20 @@ export function buildGridModel({ watches, days, collapsed, staffingCollapsed, so
   }
 
   const byKey = new Map(rows.map((row) => [row.key, row]))
+  const groups = new Map<string, string[]>()
+  for (const row of rows) {
+    const id = row.kind === 'member' ? `m:${row.member.id}` : row.kind === 'open' ? 'open' : row.key
+    groups.set(id, [...(groups.get(id) ?? []), row.key])
+  }
+  const groupOf = new Map<string, string[]>()
+  for (const keys of groups.values()) for (const key of keys) groupOf.set(key, keys)
   const dayIndex = new Map(days.map((day, index) => [day, index]))
 
   return {
     rows,
     rowKeys: rows.map((row) => row.key),
+    navRows: [HEADER_ROW, ...rows.map((row) => row.key)],
+    rowGroup: (key) => groupOf.get(key) ?? [key],
     byKey,
     days,
     openCount: openByDay.reduce((sum, shifts) => sum + shifts.length, 0),

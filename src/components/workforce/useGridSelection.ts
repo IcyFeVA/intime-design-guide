@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEve
 /* Every focusable element in the grid carries `data-row` and          */
 /* `data-day` (a day number, or "label" for the row-header column).    */
 /* A cell that spans all days carries `data-span` instead of a day.    */
+/* Like a spreadsheet, a row header selects its row, a column header   */
+/* (the `headerRow`) its day, and the corner everything.               */
 /* ------------------------------------------------------------------ */
 
 export type CellKey = `${string}@${number}`
@@ -44,7 +46,15 @@ export interface GridSelectionOptions {
   onEscape?: () => boolean
   /** `onEscape` will handle Escape right now (e.g. a panel is open). Keeps a surrounding Mantine modal from closing too. */
   escapeHandled?: boolean
+  /** Key of the column-header row (must be `rows[0]`). Its cells select a day; its row-header cell (the corner) selects all. */
+  headerRow?: string
+  /** Rows that make up one logical row, top to bottom, e.g. a person's extra lines. Selecting a row header selects them all. */
+  rowGroup?: (row: string) => readonly string[]
 }
+
+type Mode = 'replace' | 'add' | 'extend'
+const modeOf = (event: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }): Mode =>
+  event.shiftKey ? 'extend' : event.ctrlKey || event.metaKey ? 'add' : 'replace'
 
 type Indexes = { rowIndex: Map<string, number>; dayIndex: Map<number, number> }
 
@@ -72,8 +82,12 @@ function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, row
 
 const samePos = (a: CellPos | null, b: CellPos | null) => a?.row === b?.row && a?.day === b?.day
 
-export function useGridSelection({ rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false }: GridSelectionOptions) {
+export function useGridSelection({
+  rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false, headerRow, rowGroup,
+}: GridSelectionOptions) {
   const gridRef = useRef<HTMLDivElement>(null)
+  /** What a drag started on: cells draw a rectangle, a row header whole rows, a column header whole days */
+  const dragKind = useRef<'cells' | 'rows' | 'columns' | 'all'>('cells')
   const signature = `${rows.join('|')}#${days.join(',')}`
   const [state, setState] = useState<SelectionState>({ base: new Set(), anchor: null, focus: null, active: null, signature })
   const [dragging, setDragging] = useState(false)
@@ -100,6 +114,28 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
 
   const stopEscape = selected.size > 1 || escapeHandled
   const escapeProps = useMemo((): Record<string, string> => (stopEscape ? { 'data-mantine-stop-propagation': 'true' } : {}), [stopEscape])
+
+  // Rows and days whose selectable cells are all selected: their headers are highlighted
+  const full = useMemo(() => {
+    const rowsFull = new Set<string>()
+    const daysFull = new Set<number>()
+    if (!selected.size) return { rowsFull, daysFull }
+    const dayHas = new Map(days.map((day) => [day, 0]))
+    const dayAll = new Map(days.map((day) => [day, 0]))
+    for (const row of rows) {
+      let has = 0
+      let all = 0
+      for (const day of days) {
+        if (!isSelectable(row, day)) continue
+        all += 1
+        dayAll.set(day, dayAll.get(day)! + 1)
+        if (selected.has(cellKey(row, day))) { has += 1; dayHas.set(day, dayHas.get(day)! + 1) }
+      }
+      if (all && has === all) rowsFull.add(row)
+    }
+    for (const day of days) if (dayAll.get(day) && dayHas.get(day) === dayAll.get(day)) daysFull.add(day)
+    return { rowsFull, daysFull }
+  }, [selected, rows, days, isSelectable])
 
   const ordered = useMemo(() => [...selected].map(parseKey).sort((a, b) =>
     (indexes.rowIndex.get(a.row)! - indexes.rowIndex.get(b.row)!) || (indexes.dayIndex.get(a.day)! - indexes.dayIndex.get(b.day)!)), [selected, indexes])
@@ -182,15 +218,57 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
     setState((s) => ({ ...s, base: new Set(), anchor: { row: firstRow, day: days[0] }, focus: { row: lastRow, day: days[days.length - 1] } }))
   }
 
+  const group = (row: string) => rowGroup?.(row) ?? [row]
+  const rowHasCells = (row: string) => group(row).some((key) => days.some((day) => isSelectable(key, day)))
+  const firstDay = days[0]
+  const lastDay = days[days.length - 1]
+  const dataRows = headerRow ? rows.slice(1) : rows
+
+  /** A row header: select that person's whole row (all their lines). Shift: every row from the anchor. Ctrl/⌘: add it. */
+  const selectRows = (row: string, mode: Mode) => {
+    if (firstDay === undefined) return
+    const lines = group(row)
+    if (mode === 'extend' && state.anchor) {
+      const from = group(state.anchor.row)
+      const down = (indexes.rowIndex.get(lines[0]) ?? 0) >= (indexes.rowIndex.get(from[0]) ?? 0)
+      setState((s) => ({ ...s, anchor: { row: down ? from[0] : from[from.length - 1], day: firstDay }, focus: { row: down ? lines[lines.length - 1] : lines[0], day: lastDay } }))
+      return
+    }
+    setState((s) => ({ ...s, base: mode === 'add' ? new Set(selected) : new Set(), anchor: { row: lines[0], day: firstDay }, focus: { row: lines[lines.length - 1], day: lastDay } }))
+  }
+
+  /** A column header: select every cell on that day. Shift: every day from the anchor. Ctrl/⌘: add it. */
+  const selectColumns = (day: number, mode: Mode) => {
+    if (!dataRows.length) return
+    const top = dataRows[0]
+    const bottom = dataRows[dataRows.length - 1]
+    if (mode === 'extend' && state.anchor) {
+      setState((s) => ({ ...s, anchor: { row: top, day: s.anchor?.day ?? day }, focus: { row: bottom, day } }))
+      return
+    }
+    setState((s) => ({ ...s, base: mode === 'add' ? new Set(selected) : new Set(), anchor: { row: top, day }, focus: { row: bottom, day } }))
+  }
+
   /* ---------- Pointer ---------- */
 
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
     if (event.button !== 0) return
     const pos = posFrom(event.target)
-    if (!canSelect(pos)) return
-    if (event.shiftKey) extendTo(pos)
-    else if (event.ctrlKey || event.metaKey) toggle(pos)
-    else selectOnly(pos)
+    if (!pos) return
+    const mode = modeOf(event)
+    if (headerRow && pos.row === headerRow) {
+      if (pos.day === null) { selectAll(); dragKind.current = 'all' } else { selectColumns(pos.day, mode); dragKind.current = 'columns' }
+    } else if (pos.day === null) {
+      if (!rowHasCells(pos.row)) return
+      selectRows(pos.row, mode)
+      dragKind.current = 'rows'
+    } else {
+      if (!canSelect(pos)) return
+      if (mode === 'extend') extendTo(pos)
+      else if (mode === 'add') toggle(pos)
+      else selectOnly(pos)
+      dragKind.current = 'cells'
+    }
     setDragging(true)
   }
 
@@ -202,8 +280,15 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
   const onPointerOver = (event: PointerEvent<HTMLElement>) => {
     if (!dragging) return
     const pos = posFrom(event.target)
-    if (!isCell(pos)) return
-    setState((s) => (s.focus && samePos(s.focus, pos) ? s : { ...s, anchor: s.anchor ?? pos, focus: pos }))
+    if (!pos) return
+    const kind = dragKind.current
+    if (kind === 'rows') {
+      if (pos.row !== headerRow && rowHasCells(pos.row)) selectRows(pos.row, 'extend')
+    } else if (kind === 'columns') {
+      if (pos.day !== null) selectColumns(pos.day, 'extend')
+    } else if (kind === 'cells' && isCell(pos)) {
+      setState((s) => (s.focus && samePos(s.focus, pos) ? s : { ...s, anchor: s.anchor ?? pos, focus: pos }))
+    }
   }
 
   /* ---------- Keyboard ---------- */
@@ -220,7 +305,7 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
       case 'ArrowDown': r = jump ? rows.length - 1 : r + 1; break
       case 'ArrowLeft': c = jump ? 1 : c - 1; break
       case 'ArrowRight': c = jump ? columns.length - 1 : c + 1; break
-      case 'Home': c = 1; if (jump) r = 0; break
+      case 'Home': c = 1; if (jump) r = headerRow ? 1 : 0; break
       case 'End': c = columns.length - 1; if (jump) r = rows.length - 1; break
       case 'PageUp': r -= 10; break
       case 'PageDown': r += 10; break
@@ -252,6 +337,24 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
     }
 
     if (mod && event.key.toLowerCase() === 'a') { handled(); selectAll(); return }
+
+    // Headers: Space or Enter selects the column, the row, or everything (the corner); Enter also opens the details
+    const onHeader = headerRow && pos.row === headerRow
+    if ((event.key === ' ' || event.key === 'Enter') && (onHeader || (pos.day === null && rowHasCells(pos.row)))) {
+      handled()
+      const mode = modeOf(event)
+      if (onHeader) {
+        if (pos.day === null) selectAll()
+        else selectColumns(pos.day, mode)
+      } else {
+        selectRows(pos.row, mode)
+      }
+      if (event.key === 'Enter') onActivate?.('keyboard')
+      return
+    }
+
+    // Ctrl/⌘+Space selects the active cell's column, as in a spreadsheet
+    if (event.key === ' ' && mod && isCell(pos)) { handled(); selectColumns(pos.day, 'replace'); return }
 
     if (event.key === ' ' && canSelect(pos)) {
       handled()
@@ -305,6 +408,9 @@ export function useGridSelection({ rows, days, isSelectable, preferredDay, onAct
     /** For cells spanning all days */
     isRowTabStop: (row: string) => tabStop?.row === row,
     edges,
+    /** Every selectable cell in this row (or day) is selected: highlight its header */
+    isRowSelected: (row: string) => group(row).every((key) => full.rowsFull.has(key) || !days.some((day) => isSelectable(key, day))) && group(row).some((key) => full.rowsFull.has(key)),
+    isColumnSelected: (day: number) => full.daysFull.has(day),
     /**
      * Spread on every focusable element in the grid. Mantine modals close on Escape from a window listener that runs
      * before the grid's; this attribute tells them the grid uses Escape right now.

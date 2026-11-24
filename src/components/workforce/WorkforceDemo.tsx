@@ -3,14 +3,13 @@ import { Button, Text, Transition } from '@mantine/core'
 import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
 import { DesktopDemoFrame } from '../schedule/ScheduleChrome'
-import { CoverageDrawer, EmployeeDetailsModal, type CoverageSelection } from '../schedule/ScheduleDetails'
+import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
 import { SortModal } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
-import type { EmployeeProfile } from '../schedule/profiles'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
 import { workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { watches, workforceProfile, workforceTeams, type Watch, type WatchId, type WorkforceMember, type WorkforceSort } from './data'
-import { buildGridModel, panelContent, type EmployeeFilter } from './model'
+import { watches, workforceTeams, type Watch, type WatchId, type WorkforceSort } from './data'
+import { HEADER_ROW, buildGridModel, panelContent, type EmployeeFilter } from './model'
 import { useGridSelection } from './useGridSelection'
 import WorkforceGrid from './WorkforceGrid'
 import WorkforcePanel from './WorkforcePanel'
@@ -49,7 +48,6 @@ export default function WorkforceDemo() {
   const [focusTick, setFocusTick] = useState(0)
   const [hint, setHint] = useState<string | null>(null)
   const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
-  const [profile, setProfile] = useState<EmployeeProfile | null>(null)
 
   const rangeDef = workforceRanges.find((item) => item.key === range)!
   const placeholder = !!rangeDef.placeholder
@@ -67,7 +65,9 @@ export default function WorkforceDemo() {
   }, [])
 
   const selection = useGridSelection({
-    rows: model.rowKeys,
+    rows: model.navRows,
+    headerRow: HEADER_ROW,
+    rowGroup: model.rowGroup,
     days: model.days,
     isSelectable: model.isSelectable,
     preferredDay: MOCK_TODAY,
@@ -99,7 +99,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setFilter('all'); setView('detailed'); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); setProfile(null); selection.reset()
+    setCoverage(null); selection.reset()
   }
 
   return (
@@ -150,7 +150,6 @@ export default function WorkforceDemo() {
               today={MOCK_TODAY}
               onToggleGroup={(id) => setCollapsed((set) => toggle(set, id))}
               onToggleStaffing={(id) => setStaffingCollapsed((set) => toggle(set, id))}
-              onMemberClick={(member: WorkforceMember) => setProfile(workforceProfile(member.id))}
               onCoverageClick={(watch: Watch, day: number) => setCoverage({ title: `${watch.title} watch`, day, coverage: watch.coverage(day) })}
             />
           )}
@@ -159,7 +158,6 @@ export default function WorkforceDemo() {
           {(style) => <WorkforcePanel style={style} content={content} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
         </Transition>
         <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} contained />
-        <EmployeeDetailsModal profile={profile} onClose={() => setProfile(null)} contained />
         <SortModal
           opened={sortOpen}
           value={{ field: sort, direction }}

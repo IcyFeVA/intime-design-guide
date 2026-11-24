@@ -27,7 +27,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Ranges**: 5 views: Day, One Week, Two Weeks, Three Weeks, One Month. **Day is a placeholder** (empty state "Day view is coming"); the stepper moves one day at a time.
 - **View density menu**: Detailed (active); Compact and Stacked disabled, marked "Coming soon". Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
 - **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Approvals (3), Posts (2), Mandate, Search and Undo render with tooltips and show a "Preview only" hint.
-- Clicking a name opens `EmployeeDetailsModal`; clicking a time-of-day cell opens `CoverageDrawer` (both `contained`, as in Team View).
+- ~~Clicking a name opens `EmployeeDetailsModal`~~ (replaced 2026-11-24: a name selects its row). Clicking a time-of-day cell opens `CoverageDrawer` (`contained`, as in Team View).
 
 ## Panel spec (from the panel screenshot)
 
@@ -222,6 +222,8 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - Open shifts are **not pinned** (2026-11-24, user): they are the first rows and scroll with the grid. Only the date row and the name column stay pinned.
 
+- Row and column selection (2026-11-24, user): a click on a name selects the person's row (all their lines, via `model.rowGroup`), a click on a date selects that day, the "Employee" corner selects everything, Open shifts selects all open shifts. Shift/Ctrl/drag extend or add, Space/Enter on a header select it, Ctrl/⌘+Space selects the active cell's day. The date row is part of keyboard navigation (`HEADER_ROW` first in `model.navRows`). Fully selected rows/days highlight their headers. **Names no longer open `EmployeeDetailsModal`**; `workforceProfile` stays in data.ts for when employee details come back (open question where: maybe the panel's chevron button).
+
 ## Later (out of scope now, keep room for them)
 
 - Compact and Stacked densities (override `--schedule-row-height` / `--schedule-chip-height` under `[data-view]`); 15 range × density combinations.
@@ -237,6 +239,7 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
 - Real values for Customer, Hours modifier and Rank (acting).
+- Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
 - Descriptions of the Compact and Stacked densities (`viewDensities` in `src/tokens/workforce.ts`) are placeholders.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
 - Should switching to the Day placeholder close the panel? (Today it stays open and shows "Select a cell".)
@@ -253,5 +256,5 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
   - Tab into the grid, then arrows, Shift+arrows, Home/End, Ctrl+A (page text not selected), Escape twice (focus returns to the cell; Full screen stays open).
   - Collapse a group that has selected cells: they drop out. Staffing collapsed shows "N days under".
   - Week → month keeps the selection; Next clears it. Day shows the placeholder. The density menu shows two disabled items.
-  - Time-of-day cell opens the drawer and a name opens the modal, both inside the frame. X and the toolbar toggle close the panel. Reset demo restores everything.
+  - Time-of-day cell opens the drawer inside the frame. A name selects its row, a date its day, the corner everything. X and the toolbar toggle close the panel. Reset demo restores everything.
   - Scroll month view right and down: the header, open row and names stay pinned.

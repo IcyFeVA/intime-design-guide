@@ -66,6 +66,32 @@
   box-shadow: inset 0 -2px 0 var(--workforce-header-active-text);
 }
 
+/* Headers select, as in a spreadsheet: a date selects its day, a name its row, the corner everything */
+.corner,
+.dayHeader,
+.label[data-row-header],
+.openLabel[data-row-header] {
+  cursor: pointer;
+}
+
+.corner:hover,
+.dayHeader:hover,
+.label[data-row-header]:hover,
+.openLabel[data-row-header]:hover {
+  background:
+    linear-gradient(var(--background-default-hover), var(--background-default-hover)),
+    var(--mantine-color-body);
+}
+
+/* Every cell in the day or row is selected */
+.dayHeader[data-selected] {
+  color: var(--workforce-header-active-text);
+  background:
+    linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg)),
+    var(--mantine-color-body);
+  box-shadow: inset 0 -2px 0 var(--workforce-header-active-text);
+}
+
 .dayHeader[data-density='mini'] {
   padding: 0;
 }
@@ -344,7 +370,9 @@
   transition: box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.label[data-active] {
+.label[data-active],
+.label[data-selected],
+.openLabel[data-selected] {
   background:
     linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg)),
     var(--mantine-color-body);
@@ -356,14 +384,7 @@
   align-items: center;
   gap: 8px;
   min-width: 0;
-  margin: -4px 0;
-  padding: 4px 6px;
-  border-radius: var(--mantine-radius-sm);
-  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.nameButton:hover {
-  background: var(--background-default-hover);
+  padding-inline: 6px;
 }
 
 .name {
@@ -375,7 +396,8 @@
   color: var(--text-default);
 }
 
-.label[data-active] .name {
+.label[data-active] .name,
+.label[data-selected] .name {
   color: var(--workforce-header-active-text);
 }
 
@@ -486,7 +508,6 @@
   .label,
   .toggle,
   .chevron,
-  .nameButton,
   .add {
     transition: none;
   }

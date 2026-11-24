@@ -23,6 +23,9 @@ const mouse: [string, string][] = [
   ['Click', 'Selects one cell and opens the details panel.'],
   ['Drag', 'Selects a block of cells. The panel opens when you let go.'],
   ['Shift-click', 'Selects everything between the active cell and the one you click.'],
+  ['Click a name', 'Selects the person’s whole row, including their extra row. Shift-click another name for every row in between, Ctrl-click (⌘-click) to add a row, or drag down the names.'],
+  ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
+  ['Click “Employee”', 'Selects every cell in view. Clicking Open shifts selects all open shifts.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
   ['Hover an empty cell', 'Shows a plus. Click to add an activity for that person and day.'],
 ]
@@ -36,7 +39,8 @@ const keyboard: { keys: string[]; action: string }[] = [
   { keys: ['mod+A'], action: 'Select every cell in view.' },
   { keys: ['Space'], action: 'Add the active cell to the selection, or take it out.' },
   { keys: ['shift+Space'], action: 'Select the whole row.' },
-  { keys: ['Enter'], action: 'Open the details panel and move focus into it.' },
+  { keys: ['mod+Space'], action: 'Select the whole day (column).' },
+  { keys: ['Enter'], action: 'Open the details panel and move focus into it. On a name or a date, select its row or day first (Space selects without opening).' },
   { keys: ['Escape'], action: 'With several cells selected, keep only the active one. Otherwise close the panel.' },
 ]
 
@@ -84,7 +88,7 @@ export default function WorkforceScheduling() {
     <>
       <PageHeader />
 
-      <Section id="desktop" title="Desktop" description="Select a cell to see its details on the right. Drag or Shift-click to select several, like in a spreadsheet. Select a time-of-day bar for that day’s coverage, or a name for the person’s details.">
+      <Section id="desktop" title="Desktop" description="Select a cell to see its details on the right. Drag or Shift-click to select several, like in a spreadsheet. Select a name or a date for a whole row or day. Select a time-of-day bar for that day’s coverage.">
         <div className="page-wide">
           <Preview flush title="Workforce Scheduling, desktop">
             <WorkforceDemo />
@@ -92,7 +96,7 @@ export default function WorkforceScheduling() {
         </div>
       </Section>
 
-      <Section id="selection" title="Selecting cells" description="People’s cells and open shifts can be selected. Coverage, staffing and group rows can’t. The active cell has a thick outline; its name and date are highlighted.">
+      <Section id="selection" title="Selecting cells" description="People’s cells and open shifts can be selected, one by one or a whole row or day at a time from the names and dates. Coverage, staffing and group rows can’t. The active cell has a thick outline; its name and date are highlighted, and so are the headers of fully selected rows and days.">
         <Text size="sm" fw={600} mb="xs">Mouse</Text>
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
@@ -170,7 +174,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Open shifts</strong> are the first rows under the dates and scroll with the grid. A shift nobody holds yet has a dashed outline and no fill, with an icon and a label: Open, or Live once it is posted to employees. Two weeks and longer show the icon and code only.</Text>
           <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch.</Text>
           <Text size="sm"><strong>Staffing</strong> uses Team View’s coverage rows: Bodies, Supervisors, Hours and Time of day. Collapsed, it says how many days in the range are below target.</Text>
-          <Text size="sm"><strong>Names</strong> show the rank for corporals and up, and a shield for supervisors. Select a name for the person’s details.</Text>
+          <Text size="sm"><strong>Names</strong> show the rank for corporals and up, and a shield for supervisors.</Text>
         </Stack>
       </Section>
 
@@ -305,7 +309,6 @@ export default function WorkforceScheduling() {
           { prop: 'selection', type: 'GridSelection', description: 'From useGridSelection({ rows: model.rowKeys, days: model.days, isSelectable: model.isSelectable }).' },
           { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. Set as data-view on the grid; only detailed is styled yet.' },
           { prop: 'onToggleGroup / onToggleStaffing', type: '(watch) => void', description: 'Collapse or expand a watch or its staffing rows.' },
-          { prop: 'onMemberClick', type: '(member) => void', description: 'A name was selected. The demo opens EmployeeDetailsModal.' },
           { prop: 'onCoverageClick', type: '(watch, day) => void', description: 'A time-of-day bar was selected. The demo opens CoverageDrawer.' },
         ]} />
         <Text size="sm" fw={600} mb="xs" mt="lg">useGridSelection</Text>
@@ -313,6 +316,8 @@ export default function WorkforceScheduling() {
           { prop: 'rows / days', type: 'string[] / number[]', description: 'Rendered row keys and visible days. When they change, cells that are no longer visible are dropped.' },
           { prop: 'isSelectable', type: '(row, day) => boolean', description: 'Which cells can be selected.' },
           { prop: 'preferredDay', type: 'number', description: 'Column of the first tab stop, e.g. today.' },
+          { prop: 'headerRow', type: 'string', description: 'Key of the date row (first in rows). Its cells select a day; the corner selects everything. The grid passes model.navRows and HEADER_ROW.' },
+          { prop: 'rowGroup', type: '(row) => string[]', description: 'Rows that make up one person (their extra lines) or all open shifts. A row header selects the whole group. Use model.rowGroup.' },
           { prop: 'onActivate', type: "(via: 'pointer' | 'keyboard') => void", description: 'A click, drag or Enter ended on a cell. Open the panel here.' },
           { prop: 'onEscape', type: '() => boolean', description: 'Escape with one cell selected. Return true if it closed something.' },
         ]} />

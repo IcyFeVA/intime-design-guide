@@ -7,8 +7,8 @@ import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
 import { fitColumns, type CellLayout, type ViewDensity } from '../../tokens/workforce'
 import OpenShiftChip from './OpenShiftChip'
-import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId, type WorkforceMember } from './data'
-import { staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
+import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
+import { HEADER_ROW, staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
 
@@ -22,7 +22,6 @@ export interface WorkforceGridProps {
   today: number
   onToggleGroup: (watch: WatchId) => void
   onToggleStaffing: (watch: WatchId) => void
-  onMemberClick: (member: WorkforceMember) => void
   onCoverageClick: (watch: Watch, day: number) => void
 }
 
@@ -160,7 +159,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onMemberClick, onCoverageClick,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick,
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
@@ -201,7 +200,7 @@ export default function WorkforceGrid({
       case 'open':
         return (
           <div role="row" className={`${classes.row} ${classes.openRow}`} data-last={row.line === row.lines - 1 || undefined} key={row.key}>
-            <div role="rowheader" className={classes.openLabel} data-row={row.key} data-day="label" {...esc} tabIndex={selection.isTabStop(row.key, null) ? 0 : -1}>
+            <div role="rowheader" className={classes.openLabel} data-row-header="" data-selected={selection.isRowSelected(row.key) || undefined} data-row={row.key} data-day="label" {...esc} tabIndex={selection.isTabStop(row.key, null) ? 0 : -1}>
               {row.line === 0 ? (
                 <>
                   <Megaphone size={16} strokeWidth={1.75} aria-hidden="true" />
@@ -290,20 +289,23 @@ export default function WorkforceGrid({
         const { member } = row
         const name = shortName(member)
         const rowActive = active?.row === row.key && activeDay !== null
+        const rowSelected = selection.isRowSelected(row.key)
         return (
           <div role="row" className={classes.row} key={row.key}>
             {row.line === 0 ? (
-              <div role="rowheader" className={classes.label} data-active={rowActive || undefined}>
-                <UnstyledButton
-                  className={classes.nameButton}
-                  data-row={row.key}
-                  data-day="label"
-                  {...esc}
-                  tabIndex={selection.isTabStop(row.key, null) ? 0 : -1}
-                  onClick={() => onMemberClick(member)}
-                  aria-haspopup="dialog"
-                  aria-label={`${name}, ${rankLabels[member.rank]}${member.supervisor ? ', supervisor' : ''}. Show details`}
-                >
+              <div
+                role="rowheader"
+                className={classes.label}
+                data-row-header=""
+                data-active={rowActive || undefined}
+                data-selected={rowSelected || undefined}
+                data-row={row.key}
+                data-day="label"
+                {...esc}
+                tabIndex={selection.isTabStop(row.key, null) ? 0 : -1}
+                aria-label={`${name}, ${rankLabels[member.rank]}${member.supervisor ? ', supervisor' : ''}`}
+              >
+                <span className={classes.nameButton}>
                   <span className={classes.name}>{name}</span>
                   {member.rank !== 'PO' && <Badge size="xs" radius="xs" variant="default" className={classes.rank} aria-hidden="true">{member.rank}</Badge>}
                   {member.supervisor && (
@@ -311,14 +313,16 @@ export default function WorkforceGrid({
                       <ShieldCheck size={15} strokeWidth={1.75} className={classes.supervisor} aria-hidden="true" />
                     </Tooltip>
                   )}
-                </UnstyledButton>
+                </span>
               </div>
             ) : (
               <div
                 role="rowheader"
                 className={classes.label}
                 data-overflow=""
+                data-row-header=""
                 data-active={rowActive || undefined}
+                data-selected={rowSelected || undefined}
                 data-row={row.key}
                 data-day="label"
                 {...esc}
@@ -355,7 +359,17 @@ export default function WorkforceGrid({
         data-dragging={selection.dragging || undefined}
       >
         <div role="row" className={classes.row}>
-          <div role="columnheader" className={classes.corner}>Employee</div>
+          <div
+            role="columnheader"
+            className={classes.corner}
+            data-row={HEADER_ROW}
+            data-day="label"
+            {...esc}
+            tabIndex={selection.isTabStop(HEADER_ROW, null) ? 0 : -1}
+            aria-label="Employee. Select all"
+          >
+            Employee
+          </div>
           {days.map((day) => (
             <div
               role="columnheader"
@@ -363,6 +377,11 @@ export default function WorkforceGrid({
               className={classes.dayHeader}
               data-today={day === today || undefined}
               data-active={day === activeDay || undefined}
+              data-selected={selection.isColumnSelected(day) || undefined}
+              data-row={HEADER_ROW}
+              data-day={day}
+              {...esc}
+              tabIndex={selection.isTabStop(HEADER_ROW, day) ? 0 : -1}
               data-density={density}
               aria-label={`${formatFullDate(day)}${day === today ? ', today' : ''}`}
               title={compact ? formatFullDate(day) : undefined}

@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Names and dates now select, as in a spreadsheet: a name selects the person’s row, a date the whole day, and “Employee” everything. Names no longer open the employee details.',
+    changes: [
+      'Shift-click, Ctrl/⌘-click and dragging along names or dates select several rows or days.',
+      'Space or Enter on a name or date selects it; Ctrl/⌘+Space selects the active cell’s day.',
+      'Headers of fully selected rows and days are highlighted.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Tue, Jun 2 now has three open shifts in the demo: Swing Patrol (open), Day Patrol (live) and Night Patrol (open, 2 needed).',
   },
   {
