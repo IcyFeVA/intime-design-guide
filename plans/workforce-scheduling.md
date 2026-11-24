@@ -231,18 +231,18 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] **Detailed** = `DetailedChip`: each assignment's activity name (`shiftCodeMap` label) and times, as in the calendar month cells. `chipParts(chip)` (`schedule/data.ts`) splits a cell into parts in time order; a partly-overtime segment becomes the regular part plus an overtime part for its last `PARTIAL_OVERTIME_HOURS` (2). Overtime parts are red (`--schedule-overtime`) with the Clock + OT tag (user: red, not the activity color). Leave covering 24h says "All day".
 - [x] One part: two lines (name + tags, times). Two or more parts: one-line bordered containers stacked (name, times, tags). Containers aren't clickable; the cell is the target.
 - [x] A separate assignment on the same day still goes to the extra line (user: keep the extra line), not into the same cell.
-- [x] Detailed only where the column is Full (≥ 96px, `showsDetailed`); narrower days show Compact cells (user: fall back). Scroller gets `data-cells="detailed"`, which sets `--workforce-detailed-chip-height` 44px / `--workforce-detailed-row-height` 56px and taller open-shift rows.
+- [x] Detailed only where the column is Full (≥ 96px, `showsDetailed`, now `cellViewFor`); narrower days show Compact cells (user: fall back). Scroller gets `data-cells="detailed"`, which sets `--workforce-detailed-chip-height` 44px / `--workforce-detailed-row-height` 56px and taller open-shift rows.
 - [x] Container queries on `.detailed` (its width ≈ day column − 15px): < 190px stacked lines show codes and tag icons only; < 150px single parts' tags icon only; < 135px stacked lines tighter with 11px times; < 125px stacked lines show hours only ("08–12", `formatHours(…, true)`); < 100px (columns just above 96px) everything tighter. Open chips (`open-chip` container): name hides < 130px, 11px times < 85px. Fixed after review (2026-11-24): codes, the OT icon and times were clipped at 96–120px columns.
 - [x] Three assignments in one cell (2026-11-24, user): K. Brennan Thu Jun 4 (C-AM, PatD 12–17, ExP OT) and P. Fitzgerald Tue Jun 2 (Train 08–11, C-PM, PatS 16–22 partly overtime → four containers). The row grows to fit. In the Compact view, Full-layout cells show all codes side by side and Compact-layout cells show two and "…".
 - [x] Open shifts in Detailed: icon, Open/Live, activity name over the times (`OpenShiftChip density="detailed"`).
 - [x] Page: "Detailed cells" specimens and notes in `views`; tokens; guideline; changelog.
-- [x] **Stacked** density (2026-11-24, user): `StackedChip`, the same parts as Detailed (`chipParts`) as plain bars, no text, tags or icons. Each bar 16px (`--workforce-stacked-chip-height`), gap 2px; one-bar rows 28px (`--workforce-stacked-row-height`); more bars make the row taller. Separate same-day assignments stay on the extra line (user). Applies at every width, month included (user; `cellViewFor`). Open shifts keep the Open/Live icon (user). Cancelled = a bar across, as Mini. Kinds show by color and stripes only, no OT/OU marks (confirmed by user, 2026-11-24). In Stacked the name column has no vertical padding and the cells 5px, so rows stay 28px.
+- [x] **Stacked** density (2026-11-24, user): `StackedChip`, the same parts as Detailed (`chipParts`) as plain bars, no text, tags or icons. Each bar 16px (`--workforce-stacked-chip-height`), gap 2px; one-bar rows 28px (`--workforce-stacked-row-height`); more bars make the row taller. Separate same-day assignments stay on the extra line (user). Applies at every width, month included (user; `cellViewFor`). Open shifts keep the Open/Live icon (user). Cancelled = a bar across, as Mini. Kinds show by color and stripes only, no OT/OU marks (confirmed by user, 2026-11-24). Every bar stays 16px, so two bars make a 45px row; most month rows end up 45px (confirmed by user, 2026-11-24). In Stacked the name column has no vertical padding and the cells 5px, so rows stay 28px.
 
 ## Later (out of scope now, keep room for them)
 
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Day range for all three densities.
-- Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`showsDetailed`) but the demo doesn't.
+- Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
@@ -256,7 +256,6 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
-- Description of the Stacked density (`viewDensities` in `src/tokens/workforce.ts`) is a placeholder.
 - Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
 - How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
@@ -273,6 +272,6 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
   - Shift+click, Ctrl+click and a drag rectangle (`mouse.down/move/up`): `bulk` mode, panel opens only on mouse up.
   - Tab into the grid, then arrows, Shift+arrows, Home/End, Ctrl+A (page text not selected), Escape twice (focus returns to the cell; Full screen stays open).
   - Collapse a group that has selected cells: they drop out. Staffing collapsed shows "N days under".
-  - Week → month keeps the selection; Next clears it. Day shows the placeholder. The density menu shows two disabled items.
+  - Week → month keeps the selection; Next clears it. Day shows the placeholder. The density menu offers Compact (default), Detailed and Stacked.
   - Time-of-day cell opens the drawer inside the frame. A name selects its row, a date its day; the corner selects nothing. X and the toolbar toggle close the panel. Reset demo restores everything.
   - Scroll month view right and down: the header, open row and names stay pinned.

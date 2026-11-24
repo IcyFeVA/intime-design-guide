@@ -9,7 +9,7 @@ import { employeeFilters, type EmployeeFilter } from './model'
 import { workforceTeams } from './data'
 import classes from './Workforce.module.css'
 
-/** View density: Compact (the default) and Detailed; Stacked is listed but not built yet. */
+/** View density: Compact (the default), Detailed and Stacked. */
 export function DensityMenu({ value, onChange }: { value: ViewDensity; onChange: (value: ViewDensity) => void }) {
   const current = viewDensities.find((item) => item.key === value)!
   return (
