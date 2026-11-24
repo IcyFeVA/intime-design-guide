@@ -1,8 +1,7 @@
 import type { CSSProperties } from 'react'
-import { Text, Tooltip, UnstyledButton } from '@mantine/core'
+import { UnstyledButton } from '@mantine/core'
 import { ArrowUpRight, Clock3 } from 'lucide-react'
-import { shiftCodeMap } from '../../tokens/schedule'
-import { chipFills, chipHasOvertime, describeChip, formatHour, segmentHours, type Chip } from './data'
+import { chipFills, chipHasOvertime, describeChip, type Chip } from './data'
 import classes from './Schedule.module.css'
 
 export type ChipDensity = 'comfortable' | 'compact' | 'strip'
@@ -36,36 +35,13 @@ function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons'
   )
 }
 
-function TooltipBody({ chip, context }: { chip: Chip; context?: string }) {
-  return (
-    <div>
-      {context && <Text size="xs" fw={600} mb={4}>{context}</Text>}
-      {chip.segments.map((segment, index) => {
-        const { start, end } = segmentHours(segment)
-        return (
-          <Text size="xs" key={index} td={segment.cancelled ? 'line-through' : undefined}>
-            {segment.label && <>{segment.label} · </>}
-            <span className="tabular">{formatHour(start)}–{formatHour(end)}</span> · {shiftCodeMap[segment.code]?.label ?? segment.code}
-            {segment.overtime === 'full' && ' · overtime'}
-            {segment.overtime === 'partial' && ' · partly overtime'}
-            {segment.cancelled && ' · cancelled'}
-          </Text>
-        )
-      })}
-      {chip.partialKind && <Text size="xs" mt={4}>Part of the shift is {chip.partialKind}</Text>}
-      {chip.outOfUnit && <Text size="xs" mt={4}>Working out of unit</Text>}
-    </div>
-  )
-}
-
 /** One cell in the schedule grid: one or more assignments, filled by kind, with OT and OU tags. */
 export default function ShiftChip({ chip, density = 'comfortable', context, onClick }: ShiftChipProps) {
   const overtime = chipHasOvertime(chip)
   const visible = density === 'compact' ? chip.segments.slice(0, 2) : chip.segments
   const cancelled = chip.segments.every((segment) => segment.cancelled)
   return (
-    <Tooltip label={<TooltipBody chip={chip} context={context} />} multiline w={260} position="top">
-      <UnstyledButton
+    <UnstyledButton
         className={classes.chip}
         data-density={density}
         data-out-of-unit={chip.outOfUnit || undefined}
@@ -83,7 +59,6 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
         ))}
         {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}
         <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'strip' ? 'single' : 'full'} />
-      </UnstyledButton>
-    </Tooltip>
+    </UnstyledButton>
   )
 }

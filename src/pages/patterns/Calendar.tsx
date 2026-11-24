@@ -49,7 +49,7 @@ function DesktopDemo() {
     >
       <DesktopDemoFrame
         title="Calendar"
-        nav={{ roles: ['employee', 'scheduler'], defaultRole: 'employee', defaultActive: 'calendar' }}
+        nav={{ roles: ['employee', 'scheduler'], defaultRole: 'employee', defaultActive: 'calendar', withTooltips: false }}
         actions={<AddMenu onPick={() => addTask(MOCK_TODAY)}><Button leftSection={<Plus size={18} />}>Add</Button></AddMenu>}
         status={hint ?? STATUS}
         onReset={reset}

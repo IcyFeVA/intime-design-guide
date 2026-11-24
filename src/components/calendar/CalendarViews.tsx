@@ -1,5 +1,5 @@
 import { Fragment, useState, type CSSProperties, type ReactNode } from 'react'
-import { ActionIcon, Menu, Popover, Stack, Text, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { ActionIcon, Menu, Popover, Stack, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { AlarmClock, Plus, StickyNote } from 'lucide-react'
 import { dayNumber, formatMonthDay, formatWeekday } from '../schedule/data'
 import { calendarAddItems, calendarEventKinds, calendarModifiers, type CalendarAddItem } from '../../tokens/calendar'
@@ -91,11 +91,9 @@ function AddButton({ day, onAdd }: { day: number; onAdd: (day: number) => void }
   const label = `Add on ${formatShortDate(day)}`
   return (
     <AddMenu onPick={() => onAdd(day)}>
-      <Tooltip label={label}>
-        <ActionIcon className={classes.add} size={24} variant="filled" color="intime" aria-label={label}>
-          <Plus size={16} />
-        </ActionIcon>
-      </Tooltip>
+      <ActionIcon className={classes.add} size={24} variant="filled" color="intime" aria-label={label}>
+        <Plus size={16} />
+      </ActionIcon>
     </AddMenu>
   )
 }

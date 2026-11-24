@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
-import { ActionIcon, Button, Menu, Tooltip } from '@mantine/core'
+import { ActionIcon, Button, Menu } from '@mantine/core'
 import { Calendar1, CalendarCog, CalendarDays, Check, ChevronLeft, ChevronRight, Map as MapIcon } from 'lucide-react'
 import { calendarViews, type CalendarView } from '../../tokens/calendar'
 import { MOCK_TODAY } from '../schedule/data'
@@ -28,9 +28,7 @@ export function CalendarStepper({ view, anchor, onAnchorChange, compact }: {
   const size = compact ? 38 : 36
   return (
     <>
-      <Tooltip label={`Previous ${unit}`}>
-        <ActionIcon variant="default" size={size} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, -1))}><ChevronLeft size={18} /></ActionIcon>
-      </Tooltip>
+      <ActionIcon variant="default" size={size} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, -1))}><ChevronLeft size={18} /></ActionIcon>
       <PeriodPicker
         mode={pickerMode[view]}
         anchor={anchor}
@@ -42,13 +40,9 @@ export function CalendarStepper({ view, anchor, onAnchorChange, compact }: {
           </Button>
         }
       />
-      <Tooltip label={`Next ${unit}`}>
-        <ActionIcon variant="default" size={size} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, 1))}><ChevronRight size={18} /></ActionIcon>
-      </Tooltip>
+      <ActionIcon variant="default" size={size} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => stepView(view, value, 1))}><ChevronRight size={18} /></ActionIcon>
       {compact ? (
-        <Tooltip label="Today">
-          <ActionIcon variant="default" size={size} aria-label="Today" onClick={() => onAnchorChange(MOCK_TODAY)}><Calendar1 size={18} /></ActionIcon>
-        </Tooltip>
+        <ActionIcon variant="default" size={size} aria-label="Today" onClick={() => onAnchorChange(MOCK_TODAY)}><Calendar1 size={18} /></ActionIcon>
       ) : (
         <Button variant="default" size="sm" fw={400} onClick={() => onAnchorChange(MOCK_TODAY)}>Today</Button>
       )}
@@ -61,7 +55,7 @@ export function CalendarViewMenu({ view, onChange }: { view: CalendarView; onCha
   return (
     <Menu position="bottom-start" offset={4} withinPortal={false}>
       <Menu.Target>
-        <Tooltip label="View"><ActionIcon variant="default" size={38} aria-label={`View: ${calendarViews.find((item) => item.key === view)?.label}`}><CalendarCog size={18} /></ActionIcon></Tooltip>
+        <ActionIcon variant="default" size={38} aria-label={`View: ${calendarViews.find((item) => item.key === view)?.label}`}><CalendarCog size={18} /></ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>View</Menu.Label>
@@ -76,8 +70,7 @@ export function CalendarViewMenu({ view, onChange }: { view: CalendarView; onCha
 /** Map button. Pass `pressed` to use it as a toggle (the phone uses it to show and hide the legend). */
 export function MapButton({ onClick, size = 36, pressed, label = 'Show on map' }: { onClick: () => void; size?: number; pressed?: boolean; label?: string }) {
   return (
-    <Tooltip label={label}>
-      <ActionIcon
+    <ActionIcon
         variant={pressed ? 'light' : 'default'}
         color={pressed ? 'intime' : undefined}
         size={size}
@@ -86,7 +79,6 @@ export function MapButton({ onClick, size = 36, pressed, label = 'Show on map' }
         onClick={onClick}
       >
         <MapIcon size={18} aria-hidden="true" />
-      </ActionIcon>
-    </Tooltip>
+    </ActionIcon>
   )
 }

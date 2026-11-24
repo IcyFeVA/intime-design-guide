@@ -1,5 +1,5 @@
 import { useRef, type CSSProperties, type PointerEvent } from 'react'
-import { Text, Tooltip, UnstyledButton } from '@mantine/core'
+import { Text, UnstyledButton } from '@mantine/core'
 import { Clock3 } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
@@ -147,8 +147,8 @@ function DayView({ sections, daySections, days, today, onRowClick, onCoverageCli
                     const name = shiftCodeMap[segment.code]?.label ?? segment.code
                     const label = `${name}, ${formatHour(start)}–${formatHour(end)}${segment.overtime ? ', overtime' : ''}${chip.partialKind ? `, partly ${chip.partialKind}` : ''}${segment.cancelled ? ', cancelled' : ''}${chip.outOfUnit ? ', out of unit' : ''}`
                     return (
-                      <Tooltip label={`${row.name}: ${label}`} key={`${chipIndex}-${index}`}>
-                        <UnstyledButton
+                      <UnstyledButton
+                          key={`${chipIndex}-${index}`}
                           className={classes.bar}
                           data-out-of-unit={chip.outOfUnit || undefined}
                           data-cancelled={segment.cancelled || undefined}
@@ -165,7 +165,6 @@ function DayView({ sections, daySections, days, today, onRowClick, onCoverageCli
                           <span className={classes.barLabel}>{name}</span>
                           {segment.overtime && <Clock3 className={classes.barIcon} size={13} strokeWidth={2} aria-hidden="true" />}
                         </UnstyledButton>
-                      </Tooltip>
                     )
                   }))}
                 </div>

@@ -26,11 +26,13 @@ export interface AppNavProps {
   /** Position over the page instead of in the flow. Set when expanded and not pinned. */
   floating?: boolean
   height?: number | string
+  /** Show tooltips on the collapsed rail and the collapse and pin buttons. Default true. */
+  withTooltips?: boolean
 }
 
 const itemLabel = (item: NavItemDef) => (item.count ? `${item.label}, ${item.count} pending` : item.label)
 
-function NavItem({ item, collapsed, active, onSelect }: { item: NavItemDef; collapsed: boolean; active: boolean; onSelect: () => void }) {
+function NavItem({ item, collapsed, active, onSelect, withTooltips }: { item: NavItemDef; collapsed: boolean; active: boolean; onSelect: () => void; withTooltips: boolean }) {
   const Icon = item.icon
   const icon = <Icon size={20} strokeWidth={1.75} aria-hidden="true" />
   const link = (
@@ -51,7 +53,7 @@ function NavItem({ item, collapsed, active, onSelect }: { item: NavItemDef; coll
   )
   return (
     <>
-      <Tooltip label={itemLabel(item)} position="right" disabled={!collapsed}>{link}</Tooltip>
+      <Tooltip label={itemLabel(item)} position="right" disabled={!collapsed || !withTooltips}>{link}</Tooltip>
       {item.dividerAfter && <Divider className={classes.divider} />}
     </>
   )
@@ -63,8 +65,9 @@ interface SwitcherOption {
   description?: string
 }
 
-function Switcher({ collapsed, icon, tooltip, options, value, onChange, children, label }: {
+function Switcher({ collapsed, icon, tooltip, options, value, onChange, children, label, withTooltips }: {
   collapsed: boolean
+  withTooltips: boolean
   icon: ReactNode
   tooltip: string
   options: SwitcherOption[]
@@ -76,7 +79,7 @@ function Switcher({ collapsed, icon, tooltip, options, value, onChange, children
   return (
     <Menu position={collapsed ? 'right-start' : 'bottom-start'} width={collapsed ? 280 : 'target'} offset={4} classNames={{ dropdown: classes.menuDropdown, item: classes.menuItem }}>
       <Menu.Target>
-        <Tooltip label={tooltip} position="right" disabled={!collapsed}>
+        <Tooltip label={tooltip} position="right" disabled={!collapsed || !withTooltips}>
           <UnstyledButton className={classes.switcher} aria-label={collapsed ? tooltip : label}>
             {icon}
             {!collapsed && children}
@@ -111,7 +114,7 @@ function Switcher({ collapsed, icon, tooltip, options, value, onChange, children
  * Collapses to an icon rail with tooltips, and can be pinned in the flow or float over the page.
  */
 export default function AppNav(props: AppNavProps) {
-  const { roles, floating = false, height } = props
+  const { roles, floating = false, height, withTooltips = true } = props
   const [role, setRole] = useUncontrolled({ value: props.role, defaultValue: props.defaultRole, finalValue: roles[0], onChange: props.onRoleChange })
   const [expanded, setExpanded] = useUncontrolled({ value: props.expanded, defaultValue: props.defaultExpanded, finalValue: true, onChange: props.onExpandedChange })
   const [pinned, setPinned] = useUncontrolled({ value: props.pinned, defaultValue: props.defaultPinned, finalValue: true, onChange: props.onPinnedChange })
@@ -140,7 +143,7 @@ export default function AppNav(props: AppNavProps) {
       }}
     >
       <div className={classes.header}>
-        <Tooltip label={collapsed ? 'Expand navigation' : 'Collapse navigation'} position="right">
+        <Tooltip label={collapsed ? 'Expand navigation' : 'Collapse navigation'} position="right" disabled={!withTooltips}>
           <ActionIcon
             variant="transparent"
             size={36}
@@ -160,7 +163,7 @@ export default function AppNav(props: AppNavProps) {
               aria-label="Search"
               leftSection={<Search size={18} strokeWidth={1.75} aria-hidden="true" />}
             />
-            <Tooltip label={pinned ? 'Unpin navigation' : 'Pin navigation'}>
+            <Tooltip label={pinned ? 'Unpin navigation' : 'Pin navigation'} disabled={!withTooltips}>
               <ActionIcon
                 variant="transparent"
                 size={36}
@@ -181,6 +184,7 @@ export default function AppNav(props: AppNavProps) {
           {heldRoles.length > 1 && (
             <Switcher
               collapsed={collapsed}
+              withTooltips={withTooltips}
               icon={<ArrowLeftRight size={18} strokeWidth={1.75} aria-hidden="true" />}
               tooltip={`Acting as ${roleLabel}`}
               label={`Acting as ${roleLabel}. Change role`}
@@ -196,6 +200,7 @@ export default function AppNav(props: AppNavProps) {
           )}
           <Switcher
             collapsed={collapsed}
+            withTooltips={withTooltips}
             icon={<Network size={18} strokeWidth={1.75} aria-hidden="true" />}
             tooltip={unit}
             label={`Unit: ${unit}. Change unit`}
@@ -210,7 +215,7 @@ export default function AppNav(props: AppNavProps) {
         </div>
         <div className={classes.list}>
           {items.map((item) => (
-            <NavItem key={item.key} item={item} collapsed={collapsed} active={item.key === activeKey} onSelect={() => setActive(item.key)} />
+            <NavItem key={item.key} item={item} collapsed={collapsed} active={item.key === activeKey} onSelect={() => setActive(item.key)} withTooltips={withTooltips} />
           ))}
         </div>
       </ScrollArea>

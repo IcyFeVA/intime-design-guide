@@ -106,6 +106,7 @@ function DesktopDemo() {
     >
       <DesktopDemoFrame
         view="unit"
+        nav={{ withTooltips: false }}
         status={hint ?? 'Preview only. “Today” is Friday, June 5, 2026 in this demo.'}
         onReset={reset}
         toolbar={
@@ -289,7 +290,7 @@ export default function TeamView() {
       <Section id="desktop" title="Desktop" description="Members down the side, days across. Pick a team and a range, then step through time. Names and the date row stay in place while the grid scrolls.">
         <div className="page-wide"><DesktopDemo /></div>
         <Stack gap="xs" mt="md">
-          <Text size="sm">Hover or focus a cell to see times, full names of the codes and any tags. Each team starts with its coverage.</Text>
+          <Text size="sm">Select a cell to see the day’s details: times, full names of the codes and any tags. Each team starts with its coverage.</Text>
           <Text size="sm">Some members have an extra row without a name, on a lighter background. It holds assignments outside their block’s hours. See <Anchor component={Link} to="/patterns/team-view?section=extra-rows" size="sm">Extra rows</Anchor>.</Text>
           <Text size="sm">Select a time-of-day cell for that day’s coverage hour by hour, or a name for the employee’s details.</Text>
         </Stack>
@@ -318,7 +319,7 @@ export default function TeamView() {
         </Stack>
       </Section>
 
-      <Section id="cells" title="Shift cells" description="A cell holds one or more assignments for one day. The fill says what kind of time it is; tags and lines add the rest. Never rely on color alone: the code, the OT and OU tags and the tooltip carry the meaning too.">
+      <Section id="cells" title="Shift cells" description="A cell holds one or more assignments for one day. The fill says what kind of time it is; tags and lines add the rest. Never rely on color alone: the code, the OT and OU tags and the accessible name carry the meaning too.">
         <CellSpecimens />
       </Section>
 
@@ -480,7 +481,7 @@ export default function TeamView() {
           doItems={[
             'Keep names and the date row pinned while the grid scrolls.',
             'Show initials next to names, so two people with the same surname can be told apart.',
-            'Pair every fill with a code or a tag, and give each cell a tooltip and an accessible name.',
+            'Pair every fill with a code or a tag, and give each cell an accessible name.',
             'Put coverage directly above the team it describes.',
             'Put assignments outside the block’s hours in the extra row, and keep the block on its own in the main row.',
             'Open details over the schedule, so closing them returns the user to the same place.',

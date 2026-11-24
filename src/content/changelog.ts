@@ -10,6 +10,11 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-24',
+    page: null,
+    summary: 'Removed tooltips from the Team View, Location View and Calendar demos: shift cells, toolbar buttons, the phone controls and the navigation rail.',
+  },
+  {
     date: '2026-11-23',
     page: '/patterns/approvals',
     summary: 'On a phone, Configure visibility and Sort now open full screen below the status bar, with Cancel and Apply at the bottom.',

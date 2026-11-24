@@ -62,6 +62,7 @@ function DesktopDemo() {
     >
       <DesktopDemoFrame
         view="location"
+        nav={{ withTooltips: false }}
         status={hint ?? 'Preview only. “Today” is Friday, June 5, 2026 in this demo.'}
         onReset={reset}
         toolbar={

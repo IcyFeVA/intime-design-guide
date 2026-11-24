@@ -1,7 +1,7 @@
 import { useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router'
 import {
-  ActionIcon, Button, Group, Indicator, Menu, Modal, SegmentedControl, Stack, Text, TextInput, Tooltip, UnstyledButton,
+  ActionIcon, Button, Group, Indicator, Menu, Modal, SegmentedControl, Stack, Text, TextInput, UnstyledButton,
 } from '@mantine/core'
 import {
   BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
@@ -82,7 +82,7 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   /** Right side of the title row, e.g. an Add button */
   actions?: ReactNode
   /** Navigation setup. Defaults to a scheduler on Team View. */
-  nav?: Pick<AppNavProps, 'roles' | 'defaultRole' | 'defaultActive'>
+  nav?: Partial<Pick<AppNavProps, 'roles' | 'defaultRole' | 'defaultActive' | 'withTooltips'>>
   status: ReactNode
   onReset: () => void
   toolbar: ReactNode
@@ -143,9 +143,7 @@ export function RangeStepper({ range, days, anchor, onAnchorChange }: {
   const unit = range === 'month' ? 'month' : 'range'
   return (
     <>
-      <Tooltip label={`Previous ${unit}`}>
-        <ActionIcon variant="default" size={36} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, -1))}><ChevronLeft size={18} /></ActionIcon>
-      </Tooltip>
+      <ActionIcon variant="default" size={36} aria-label={`Previous ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, -1))}><ChevronLeft size={18} /></ActionIcon>
       <PeriodPicker
         mode={range === 'month' ? { kind: 'month' } : { kind: 'block', length: days.length, align: 'week' }}
         anchor={anchor}
@@ -156,9 +154,7 @@ export function RangeStepper({ range, days, anchor, onAnchorChange }: {
           </Button>
         }
       />
-      <Tooltip label={`Next ${unit}`}>
-        <ActionIcon variant="default" size={36} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, 1))}><ChevronRight size={18} /></ActionIcon>
-      </Tooltip>
+      <ActionIcon variant="default" size={36} aria-label={`Next ${unit}`} onClick={() => onAnchorChange((value) => shiftRange(range, value, 1))}><ChevronRight size={18} /></ActionIcon>
       <Button variant="default" size="sm" fw={400} onClick={() => onAnchorChange(MOCK_TODAY)}>Today</Button>
     </>
   )
@@ -216,13 +212,11 @@ export function MobileDemoFrame({ view, status, onReset, onStep, mode, onModeCha
                   onChange={(value) => onModeChange(value as 'week' | 'day')}
                   aria-label="View"
                   data={[
-                    { value: 'week', label: <Tooltip label="Week"><span className={classes.segmentIcon}><List size={18} aria-label="Week" /></span></Tooltip> },
-                    { value: 'day', label: <Tooltip label="Day"><span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span></Tooltip> },
+                    { value: 'week', label: <span className={classes.segmentIcon}><List size={18} aria-label="Week" /></span> },
+                    { value: 'day', label: <span className={classes.segmentIcon}><Logs size={18} aria-label="Day" /></span> },
                   ]}
                 />
-                <Tooltip label="Filters">
-                  <ActionIcon variant="default" size={38} aria-label="Filters" aria-haspopup="dialog" onClick={onFilters}><SlidersHorizontal size={18} /></ActionIcon>
-                </Tooltip>
+                <ActionIcon variant="default" size={38} aria-label="Filters" aria-haspopup="dialog" onClick={onFilters}><SlidersHorizontal size={18} /></ActionIcon>
               </Group>
             </Group>
           </div>

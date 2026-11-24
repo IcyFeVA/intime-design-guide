@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import {
-  ActionIcon, Alert, Anchor, Badge, Button, Checkbox, Group, Modal, SegmentedControl, Select, SimpleGrid, Stack, Text, TextInput, Textarea, Tooltip, UnstyledButton,
+  ActionIcon, Alert, Anchor, Badge, Button, Checkbox, Group, Modal, SegmentedControl, Select, SimpleGrid, Stack, Text, TextInput, Textarea, UnstyledButton,
 } from '@mantine/core'
 import { Check, ChevronRight, Clock, Info, PieChart, Plus, StickyNote, Trash2, TriangleAlert } from 'lucide-react'
 import { formatFullDate } from '../schedule/data'
@@ -311,9 +311,7 @@ function TaskForm({ day, task, onClose, onSave, onDelete }: {
           <div className={classes.card} key={index}>
             <Group justify="space-between" mb="md">
               <Eyebrow>Reminder {index + 1}</Eyebrow>
-              <Tooltip label="Remove reminder">
-                <ActionIcon variant="light" color="red" aria-label={`Remove reminder ${index + 1}`} onClick={() => setReminders((list) => list.filter((_, i) => i !== index))}><Trash2 size={16} /></ActionIcon>
-              </Tooltip>
+              <ActionIcon variant="light" color="red" aria-label={`Remove reminder ${index + 1}`} onClick={() => setReminders((list) => list.filter((_, i) => i !== index))}><Trash2 size={16} /></ActionIcon>
             </Group>
             <Stack gap="md">
               <Select aria-label={`Reminder ${index + 1}: when`} data={reminderWhen} value={reminder.when} onChange={(value) => updateReminder(index, { when: value ?? reminder.when })} allowDeselect={false} />
