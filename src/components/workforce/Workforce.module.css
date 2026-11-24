@@ -201,14 +201,15 @@
   text-overflow: ellipsis;
 }
 
-/* Detailed view: activity name over the times */
+/* Detailed view: activity name over the times. Narrow days drop the name, then shrink the times. */
 .openChip[data-density='detailed'] {
+  container: open-chip / inline-size;
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
   gap: 1px;
   height: var(--schedule-chip-height);
-  padding: 0 8px;
+  padding: 0 6px;
   font-size: 13px;
   line-height: 1.25;
 }
@@ -231,6 +232,18 @@
   font-size: 12px;
   font-weight: 400;
   text-overflow: ellipsis;
+}
+
+@container open-chip (width < 130px) {
+  .openName {
+    display: none;
+  }
+}
+
+@container open-chip (width < 85px) {
+  .openTime {
+    font-size: 11px;
+  }
 }
 
 /* ---------- Detailed cells: names and times, overtime split out ---------- */
@@ -310,7 +323,15 @@
   text-overflow: ellipsis;
 }
 
-.part[data-cancelled] :is(.partTitle, .partCode, .partTime) {
+/* Hours only ("07–17"), for the narrowest stacked lines */
+.partTimeShort {
+  display: none;
+  flex: none;
+  margin-inline-start: auto;
+  font-size: 11px;
+}
+
+.part[data-cancelled] :is(.partTitle, .partCode, .partTime, .partTimeShort) {
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
@@ -353,13 +374,14 @@
   flex: none;
 }
 
-/* Narrower cells drop the tag labels, then stacked lines swap names for codes */
-@container detailed (width < 150px) {
-  .partTagText {
-    display: none;
-  }
-}
-
+/*
+ * Detailed fits its text to the cell. Widths are of the cell's content box, about 15px less than the day column:
+ * < 190px: stacked lines show codes instead of names, tags keep their icon only.
+ * < 150px: single assignments' tags keep their icon only too.
+ * < 135px: stacked lines get tighter, with 11px times.
+ * < 125px: stacked lines show hours without minutes ("08–12").
+ * < 100px (days just above the 96px Detailed minimum): everything tighter, with 12px names and 11px times and codes.
+ */
 @container detailed (width < 190px) {
   .detailed[data-stacked] .partTagText {
     display: none;
@@ -375,7 +397,12 @@
   }
 }
 
-/* About 120px (one week with the panel docked): tighter, smaller times, so the code still fits */
+@container detailed (width < 150px) {
+  .partTagText {
+    display: none;
+  }
+}
+
 @container detailed (width < 135px) {
   .detailed[data-stacked] .part {
     gap: 4px;
@@ -383,6 +410,39 @@
   }
 
   .detailed[data-stacked] .partTime {
+    font-size: 11px;
+  }
+}
+
+@container detailed (width < 125px) {
+  .detailed[data-stacked] .partTime {
+    display: none;
+  }
+
+  .detailed[data-stacked] .partTimeShort {
+    display: block;
+  }
+}
+
+@container detailed (width < 100px) {
+  .part {
+    padding-inline: 5px;
+  }
+
+  .partTitle {
+    font-size: 12px;
+  }
+
+  .partTime {
+    font-size: 11px;
+  }
+
+  .detailed[data-stacked] .part {
+    gap: 3px;
+    padding-inline: 3px;
+  }
+
+  .detailed[data-stacked] .partCode {
     font-size: 11px;
   }
 }

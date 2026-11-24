@@ -32,6 +32,7 @@ export default function DetailedChip({ chip }: { chip: Chip }) {
           <span className={classes.partTitle}>{part.title}</span>
           <span className={classes.partCode}>{part.code}</span>
           <span className={`${classes.partTime} tabular`}>{formatHours(part.start, part.end)}</span>
+          <span className={`${classes.partTimeShort} tabular`}>{formatHours(part.start, part.end, true)}</span>
           <Tags overtime={part.overtime} outOfUnit={!!chip.outOfUnit && index === 0} />
         </span>
       ))}

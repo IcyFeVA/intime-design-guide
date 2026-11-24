@@ -198,8 +198,15 @@ export function chipParts(chip: Chip): ChipPart[] {
   }).sort((a, b) => a.start - b.start)
 }
 
-/** "07:00–17:00", or "All day" for a whole day */
-export const formatHours = (start: number, end: number) => (end - start >= 24 ? 'All day' : `${formatHour(start)}–${formatHour(end)}`)
+/** 7 → "07", 7.5 → "07:30": hours without minutes when they're on the hour */
+const formatHourShort = (hour: number) => (hour % 1 ? formatHour(hour) : formatHour(hour).slice(0, 2))
+
+/** "07:00–17:00" (`short`: "07–17"), or "All day" for a whole day */
+export const formatHours = (start: number, end: number, short = false) => {
+  if (end - start >= 24) return 'All day'
+  const format = short ? formatHourShort : formatHour
+  return `${format(start)}–${format(end)}`
+}
 
 export function describeChip(chip: Chip): string {
   const parts = chip.segments.map((segment) => {

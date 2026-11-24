@@ -232,7 +232,8 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] One part: two lines (name + tags, times). Two or more parts: one-line bordered containers stacked (name, times, tags). Containers aren't clickable; the cell is the target.
 - [x] A separate assignment on the same day still goes to the extra line (user: keep the extra line), not into the same cell.
 - [x] Detailed only where the column is Full (≥ 96px, `showsDetailed`); narrower days show Compact cells (user: fall back). Scroller gets `data-cells="detailed"`, which sets `--workforce-detailed-chip-height` 44px / `--workforce-detailed-row-height` 56px and taller open-shift rows.
-- [x] Container queries on `.detailed`: < 150px tag labels hide (icons stay); < 190px stacked lines show codes instead of names; < 135px (one week docked, ~106px) tighter padding and 11px times.
+- [x] Container queries on `.detailed` (its width ≈ day column − 15px): < 190px stacked lines show codes and tag icons only; < 150px single parts' tags icon only; < 135px stacked lines tighter with 11px times; < 125px stacked lines show hours only ("08–12", `formatHours(…, true)`); < 100px (columns just above 96px) everything tighter. Open chips (`open-chip` container): name hides < 130px, 11px times < 85px. Fixed after review (2026-11-24): codes, the OT icon and times were clipped at 96–120px columns.
+- [x] Three assignments in one cell (2026-11-24, user): K. Brennan Thu Jun 4 (C-AM, PatD 12–17, ExP OT) and P. Fitzgerald Tue Jun 2 (Train 08–11, C-PM, PatS 16–22 partly overtime → four containers). The row grows to fit. In the Compact view, Full-layout cells show all codes side by side and Compact-layout cells show two and "…".
 - [x] Open shifts in Detailed: icon, Open/Live, activity name over the times (`OpenShiftChip density="detailed"`).
 - [x] Page: "Detailed cells" specimens and notes in `views`; tokens; guideline; changelog.
 - [ ] **Stacked** density: still "Coming soon".

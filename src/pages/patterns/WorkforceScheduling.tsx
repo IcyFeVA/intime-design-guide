@@ -64,6 +64,11 @@ const layoutSpecimens: Chip[] = [
 const APP_CHROME = 60
 const screens = [1280, 1512, 1920]
 const rangeDays: [string, number][] = [['One week', 7], ['Two weeks', 14], ['Three weeks', 21], ['One month', 30]]
+/** Detailed needs Full-width days: true when the range gets them on a 1920px screen with the panel closed */
+const detailedFits = (range: string) => {
+  const count = { week: 7, '2weeks': 14, '3weeks': 21, month: 30 }[range]
+  return !!count && fitColumns(1920 - APP_CHROME, count).layout === 'comfortable'
+}
 const layoutLabel = Object.fromEntries(cellLayouts.map((layout) => [layout.key, layout.label]))
 
 /** What changes in each layout */
@@ -85,6 +90,7 @@ const detailedSpecimens: { chip: Chip; label: string }[] = [
   { chip: { segments: [{ code: 'PatD', overtime: 'partial' }] }, label: 'Runs into overtime: the overtime is split out' },
   { chip: { segments: [{ code: 'ExP', overtime: 'full' }] }, label: 'Overtime' },
   { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }] }, label: 'Two assignments in one cell' },
+  { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }, { code: 'ExP', overtime: 'full' }] }, label: 'Three assignments: the row gets taller' },
   { chip: { segments: [{ code: 'Train' }], outOfUnit: true }, label: 'Out of unit' },
   { chip: { segments: [{ code: 'Sick' }] }, label: 'Leave for the whole day' },
 ]
@@ -204,9 +210,11 @@ export default function WorkforceScheduling() {
                   <Table.Td><Text size="sm" fw={600}>{range.label}</Text></Table.Td>
                   {viewDensities.map((density) => (
                     <Table.Td key={density.key}>
-                      {density.available && !range.placeholder
-                        ? <Badge size="sm" variant="light" color="intime">In the demo</Badge>
-                        : <Badge size="sm" variant="light" color="gray">Coming soon</Badge>}
+                      {!density.available || range.placeholder
+                        ? <Badge size="sm" variant="light" color="gray">Coming soon</Badge>
+                        : density.key === 'detailed' && !detailedFits(range.key)
+                          ? <Badge size="sm" variant="light" color="gray">Shows Compact</Badge>
+                          : <Badge size="sm" variant="light" color="intime">In the demo</Badge>}
                     </Table.Td>
                   ))}
                 </Table.Tr>
@@ -214,6 +222,7 @@ export default function WorkforceScheduling() {
             </Table.Tbody>
           </Table>
         </Table.ScrollContainer>
+        <Text size="xs" c="dimmed" mt="xs">Shows Compact: the days are too narrow for Detailed even on a 1920px screen, so the grid shows Compact cells.</Text>
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
         </Stack>
@@ -235,8 +244,8 @@ export default function WorkforceScheduling() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Only where it fits.</strong> Detailed needs days at least {cellLayouts[0].minWidth}px wide (the Full layout below), usually one week. Narrower days show Compact cells, and switch back when there is room again, e.g. when the panel closes.</Text>
-          <Text size="sm"><strong>Narrow days</strong> (about 120px, one week with the panel docked) drop the OT and OU labels and keep the icons, and stacked lines show codes instead of names.</Text>
-          <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times.</Text>
+          <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names and the OT and OU tags keep only their icons. Under about 165px, a single assignment’s tags do the same. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
+          <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times. A cell with three or more containers makes its row taller still; nothing is hidden.</Text>
           <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
         </Stack>
         <Text size="sm" fw={600} mb="xs" mt="lg">Every range fits the screen</Text>

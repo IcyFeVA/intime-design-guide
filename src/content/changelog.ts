@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Detailed view: cells with three assignments, and text that fits narrow days.',
+    changes: [
+      'K. Brennan (Thu, Jun 4) and P. Fitzgerald (Tue, Jun 2) have three assignments in one cell. The row gets taller to fit them.',
+      'On narrow days, stacked lines show hours without minutes (“08–12”), so codes and the OT icon are no longer cut off.',
+      'Open shifts drop the activity name when days are narrow, and times shrink just above the 96px minimum.',
+      'The views table marks where Detailed shows Compact cells because the days are too narrow.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'View densities: Compact is the new default, and Detailed shows activity names and times.',
     changes: [
       'Compact is the grid as it was: shift codes in every cell.',

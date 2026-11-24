@@ -115,7 +115,7 @@ const specs: Record<WatchId, Spec[]> = {
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
     ['garcia', 'Lucia', 'Garcia', 'PO', 4],
-    ['brennan', 'Kevin', 'Brennan', 'Sgt', 5],
+    ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
     ['anderson', 'Jamal', 'Anderson', 'PO', 6, { 2: [cell([c('PatD')]), cell([c('ExP', { overtime: 'full' })])], 3: [cell([c('Train')])] }],
     ['rodriguez', 'Elena', 'Rodriguez', 'PO', 0],
     ['patel', 'Dev', 'Patel', 'PO', 1],
@@ -126,7 +126,7 @@ const specs: Record<WatchId, Spec[]> = {
   swing: [
     ['russo', 'Vincent', 'Russo', 'PO', 5],
     ['thompson', 'Sarah', 'Thompson', 'Cpl', 6],
-    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0],
+    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), c('PatS', { start: 16, overtime: 'partial' })])] }],
     ['petrov', 'Oksana', 'Petrov', 'PO', 1],
     ['abara', 'Nnamdi', 'Abara', 'PO', 2],
     ['williams', 'Monique', 'Williams', 'Sgt', 3],
