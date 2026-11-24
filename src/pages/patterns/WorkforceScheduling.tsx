@@ -64,7 +64,7 @@ const layoutSpecimens: Chip[] = [
 /** Collapsed nav rail and borders: the grid is this much narrower than the screen */
 const APP_CHROME = 60
 const screens = [1280, 1512, 1920]
-const rangeDays: [string, number][] = [['One week', 7], ['Two weeks', 14], ['Three weeks', 21], ['One month', 30]]
+const rangeDays: [string, number][] = [['1 week', 7], ['2 weeks', 14], ['3 weeks', 21], ['1 month', 30]]
 /** Detailed needs Full-width days: true when the range gets them on a 1920px screen with the panel closed */
 const detailedFits = (range: string) => {
   const count = { day: 1, week: 7, '2weeks': 14, '3weeks': 21, month: 30 }[range]

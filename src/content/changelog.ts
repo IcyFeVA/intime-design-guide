@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'The range menu uses numerals: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'More ways to sort, and Collapse all / Expand all for the watches.',
     changes: [
       'Sort adds Rank then effective date, Rank then precedence, Precedence, and Precedence then rank, next to Watch order, Name and Rank.',

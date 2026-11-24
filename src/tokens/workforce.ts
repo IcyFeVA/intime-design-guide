@@ -17,11 +17,11 @@ export interface WorkforceRangeDef {
 
 /** Every range fits the width: day columns share the space, and the cell layout follows the column width (see `cellLayouts`). One day is at most `--workforce-day-max-width` wide, centered. */
 export const workforceRanges: WorkforceRangeDef[] = [
-  { key: 'day', label: 'One Day', status: 'draft' },
-  { key: 'week', label: 'One Week', status: 'confirmed' },
-  { key: '2weeks', label: 'Two Weeks', status: 'confirmed' },
-  { key: '3weeks', label: 'Three Weeks', status: 'confirmed' },
-  { key: 'month', label: 'One Month', status: 'confirmed' },
+  { key: 'day', label: '1 Day', status: 'draft' },
+  { key: 'week', label: '1 Week', status: 'confirmed' },
+  { key: '2weeks', label: '2 Weeks', status: 'confirmed' },
+  { key: '3weeks', label: '3 Weeks', status: 'confirmed' },
+  { key: 'month', label: '1 Month', status: 'confirmed' },
 ]
 
 /* ------------------------------------------------------------------ */
