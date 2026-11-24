@@ -12,6 +12,15 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'The unit picker (Patrol) lists every unit as an indented tree, with search and recently used units. The employee filter button loses its funnel icon.',
+    changes: [
+      'Units with sub-units are bold and show how many they have; each level is indented 14px. Recently used units show their parent unit.',
+      'Preview only: the demo has data for Patrol, so other units show a hint.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'The employee filter is now a Saved filters menu: All employees, then filters set up in Employee Settings, each with a description and a head count.',
     changes: ['Preview only: All employees stays selected, and the other filters show a hint.'],
   },

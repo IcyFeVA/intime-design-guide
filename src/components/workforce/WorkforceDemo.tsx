@@ -8,7 +8,7 @@ import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { watches, workforceTeams, type Watch, type WatchId, type WorkforceSort } from './data'
+import { findUnit, watches, type Watch, type WatchId, type WorkforceSort } from './data'
 import { HEADER_ROW, buildGridModel, panelContent } from './model'
 import { useGridSelection } from './useGridSelection'
 import WorkforceGrid from './WorkforceGrid'
@@ -42,7 +42,6 @@ export default function WorkforceDemo() {
   const reduceMotion = useReducedMotion()
   const [range, setRange] = useState<WorkforceRange>('week')
   const [anchor, setAnchor] = useState(MOCK_TODAY)
-  const [team, setTeam] = useState('patrol')
   const [view, setView] = useState<ViewDensity>(DEFAULT_VIEW_DENSITY)
   const [sort, setSort] = useState<WorkforceSort>('watch')
   const [direction, setDirection] = useState<SortDirection>('asc')
@@ -102,7 +101,7 @@ export default function WorkforceDemo() {
   }
 
   const reset = () => {
-    setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
+    setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
     setCoverage(null); selection.reset()
   }
@@ -135,8 +134,8 @@ export default function WorkforceDemo() {
           days={stepperDays}
           anchor={anchor}
           onAnchorChange={setAnchor}
-          team={team}
-          onTeam={(key) => (key === 'patrol' ? setTeam(key) : setHint(`Preview only: the demo has data for Patrol only, not ${workforceTeams.find((item) => item.key === key)?.label}.`))}
+          team="patrol"
+          onTeam={(key) => key !== 'patrol' && setHint(`Preview only: the demo has data for Patrol only, not ${findUnit(key)?.label}.`)}
           underCount={placeholder ? 0 : model.underCount}
           onPreview={preview}
         />

@@ -252,6 +252,12 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - [x] The Employees picker is `SavedFiltersMenu` (`WorkforceChrome.tsx`): a funnel button "All employees", then "Saved filters" with All employees (dot) and six saved filters (label, description, count) from `savedFilters` in `data.ts`, and a footnote. **No functionality** (user): All employees stays selected; the others show a "Preview only" hint. The old All / Scheduled in range / Supervisors options are gone; `buildGridModel` keeps its `filter` input (the demo passes `'all'`).
 
+- [x] No funnel icon on the saved filters button (user).
+
+## Unit picker (2026-11-24, user, from screenshots of the current app)
+
+- [x] `workforce/UnitPicker.tsx`: a Mantine `Combobox` opened from a "Patrol" button. `Combobox.Search` ("Search units…"), a "Recently used" group (History icon, parent unit dimmed) and "All units" as an indented tree (`unitTree` in `data.ts`; 14px per level; units with sub-units bold with their count; check on the current unit). Hover highlights like the arrow keys. Search filters the list (matches plus their parents; hides Recently used). **No functionality** (user): picking any unit but Patrol shows a "Preview only" hint. Replaces the old Team `PickerMenu` and `workforceTeams`.
+
 ## Later (out of scope now, keep room for them)
 
 - Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).

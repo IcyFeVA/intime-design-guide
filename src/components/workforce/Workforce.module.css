@@ -919,3 +919,33 @@
 .savedDot[data-checked] {
   background: var(--text-default);
 }
+
+/* Unit picker: an indented tree. Each level moves 14px to the right. */
+.unitOption {
+  padding-inline-start: calc(10px + var(--unit-depth, 0) * 14px);
+}
+
+.unitMeta {
+  color: var(--text-dimmed);
+  font-weight: 400;
+}
+
+.unitOption[data-combobox-selected] .unitMeta {
+  color: inherit;
+}
+
+.unitCheck {
+  margin-inline-start: auto;
+  flex: none;
+}
+
+/* Plain group labels, with a full-width line between the groups instead of Mantine's line after the label */
+.unitGroupLabel::after {
+  display: none;
+}
+
+.unitGroup + .unitGroup {
+  border-top: 1px solid var(--border-default);
+  margin-top: 4px;
+  padding-top: 4px;
+}

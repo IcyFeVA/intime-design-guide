@@ -1,11 +1,12 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
-  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Filter, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
+  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
 } from 'lucide-react'
 import { PickerMenu, RangeStepper, ToolbarDivider } from '../schedule/ScheduleChrome'
 import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { savedFilters, workforceTeams } from './data'
+import { savedFilters } from './data'
+import UnitPicker from './UnitPicker'
 import classes from './Workforce.module.css'
 
 /** View density: Compact (the default), Detailed and Stacked. */
@@ -61,7 +62,6 @@ function SavedFiltersMenu({ onPreview }: { onPreview: (action: string) => void }
           variant="default"
           size="sm"
           fw={400}
-          leftSection={<Filter size={16} aria-hidden="true" />}
           rightSection={<ChevronDown size={16} aria-hidden="true" />}
           aria-label={`Employees: ${all.label}`}
         >
@@ -120,7 +120,7 @@ export function WorkforceToolbar({
       <RangeStepper range={range} days={days} anchor={anchor} onAnchorChange={onAnchorChange} />
       <PickerMenu label="Range" value={range} options={workforceRanges.map(({ key, label }) => ({ key, label }))} onChange={onRange} />
       <ToolbarDivider />
-      <PickerMenu label="Team" value={team} options={workforceTeams} onChange={onTeam} />
+      <UnitPicker value={team} onChange={onTeam} />
       <SavedFiltersMenu onPreview={onPreview} />
       <div className={classes.spacer} />
       <Button
