@@ -30,7 +30,7 @@ function Specimen({ item, view }: { item: LegendKey; view: ViewDensity }) {
   const chip = chips[item]!
   if (view === 'detailed') return <DetailedChip chip={chip} />
   if (view === 'stacked') return <StackedChip chip={chip} />
-  return <ShiftChip chip={chip} interactive={false} tooltip={false} />
+  return <ShiftChip chip={chip} interactive={false} />
 }
 
 /** Legend button for the title row: a popover that explains each kind of cell, drawn in the current view density. */
