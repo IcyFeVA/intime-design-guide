@@ -22,11 +22,10 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-23',
     page: '/patterns/workforce-scheduling',
-    summary: 'Every range now fits the width with no sideways scrolling, and the details panel can be docked or shown as a drawer.',
+    summary: 'Every range now fits the width with no sideways scrolling.',
     changes: [
       'Cells pick a layout from the column width: Full, Compact, or Mini (fill, out-of-unit stripes and arrow, no codes).',
       'The name column narrows for very narrow days; rank badges and supervisor icons hide if they don’t fit.',
-      'The pin in the panel header switches between docked (default) and a drawer over the grid.',
     ],
   },
   {

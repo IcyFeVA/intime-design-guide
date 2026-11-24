@@ -13,7 +13,7 @@ import OpenShiftChip from '../../components/workforce/OpenShiftChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
 import { MOCK_TODAY } from '../../components/schedule/data'
 import {
-  LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, panelPlacements, viewDensities, workforceRanges, workforceTokens,
+  LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import type { Chip } from '../../components/schedule/data'
@@ -146,7 +146,6 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
-          <Text size="sm"><strong>Docked or drawer.</strong> The pin in the panel header switches between {panelPlacements.map((item) => `${item.label.toLowerCase()} (${item.description.charAt(0).toLowerCase()}${item.description.slice(1, -1)})`).join(' and ')}. Docked is the default; the drawer suits a month, where every column counts.</Text>
           <Text size="sm"><strong>One cell</strong> has three tabs: Details, Attachments and Notes. Attachments and Notes are coming.</Text>
           <Text size="sm"><strong>In this demo,</strong> the fields can be changed but nothing is saved, and the grid doesn’t change. Assign, Leave and the segment buttons say so in the status line.</Text>
         </Stack>
@@ -260,13 +259,13 @@ export default function WorkforceScheduling() {
         </Table.ScrollContainer>
 
         <Text size="sm" fw={600} mb="xs" mt="lg">Examples</Text>
-        <Text size="sm" mb="sm">Day column width and layout for common screens, with the navigation collapsed. Docked takes the {PANEL_WIDTH}px panel off the grid; a drawer doesn’t, so it matches the panel closed. 1512 × 982 is the target (a 14-inch MacBook).</Text>
+        <Text size="sm" mb="sm">Day column width and layout for common screens, with the navigation collapsed. With the panel open, the grid is {PANEL_WIDTH}px narrower. 1512 × 982 is the target (a 14-inch MacBook).</Text>
         <Table.ScrollContainer minWidth={720} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Range</Table.Th>
-                {screens.map((screen) => <Table.Th key={screen} className="tabular">{screen}px: closed / docked</Table.Th>)}
+                {screens.map((screen) => <Table.Th key={screen} className="tabular">{screen}px: panel closed / open</Table.Th>)}
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -322,8 +321,6 @@ export default function WorkforceScheduling() {
         <Text size="sm" fw={600} mb="xs" mt="lg">WorkforcePanel</Text>
         <PropsTable rows={[
           { prop: 'content', type: 'PanelContent', description: 'From panelContent(model, selection.ordered): none, single (open shift, assigned or new) or bulk.' },
-          { prop: 'placement', type: "'docked' | 'drawer'", default: "'docked'", description: 'Beside the grid, or over its right edge. The workspace needs position: relative for the drawer.' },
-          { prop: 'onPlacementChange', type: '(placement) => void', description: 'Shows the pin button in the header.' },
           { prop: 'onClose', type: '() => void', description: 'The close button.' },
           { prop: 'onPreview', type: '(action: string) => void', description: 'A control that isn’t built yet was used.' },
           { prop: 'focusTick', type: 'number', description: 'Change it to move focus to the panel’s heading, e.g. after Enter.' },
