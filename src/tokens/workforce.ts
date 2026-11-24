@@ -18,10 +18,10 @@ export interface WorkforceRangeDef {
 /** Every range fits the width: day columns share the space, and the cell layout follows the column width (see `cellLayouts`). */
 export const workforceRanges: WorkforceRangeDef[] = [
   { key: 'day', label: 'One Day', placeholder: true, status: 'draft' },
-  { key: 'week', label: 'One Week', status: 'draft' },
-  { key: '2weeks', label: 'Two Weeks', status: 'draft' },
-  { key: '3weeks', label: 'Three Weeks', status: 'draft' },
-  { key: 'month', label: 'One Month', status: 'draft' },
+  { key: 'week', label: 'One Week', status: 'confirmed' },
+  { key: '2weeks', label: 'Two Weeks', status: 'confirmed' },
+  { key: '3weeks', label: 'Three Weeks', status: 'confirmed' },
+  { key: 'month', label: 'One Month', status: 'confirmed' },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -31,9 +31,9 @@ export const workforceRanges: WorkforceRangeDef[] = [
 export type CellLayout = 'comfortable' | 'compact' | 'mini'
 
 export const cellLayouts: { key: CellLayout; label: string; minWidth: number; shows: string; status: TokenStatus }[] = [
-  { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT and OU tags with labels. Usually one week.', status: 'draft' },
-  { key: 'compact', label: 'Compact', minWidth: 48, shows: 'Up to two codes stacked, OU as an icon. Usually two or three weeks.', status: 'draft' },
-  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'draft' },
+  { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT and OU tags with labels. Usually one week.', status: 'confirmed' },
+  { key: 'compact', label: 'Compact', minWidth: 48, shows: 'Up to two codes stacked, OU as an icon. Usually two or three weeks.', status: 'confirmed' },
+  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'confirmed' },
 ]
 
 /** Day column width in px below which the name column switches to `--workforce-label-width-narrow` */
@@ -53,19 +53,23 @@ export const panelPlacements: { key: PanelPlacement; label: string; description:
   { key: 'drawer', label: 'Drawer', description: 'Over the right edge of the grid, which keeps its full width.', status: 'draft' },
 ]
 
-/** How much each cell shows. Detailed only applies where its text fits (the Full cell layout); narrower days show Compact cells. */
+/** How much each cell shows. Detailed only applies where its text fits (the Full cell layout); narrower days show Compact cells. Stacked fits any width. */
 export type ViewDensity = 'detailed' | 'compact' | 'stacked'
 
 export const DEFAULT_VIEW_DENSITY: ViewDensity = 'compact'
 
 export const viewDensities: { key: ViewDensity; label: string; description: string; available: boolean; status: TokenStatus }[] = [
-  { key: 'detailed', label: 'Detailed', description: 'Activity names and times, with overtime split out. Needs wide days, usually one week.', available: true, status: 'draft' },
-  { key: 'compact', label: 'Compact', description: 'Shift codes only, so any range reads at a glance. The default.', available: true, status: 'draft' },
-  { key: 'stacked', label: 'Stacked', description: 'A person’s activities for a day stacked in one cell.', available: false, status: 'draft' },
+  { key: 'detailed', label: 'Detailed', description: 'Activity names and times, with overtime split out. Needs wide days, usually one week.', available: true, status: 'confirmed' },
+  { key: 'compact', label: 'Compact', description: 'Shift codes only, so any range reads at a glance. The default.', available: true, status: 'confirmed' },
+  { key: 'stacked', label: 'Stacked', description: 'Colored bars without text, one per assignment, with overtime split out. Fits the most people on screen, at any range.', available: true, status: 'confirmed' },
 ]
 
-/** The cells the grid shows: Detailed only when the view asks for it and the days are wide enough. */
-export const showsDetailed = (view: ViewDensity, layout: CellLayout) => view === 'detailed' && layout === 'comfortable'
+/** What the grid's member and open-shift cells show: codes (Team View's cells), names and times, or bars. */
+export type CellView = 'codes' | 'detailed' | 'stacked'
+
+/** Detailed only when the days are wide enough (Full layout); Stacked at any width; Compact always shows codes. */
+export const cellViewFor = (view: ViewDensity, layout: CellLayout): CellView =>
+  view === 'stacked' ? 'stacked' : view === 'detailed' && layout === 'comfortable' ? 'detailed' : 'codes'
 
 /* ------------------------------------------------------------------ */
 /* CSS variables                                                       */
@@ -80,7 +84,7 @@ export interface WorkforceToken {
 }
 
 const t = (name: WorkforceToken['name'], value: string, kind: WorkforceToken['kind'], usage: string): WorkforceToken =>
-  ({ name, value, kind, usage, status: 'draft' })
+  ({ name, value, kind, usage, status: 'confirmed' })
 
 /** Workforce Scheduling grid and panel. All aliases of theme tokens, so they follow the dark and light schemes. */
 export const workforceTokens: WorkforceToken[] = [
@@ -90,6 +94,8 @@ export const workforceTokens: WorkforceToken[] = [
   t('--workforce-mini-row-height', '44px', 'size', 'Row height in the Mini layout: the cell plus 6px above and below.'),
   t('--workforce-detailed-chip-height', '44px', 'size', 'Shift cell height in the Detailed view: a name over its times, or two one-line assignments.'),
   t('--workforce-detailed-row-height', '56px', 'size', 'Row height in the Detailed view: the cell plus 6px above and below.'),
+  t('--workforce-stacked-chip-height', '16px', 'size', 'Height of each assignment bar in the Stacked view. More assignments make the row taller.'),
+  t('--workforce-stacked-row-height', '28px', 'size', 'Row height in the Stacked view with one assignment: the bar plus 6px above and below.'),
   t('--workforce-header-height', '56px', 'size', 'Height of the date row, which stays pinned while the grid scrolls.'),
   t('--workforce-panel-width', '380px', 'size', 'Width of the details panel on the right.'),
   t('--workforce-selected-bg', 'var(--background-primary-light)', 'color', 'Background of a selected cell, around its shift.'),

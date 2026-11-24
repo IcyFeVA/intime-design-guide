@@ -5,9 +5,10 @@ import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle } from 'luc
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
-import { fitColumns, showsDetailed, type CellLayout, type ViewDensity } from '../../tokens/workforce'
+import { cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
+import StackedChip from './StackedChip'
 import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
 import { HEADER_ROW, staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
@@ -18,7 +19,7 @@ type CellDensity = CellLayout
 export interface WorkforceGridProps {
   model: GridModel
   selection: GridSelection
-  /** View density. `detailed` shows names and times where the days are wide enough (Full layout); `compact` shows codes; `stacked` isn't built yet. */
+  /** View density. `compact` shows codes; `detailed` names and times where the days are wide enough (Full layout); `stacked` bars at any width. */
   view: ViewDensity
   today: number
   onToggleGroup: (watch: WatchId) => void
@@ -97,11 +98,11 @@ interface CellState {
   boundary: boolean
   /** The grid uses Escape right now (see `escapeProps`) */
   stopEscape: boolean
-  /** Detailed view cells: names and times */
-  detailed: boolean
+  /** What the cell shows: codes, names and times, or bars (see `cellViewFor`) */
+  cells: CellView
 }
 
-const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, density, boundary, stopEscape }: Omit<CellState, 'detailed'>) => ({
+const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, density, boundary, stopEscape }: Omit<CellState, 'cells'>) => ({
   role: 'gridcell',
   'data-mantine-stop-propagation': stopEscape ? 'true' : undefined,
   'data-row': row,
@@ -115,7 +116,7 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
   'data-boundary': boundary || undefined,
 })
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, detailed, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean }) {
+const MemberCell = memo(function MemberCell({ chip, name, overflow, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean }) {
   const context = `${name}, ${formatHeader(state.day)}`
   return (
     <div
@@ -125,8 +126,9 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, detailed, ..
       aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}`}
     >
       {chip ? (
-        detailed ? <DetailedChip chip={chip} />
-          : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tooltip={false} />
+        cells === 'detailed' ? <DetailedChip chip={chip} />
+          : cells === 'stacked' ? <StackedChip chip={chip} />
+            : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tooltip={false} />
       ) : state.selectable && (
         <Plus size={18} strokeWidth={1.75} className={classes.add} aria-hidden="true" />
       )}
@@ -134,14 +136,14 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, detailed, ..
   )
 })
 
-const OpenCell = memo(function OpenCell({ shift, detailed, ...state }: CellState & { shift: OpenShift | null }) {
+const OpenCell = memo(function OpenCell({ shift, cells, ...state }: CellState & { shift: OpenShift | null }) {
   return (
     <div
       {...cellProps(state)}
       className={`${classes.cell} ${classes.openCell}`}
       aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}`}
     >
-      {shift && <OpenShiftChip shift={shift} density={detailed ? 'detailed' : state.density} />}
+      {shift && <OpenShiftChip shift={shift} density={cells === 'codes' ? state.density : cells} />}
     </div>
   )
 })
@@ -210,7 +212,7 @@ export default function WorkforceGrid({
   const { narrowLabel, layout: density } = fitColumns(width, days.length)
   const compact = density !== 'comfortable'
   const mini = density === 'mini'
-  const detailed = showsDetailed(view, density)
+  const cells = cellViewFor(view, density)
   const active = selection.active
   const activeRow = active ? model.byKey.get(active.row) : undefined
   const activeDay = activeRow && (activeRow.kind === 'member' || activeRow.kind === 'open') ? active?.day ?? null : null
@@ -236,7 +238,7 @@ export default function WorkforceGrid({
       density,
       boundary: dayIndex > 0 && isPeriodStart(day),
       stopEscape: 'data-mantine-stop-propagation' in selection.escapeProps,
-      detailed,
+      cells,
     }
   }
 
@@ -389,7 +391,7 @@ export default function WorkforceGrid({
       className={classes.scroller}
       style={{ ...(narrowLabel ? { '--workforce-label-width': 'var(--workforce-label-width-narrow)' } : {}) } as CSSProperties}
       data-layout={density}
-      data-cells={detailed ? 'detailed' : undefined}
+      data-cells={cells === 'codes' ? undefined : cells}
     >
       <div
         {...selection.gridProps}

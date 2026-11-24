@@ -14,7 +14,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 
 ## Decisions (confirmed with the user, 2026-11-23)
 
-- **Page**: Patterns group, right after Location View. `/patterns/workforce-scheduling`, "Workforce Scheduling", status `draft`.
+- **Page**: Patterns group, right after Location View. `/patterns/workforce-scheduling`, "Workforce Scheduling", status `draft`. **Confirmed 2026-11-24** (user approved; tokens confirmed too, except the Day range placeholder and the hidden `panelPlacements`).
 - **Frame**: reuse `DesktopDemoFrame` (collapsed AppNav, top bar, title row, toolbar, Full screen, Reset demo). Leave out the screenshot's breadcrumb bar and its "Layout 1 2" control.
 - **Visuals**: Mantine + Lucide only. Cells use Team View's `ShiftChip` design, **not** the screenshot's cells. Coverage uses Team View's `BodiesValue` / `HoursValue` / `TimeOfDayBar` and `CoverageDrawer`.
 - **Mock dates**: Team View's. Weeks start Monday, `MOCK_TODAY` = Fri, Jun 5, 2026.
@@ -236,12 +236,12 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] Three assignments in one cell (2026-11-24, user): K. Brennan Thu Jun 4 (C-AM, PatD 12–17, ExP OT) and P. Fitzgerald Tue Jun 2 (Train 08–11, C-PM, PatS 16–22 partly overtime → four containers). The row grows to fit. In the Compact view, Full-layout cells show all codes side by side and Compact-layout cells show two and "…".
 - [x] Open shifts in Detailed: icon, Open/Live, activity name over the times (`OpenShiftChip density="detailed"`).
 - [x] Page: "Detailed cells" specimens and notes in `views`; tokens; guideline; changelog.
-- [ ] **Stacked** density: still "Coming soon".
+- [x] **Stacked** density (2026-11-24, user): `StackedChip`, the same parts as Detailed (`chipParts`) as plain bars, no text, tags or icons. Each bar 16px (`--workforce-stacked-chip-height`), gap 2px; one-bar rows 28px (`--workforce-stacked-row-height`); more bars make the row taller. Separate same-day assignments stay on the extra line (user). Applies at every width, month included (user; `cellViewFor`). Open shifts keep the Open/Live icon (user). Cancelled = a bar across, as Mini. Kinds show by color and stripes only, no OT/OU marks (confirmed by user, 2026-11-24). In Stacked the name column has no vertical padding and the cells 5px, so rows stay 28px.
 
 ## Later (out of scope now, keep room for them)
 
 - Employee search: filter the member rows by the corner input (name, rank, badge).
-- Stacked density; 15 range × density combinations.
+- Day range for all three densities.
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`showsDetailed`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.

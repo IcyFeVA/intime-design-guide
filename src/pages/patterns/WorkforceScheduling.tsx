@@ -11,6 +11,7 @@ import { detectPlatform, spokenKeys } from '../../components/shortcuts/keys'
 import WorkforceDemo from '../../components/workforce/WorkforceDemo'
 import OpenShiftChip from '../../components/workforce/OpenShiftChip'
 import DetailedChip from '../../components/workforce/DetailedChip'
+import StackedChip from '../../components/workforce/StackedChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
 import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, type Chip } from '../../components/schedule/data'
 import {
@@ -195,7 +196,7 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
-      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities. Compact (the default) and Detailed are in the demo; the Day range and Stacked are coming. Every range fits the width.">
+      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities: Compact (the default), Detailed and Stacked. The Day range is coming. Every range fits the width.">
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
@@ -248,6 +249,27 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times. A cell with three or more containers makes its row taller still; nothing is hidden.</Text>
           <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
         </Stack>
+        <Text size="sm" fw={600} mb="xs" mt="lg">Stacked cells</Text>
+        <Text size="sm" mb="sm">Stacked shows the same assignments as Detailed, as plain colored bars: no names, times, codes, tags or icons. Every assignment is a 16px bar, so a row with one assignment is 28px high and fits the most people on screen. A cell with more assignments makes its row taller. A separate assignment on the same day still goes on the extra line.</Text>
+        <Preview title="Stacked cells" align="start">
+          <div className={classes.stackedSpecimens}>
+            {detailedSpecimens.map(({ chip, label }) => (
+              <div className={classes.detailedSpecimen} key={label}>
+                <div className={classes.stackedCell}><StackedChip chip={chip} /></div>
+                <Text size="xs" c="dimmed">{label}</Text>
+              </div>
+            ))}
+            <div className={classes.detailedSpecimen}>
+              <div className={classes.stackedCell}><OpenShiftChip shift={specimen('open')} density="stacked" /></div>
+              <Text size="xs" c="dimmed">Open shift: the Open or Live icon stays</Text>
+            </div>
+          </div>
+        </Preview>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Any range.</strong> With no text, Stacked works from one week to a month; on narrow days the bars just get shorter.</Text>
+          <Text size="sm"><strong>Color carries the kind.</strong> Overtime is red, leave yellow and out of unit striped; a cancelled assignment is struck through. Select a cell to see codes, times and tags in the panel. Screen readers hear the full details from the cell.</Text>
+        </Stack>
+
         <Text size="sm" fw={600} mb="xs" mt="lg">Every range fits the screen</Text>
         <Text size="sm" mb="sm">The days always share the full width, so schedulers never scroll sideways, from one week to a month, with or without the docked panel. The cell layout follows how wide a day column is, not the range. When columns would be narrower than 48px, the name column narrows to 168px and rank badges and supervisor icons hide if they don’t fit.</Text>
         <Table.ScrollContainer minWidth={640} className="doc-table">
@@ -340,7 +362,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Codes are never lost.</strong> In every layout the tooltip, the cell’s accessible name and the panel give the full code, times and tags.</Text>
           <Text size="sm"><strong>Mini changes height, not just content.</strong> It sets the chip and row heights to --workforce-mini-chip-height and --workforce-mini-row-height, so more people fit on screen.</Text>
           <Text size="sm"><strong>Some rows keep their height.</strong> The date row, open shifts and watch headers keep their heights; only their content gets smaller.</Text>
-          <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. View densities don’t change this rule: Detailed only applies in the Full layout (showsDetailed) and sets the chip and row heights to --workforce-detailed-chip-height and --workforce-detailed-row-height.</Text>
+          <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. View densities don’t change this rule: cellViewFor picks the cells from the view and the layout. Detailed only applies in the Full layout and sets --workforce-detailed-chip-height and --workforce-detailed-row-height; Stacked applies at any width and sets --workforce-stacked-chip-height and --workforce-stacked-row-height.</Text>
         </Stack>
       </Section>
 
@@ -349,7 +371,7 @@ export default function WorkforceScheduling() {
         <PropsTable rows={[
           { prop: 'model', type: 'GridModel', description: 'Rows to render. Build it with buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter }) and memoise it on those inputs, not on the selection.' },
           { prop: 'selection', type: 'GridSelection', description: 'From useGridSelection({ rows: model.rowKeys, days: model.days, isSelectable: model.isSelectable }).' },
-          { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. compact (DEFAULT_VIEW_DENSITY) shows codes. detailed shows names and times through DetailedChip, only in the Full layout; the scroller gets data-cells="detailed". stacked isn’t built yet.' },
+          { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. compact (DEFAULT_VIEW_DENSITY) shows codes. detailed shows names and times through DetailedChip, only in the Full layout. stacked shows bars through StackedChip at any width. The scroller gets data-cells="detailed" or "stacked" (cellViewFor).' },
           { prop: 'onToggleGroup / onToggleStaffing', type: '(watch) => void', description: 'Collapse or expand a watch or its staffing rows.' },
           { prop: 'onCoverageClick', type: '(watch, day) => void', description: 'A time-of-day bar was selected. The demo opens CoverageDrawer.' },
         ]} />

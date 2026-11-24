@@ -447,6 +447,84 @@
   }
 }
 
+/* ---------- Stacked cells: one 16px bar per assignment, no text ---------- */
+
+/* After the Mini rule above, so Stacked's heights win in a month too */
+.scroller[data-cells='stacked'] {
+  --schedule-chip-height: var(--workforce-stacked-chip-height);
+  --schedule-row-height: var(--workforce-stacked-row-height);
+}
+
+.scroller[data-cells='stacked'] .openRow > .openLabel,
+.scroller[data-cells='stacked'] .openRow > .openCell {
+  height: var(--schedule-row-height);
+}
+
+/* Names, cells and the plus on empty cells must not make the short rows taller */
+.scroller[data-cells='stacked'] .label {
+  padding-block: 0;
+  line-height: 1.2;
+}
+
+.scroller[data-cells='stacked'] .cell {
+  padding-block: 5px;
+}
+
+/* The plus on empty cells must not make the short rows taller */
+.scroller[data-cells='stacked'] .add {
+  width: var(--schedule-chip-height);
+  height: var(--schedule-chip-height);
+}
+
+.openChip[data-density='stacked'] {
+  justify-content: center;
+  height: var(--schedule-chip-height);
+  padding: 0;
+  border-width: 1px;
+  border-radius: var(--mantine-radius-xs);
+}
+
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.bar {
+  --part-fill: var(--schedule-regular);
+  position: relative;
+  height: var(--schedule-chip-height);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--part-fill);
+  box-shadow: inset 0 0 0 1px var(--schedule-chip-divider);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.bar[data-kind='leave'] { --part-fill: var(--schedule-leave); }
+.bar[data-kind='overtime'] { --part-fill: var(--schedule-overtime); }
+
+.bar[data-out-of-unit] {
+  background:
+    repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 7px),
+    var(--part-fill);
+}
+
+/* Cancelled: struck through, as Mini's bar */
+.bar[data-cancelled]::after {
+  content: '';
+  position: absolute;
+  inset: 50% 15% auto;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--schedule-chip-text);
+}
+
+.cell:hover .bar {
+  filter: brightness(1.12);
+}
+
 /* ---------- Watch groups ---------- */
 
 .groupLabel,
@@ -769,7 +847,8 @@
   .toggle,
   .chevron,
   .add,
-  .part {
+  .part,
+  .bar {
     transition: none;
   }
 }

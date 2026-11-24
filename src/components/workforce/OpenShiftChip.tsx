@@ -6,11 +6,11 @@ import classes from './Workforce.module.css'
 /**
  * An open or live shift: Team View's cell shape with no fill and a dashed outline.
  * Comfortable shows icon, label and code; compact shows icon and code; mini shows the icon only.
- * Detailed (the Detailed view, wide days) shows icon, label and activity name over the times.
+ * Detailed (the Detailed view, wide days) shows icon, label and activity name over the times. Stacked shows a small icon only.
  */
 export default function OpenShiftChip({ shift, density = 'comfortable' }: {
   shift: OpenShift
-  density?: 'comfortable' | 'compact' | 'mini' | 'detailed'
+  density?: 'comfortable' | 'compact' | 'mini' | 'detailed' | 'stacked'
 }) {
   const status = openStatus[shift.status]
   const Icon = status.icon
@@ -28,9 +28,9 @@ export default function OpenShiftChip({ shift, density = 'comfortable' }: {
   }
   return (
     <span className={classes.openChip} data-status={shift.status} data-density={density} aria-hidden="true">
-      <Icon size={density === 'comfortable' ? 15 : 13} strokeWidth={2} className={classes.openIcon} />
+      <Icon size={density === 'comfortable' ? 15 : density === 'stacked' ? 12 : 13} strokeWidth={2} className={classes.openIcon} />
       {density === 'comfortable' && <span className={classes.openStatus}>{status.label}</span>}
-      {density !== 'mini' && <span className={classes.openCode}>{shift.code}</span>}
+      {density !== 'mini' && density !== 'stacked' && <span className={classes.openCode}>{shift.code}</span>}
     </span>
   )
 }

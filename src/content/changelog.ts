@@ -12,6 +12,25 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Workforce Scheduling is confirmed, with its tokens: ranges, cell layouts, view densities and --workforce-* variables.',
+    changes: [
+      'The One Day range is still coming, so it stays a draft.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Stacked view density: every assignment as a plain 16px bar, at any range.',
+    changes: [
+      'No names, times, codes, tags or icons in the cells. Overtime is a red bar of its own, leave is yellow, out of unit striped and cancelled struck through.',
+      'Rows with one assignment are 28px high. More assignments make the row taller; separate assignments still go on the extra line.',
+      'Open shifts keep the Open or Live icon in a small dashed outline.',
+      'New tokens --workforce-stacked-chip-height (16px) and --workforce-stacked-row-height (28px).',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Detailed view: cells with three assignments, and text that fits narrow days.',
     changes: [
       'K. Brennan (Thu, Jun 4) and P. Fitzgerald (Tue, Jun 2) have three assignments in one cell. The row gets taller to fit them.',
