@@ -275,6 +275,34 @@ function ExtraRowDemo() {
   )
 }
 
+/** Detective Tanaka alone, for the expired example. Expires Wed, Jun 3. */
+const expiredGroups: ScheduleGroup[] = scheduleUnits[0].groups.slice(0, 1).map((group) => ({ ...group, members: group.members.filter((member) => member.id === 'ct') }))
+
+function ExpiredDemo() {
+  const [range, setRange] = useState<ScheduleRange>('week')
+  const rangeDef = scheduleRanges.find((item) => item.key === range)!
+  return (
+    <Preview flush title="Expired, Detective Tanaka">
+      <Stack gap={0} w="100%" miw={0}>
+        <Group gap="xs" p="sm">
+          <PickerMenu label="Range" value={range} options={scheduleRanges.filter((item) => item.key !== 'month').map(({ key, label }) => ({ key, label }))} onChange={(value) => setRange(value as ScheduleRange)} />
+        </Group>
+        <div className={classes.extraRowFrame}>
+          <ScheduleGrid
+            label="Detective Tanaka’s schedule"
+            sections={teamSections(expiredGroups)}
+            days={rangeDays(range, MOCK_TODAY)}
+            density={rangeDef.density}
+            columnMin={rangeDef.columnMin}
+            today={MOCK_TODAY}
+            showCoverage={false}
+          />
+        </div>
+      </Stack>
+    </Preview>
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
@@ -345,6 +373,18 @@ export default function TeamView() {
           <Text size="sm"><strong>Any kind of time</strong> can go there: regular, leave or overtime. The fill, code and OT tag say which, as in any other cell.</Text>
           <Text size="sm"><strong>The row appears</strong> only when a day in the visible range needs it. It has no name, so it reads as part of the member above. Screen readers announce it as the member’s additional assignments.</Text>
           <Text size="sm"><strong>On mobile,</strong> the extra assignments show as a second, lighter strip under the member’s row.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="expired" title="Expired employees" description="When an employee’s record expires, for example at the end of a contract or on leaving the agency, their row stays in the team. From the expiry day on, their cells are hatched and hold no shifts.">
+        <ExpiredDemo />
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>The expiry day</strong> is the first day the employee is no longer active. Tanaka expires on Wednesday, June 3, so Monday and Tuesday look as usual and Wednesday to Sunday are hatched.</Text>
+          <Text size="sm"><strong>One label.</strong> The first hatched day carries “Expired” with an icon; later days show only the hatch, so a long range stays calm. Compact cells and the mobile week show the icon alone. When the range starts after the expiry day, the label moves to the first visible day.</Text>
+          <Text size="sm"><strong>Quiet on purpose.</strong> The hatch is thin and gray, in the dimmed text color, on an empty cell. It does not compete with shift fills or coverage, and it is different from the blue out-of-unit stripes, which sit on a filled cell.</Text>
+          <Text size="sm"><strong>The name stays readable.</strong> Once the expiry day has passed, the initials get a dashed outline. On mobile, the row name adds “Expired Jun 3”, and the day view hatches the whole timeline.</Text>
+          <Text size="sm"><strong>Screen readers</strong> hear “Expired” in each hatched cell, and the name announces the expiry date.</Text>
+          <Text size="sm">Try it in the <Anchor component={Link} to="/patterns/team-view?section=desktop" size="sm">Desktop</Anchor> demo: Tanaka is the last member of Patrol Alpha. Switch to two or three weeks to see the hatch run on.</Text>
         </Stack>
       </Section>
 
@@ -485,6 +525,7 @@ export default function TeamView() {
             'Put coverage directly above the team it describes.',
             'Put assignments outside the block’s hours in the extra row, and keep the block on its own in the main row.',
             'Open details over the schedule, so closing them returns the user to the same place.',
+            'Keep an expired employee’s row and the shifts before the expiry day, so the history stays intact.',
           ]}
           dontItems={[
             'Shrink text to fit a month. Switch to compact cells and let the grid scroll.',
@@ -492,6 +533,7 @@ export default function TeamView() {
             'Show color alone for coverage. Keep the numbers, arrows and outlines.',
             'Offer ranges longer than a week on a phone.',
             'Navigate away from the schedule to show coverage or a profile.',
+            'Show shifts on or after an employee’s expiry day, or label every expired cell.',
           ]}
         />
       </Section>

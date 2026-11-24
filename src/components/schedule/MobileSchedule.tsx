@@ -1,11 +1,11 @@
 import { useRef, type CSSProperties, type PointerEvent } from 'react'
-import { Text, UnstyledButton } from '@mantine/core'
+import { Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { Clock3 } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  dayNumber, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type Chip, type ScheduleRow, type ScheduleSection,
+  dayNumber, expiredLabelDay, isExpired, formatFullDate, formatHeader, formatHour, formatMonthDay, formatWeekday, rowLines, segmentHours, segmentKind, type Chip, type ScheduleRow, type ScheduleSection,
 } from './data'
-import ShiftChip from './ShiftChip'
+import ShiftChip, { ExpiredMark } from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
 import classes from './Mobile.module.css'
 
@@ -38,11 +38,13 @@ function TimeOfDay({ section, day, onCoverageClick }: { section: ScheduleSection
   )
 }
 
-function RowName({ row, section, className, onRowClick }: { row: ScheduleRow; section: ScheduleSection; className: string; onRowClick?: MobileScheduleProps['onRowClick'] }) {
-  if (!onRowClick) return <div className={className}>{row.name}</div>
+function RowName({ row, section, className, asOf, onRowClick }: { row: ScheduleRow; section: ScheduleSection; className: string; /** Shows “Expired Jun 3” after the name when the row is expired on this day */ asOf?: number; onRowClick?: MobileScheduleProps['onRowClick'] }) {
+  const expired = row.expiresOn !== undefined && asOf !== undefined && isExpired(row, asOf) ? `Expired ${formatMonthDay(row.expiresOn)}` : null
+  const content = <>{row.name}{expired && <span className={classes.expiredNote}>{expired}</span>}</>
+  if (!onRowClick) return <div className={className}>{content}</div>
   return (
-    <UnstyledButton className={`${className} ${classes.nameButton}`} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}. Show details`}>
-      {row.name}
+    <UnstyledButton className={`${className} ${classes.nameButton}`} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}${expired ? `, ${expired.toLowerCase()}` : ''}. Show details`}>
+      {content}
     </UnstyledButton>
   )
 }
@@ -91,13 +93,19 @@ function WeekView({ sections, days, today, onRowClick, onCoverageClick, onChipCl
             const chipsByDay = days.map((day) => row.chips(day))
             const lines = rowLines(row, chipsByDay)
             const overflow = (row.extraLines ?? 'overflow') === 'overflow'
+            const labelDay = expiredLabelDay(row, days)
             return (
               <div key={row.id}>
-                <RowName row={row} section={section} className={classes.name} onRowClick={onRowClick} />
+                <RowName row={row} section={section} className={classes.name} asOf={today ?? days[days.length - 1]} onRowClick={onRowClick} />
                 {Array.from({ length: lines }, (_, line) => (
                   <div className={classes.strip} data-overflow={(overflow && line > 0) || undefined} data-positions={!overflow || undefined} key={line}>
                     {days.map((day, index) => {
                       const chip = chipsByDay[index][line]
+                      if (isExpired(row, day)) return (
+                        <div className={classes.stripCell} data-expired key={day}>
+                          {line === 0 && <>{day === labelDay && <ExpiredMark density="strip" />}<VisuallyHidden>{formatHeader(day)}: expired</VisuallyHidden></>}
+                        </div>
+                      )
                       return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}</div>
                     })}
                   </div>
@@ -140,7 +148,8 @@ function DayView({ sections, daySections, days, today, onRowClick, onCoverageCli
             {section.rows.map((row) => (
               <div className={classes.dayRow} key={row.id}>
                 <RowName row={row} section={section} className={classes.dayName} onRowClick={onRowClick} />
-                <div className={classes.track}>
+                <div className={classes.track} data-expired={isExpired(row, day) || undefined}>
+                  {isExpired(row, day) && <><ExpiredMark /><VisuallyHidden>Expired</VisuallyHidden></>}
                   {row.chips(day).flatMap((chip, chipIndex) => !chip ? [] : chip.segments.map((segment, index) => {
                     const { start, end } = segmentHours(segment)
                     const kind = segmentKind(segment)

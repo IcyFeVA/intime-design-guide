@@ -33,6 +33,8 @@ export interface ScheduleMember {
   rank: string
   /** Cells per day number. A second cell on the same day goes to an overflow row. */
   chips: (day: number) => Chip[]
+  /** First day the employee is no longer active (contract ended, left the agency). Cells from this day on show as expired. */
+  expiresOn?: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -51,7 +53,13 @@ export interface ScheduleRow {
   lines?: number
   /** `overflow`: extra lines are a lighter overflow row (Team View). `position`: every line is a position (Location View). */
   extraLines?: 'overflow' | 'position'
+  /** First day the row's person is no longer active. Cells from this day on show as expired, without shifts. */
+  expiresOn?: number
 }
+
+export const isExpired = (row: Pick<ScheduleRow, 'expiresOn'>, day: number) => row.expiresOn !== undefined && day >= row.expiresOn
+/** The day that carries the "Expired" label: the expiry day, or the first visible day when the range starts later. */
+export const expiredLabelDay = (row: Pick<ScheduleRow, 'expiresOn'>, days: number[]) => days.find((day) => isExpired(row, day))
 
 export interface ScheduleSection {
   id: string
@@ -218,8 +226,8 @@ function curated(memberIndex: number, base: string, offset: number, week: (Chip[
 const one = (...segments: Segment[]) => [chip(segments)]
 const ou = (...segments: Segment[]) => [chip(segments, true)]
 
-const member = (id: string, name: string, initials: string, rank: string, chips: ScheduleMember['chips']): ScheduleMember =>
-  ({ id, name, initials, rank, chips })
+const member = (id: string, name: string, initials: string, rank: string, chips: ScheduleMember['chips'], expiresOn?: number): ScheduleMember =>
+  ({ id, name, initials, rank, expiresOn, chips: expiresOn === undefined ? chips : (day) => (day >= expiresOn ? [] : chips(day)) })
 
 const alpha: ScheduleMember[] = [
   member('rr', 'Richards', 'RR', 'Lieutenant', curated(1, 'PatD', 2, [null, one(c('PatG')), one(c('PatD')), one(c('PatD')), one(c('PatD')), one(c('PatD', { overtime: 'partial', end: 19 })), one(c('PatD'))])),
@@ -229,7 +237,7 @@ const alpha: ScheduleMember[] = [
   member('fd', 'Dijkstra', 'FD', 'Officer', curated(5, 'PatD', 3, [one(c('PatD')), one(c('PatD', { end: 12 }), c('C-AM', { start: 12, end: 16 })), [chip([c('Train')]), chip([c('PTO', { start: 16, end: 18 }), c('Court', { start: 18, end: 21, overtime: 'partial' })])], null, null, null, one(c('PatD', { overtime: 'full' }))])),
   member('eh', 'Haddad', 'EH', 'Officer', curated(6, 'C-AM', 0, [one(c('C-AM')), ou(c('C-AM')), one(c('C-AM')), ou(c('PatD', { cancelled: true }), c('PTO', { start: 12, end: 17 })), null, null, null])),
   member('pz', 'Haddad', 'PZ', 'Officer', curated(7, 'C-AM', 0, [one(c('C-AM')), one(c('C-AM')), one(c('C-AM')), ou(c('C-AM', { overtime: 'partial', end: 15 })), null, null, null])),
-  member('ct', 'Tanaka', 'CT', 'Detective', curated(8, 'PatD', 5, [one(c('PatD')), one(c('Sick')), null, one(c('Train')), ou(c('Train')), null, one(c('PatD'))])),
+  member('ct', 'Tanaka', 'CT', 'Detective', curated(8, 'PatD', 5, [one(c('PatD')), one(c('Sick')), null, one(c('Train')), ou(c('Train')), null, one(c('PatD'))]), dayOf(2026, 6, 3)),
 ]
 
 const bravo: ScheduleMember[] = [

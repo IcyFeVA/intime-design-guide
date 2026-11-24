@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
+    page: '/patterns/team-view',
+    summary: 'New expired state: from an employee’s expiry day on, their cells are hatched in gray with one “Expired” label, in every range and on mobile.',
+    changes: [
+      'Added the Expired employees section with a demo. Detective Tanaka in Patrol Alpha expires on Wednesday, June 3.',
+      'Added --schedule-expired-hatch and --schedule-expired-text (draft).',
+      'ScheduleRow and ScheduleMember take an optional expiresOn day.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     page: null,
     summary: 'Removed tooltips from the Team View, Location View and Calendar demos: shift cells, toolbar buttons, the phone controls and the navigation rail.',
   },

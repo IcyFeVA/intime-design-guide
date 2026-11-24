@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { UnstyledButton } from '@mantine/core'
-import { ArrowUpRight, Clock3 } from 'lucide-react'
+import { ArrowUpRight, Clock3, UserX } from 'lucide-react'
 import { chipFills, chipHasOvertime, describeChip, type Chip } from './data'
 import classes from './Schedule.module.css'
 
@@ -60,5 +60,18 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
         {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}
         <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'strip' ? 'single' : 'full'} />
     </UnstyledButton>
+  )
+}
+
+/**
+ * Marks where a row's expired stretch starts: the expiry day, or the first visible day.
+ * Later expired days show only the hatch. Decorative: the cell carries the accessible text.
+ */
+export function ExpiredMark({ density = 'comfortable' }: { density?: ChipDensity }) {
+  return (
+    <span className={classes.expired} data-density={density} aria-hidden="true">
+      <UserX size={14} strokeWidth={1.75} />
+      {density === 'comfortable' && 'Expired'}
+    </span>
   )
 }

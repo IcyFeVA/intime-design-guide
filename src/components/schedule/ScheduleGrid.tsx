@@ -1,7 +1,7 @@
 import { Fragment, type CSSProperties, type ReactNode } from 'react'
 import { UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { dayNumber, formatFullDate, formatHeader, isPeriodStart, rowLines, type Chip, type ScheduleRow, type ScheduleSection } from './data'
-import ShiftChip from './ShiftChip'
+import { dayNumber, expiredLabelDay, formatFullDate, formatHeader, formatMonthDay, isExpired, isPeriodStart, rowLines, type Chip, type ScheduleRow, type ScheduleSection } from './data'
+import ShiftChip, { ExpiredMark } from './ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from './Coverage'
 import classes from './Schedule.module.css'
 
@@ -101,19 +101,24 @@ export default function ScheduleGrid({
               const chipsByDay = days.map((day) => row.chips(day))
               const lines = rowLines(row, chipsByDay)
               const overflow = (row.extraLines ?? 'overflow') === 'overflow'
+              const labelDay = expiredLabelDay(row, days)
+              /** Expired as of today (or the end of the range when there is no today) */
+              const expiredNow = isExpired(row, today ?? days[days.length - 1])
+              const expiredNote = row.expiresOn !== undefined && expiredNow ? `, expired ${formatMonthDay(row.expiresOn)}` : ''
               return Array.from({ length: lines }, (_, line) => (
                 <div role="row" className={classes.row} key={`${row.id}-${line}`}>
-                  <div role="rowheader" className={classes.label} data-overflow={(overflow && line > 0) || undefined}>
+                  <div role="rowheader" className={classes.label} data-overflow={(overflow && line > 0) || undefined} data-expired={(line === 0 && expiredNow) || undefined}>
                     {line === 0 ? (onRowClick ? (
-                      <UnstyledButton className={classes.rowButton} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}. Show details`}>
+                      <UnstyledButton className={classes.rowButton} onClick={() => onRowClick(row, section)} aria-haspopup="dialog" aria-label={`${row.name}${expiredNote}. Show details`}>
                         {row.label ?? row.name}
                       </UnstyledButton>
-                    ) : row.label ?? row.name) : (
+                    ) : <>{row.label ?? row.name}{expiredNote && <VisuallyHidden>{expiredNote}</VisuallyHidden>}</>) : (
                       <VisuallyHidden>{row.name}, {overflow ? 'additional assignments' : `position ${line + 1}`}</VisuallyHidden>
                     )}
                   </div>
                   {days.map((day, dayIndex) => {
                     const chip = chipsByDay[dayIndex][line]
+                    const expired = isExpired(row, day)
                     return (
                       <div
                         role="cell"
@@ -122,9 +127,11 @@ export default function ScheduleGrid({
                         data-boundary={isPeriodStart(day) || undefined}
                         data-overflow={(overflow && line > 0) || undefined}
                         data-muted={(chip && isMuted?.(chip)) || undefined}
+                        data-expired={expired || undefined}
                         key={day}
                       >
-                        {chip && <ShiftChip chip={chip} density={density} context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}
+                        {expired && line === 0 && <>{day === labelDay && <ExpiredMark density={density} />}<VisuallyHidden>Expired</VisuallyHidden></>}
+                        {!expired && chip && <ShiftChip chip={chip} density={density} context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}
                       </div>
                     )
                   })}

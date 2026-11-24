@@ -100,6 +100,8 @@ export const scheduleTokens: ScheduleToken[] = [
   t('--schedule-met-text', 'var(--text-success-default)', 'color', 'Coverage value on target.'),
   t('--schedule-hour-under', 'var(--text-error-default)', 'color', 'Hour blocks and markers below target in the coverage details.'),
   t('--schedule-hour-met', 'var(--text-dimmed)', 'color', 'Hour blocks and markers on target in the coverage details.'),
+  { ...t('--schedule-expired-hatch', mix('--text-dimmed', 28), 'color', 'Thin stripes over the cells of an expired employee, from the expiry day on. Also the dashed outline of their initials.'), status: 'draft' },
+  { ...t('--schedule-expired-text', 'var(--text-dimmed)', 'color', 'The “Expired” label and icon on the first expired day.'), status: 'draft' },
   t('--schedule-hour-over', 'var(--text-warning-default)', 'color', 'Hour blocks and markers above target in the coverage details.'),
 ]
 

@@ -26,6 +26,7 @@ export function teamSections(groups: ScheduleGroup[]): ScheduleSection[] {
           </>
         ),
         chips: member.chips,
+        expiresOn: member.expiresOn,
         extraLines: 'overflow' as const,
       }
     }),

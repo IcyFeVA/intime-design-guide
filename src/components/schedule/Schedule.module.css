@@ -139,6 +139,40 @@
   box-shadow: inset 2px 0 0 var(--schedule-boundary);
 }
 
+/* Expired: from the expiry day on, a quiet hatch instead of shifts. Comes after data-overflow so the hatch sits on its fill. */
+.cell[data-expired] {
+  background-image: repeating-linear-gradient(135deg, var(--schedule-expired-hatch) 0 1px, transparent 1px 8px);
+}
+
+.cell[data-expired][data-density='compact'] {
+  justify-content: center;
+}
+
+.label[data-expired] .initials {
+  color: var(--schedule-expired-text);
+  background: transparent;
+  outline: 1px dashed var(--schedule-expired-hatch);
+  outline-offset: -1px;
+}
+
+.expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 6px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--schedule-expired-text);
+  background: var(--mantine-color-body);
+}
+
+.expired[data-density='compact'],
+.expired[data-density='strip'] {
+  padding: 3px;
+}
+
 .empty {
   grid-column: 1 / -1;
   padding: 48px 24px;
