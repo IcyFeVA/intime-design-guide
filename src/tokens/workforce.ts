@@ -83,7 +83,7 @@ export const workforceTokens: WorkforceToken[] = [
   t('--workforce-label-width-narrow', '168px', 'size', 'Name column when day columns would be narrower than 48px, e.g. a month. Rank badges and supervisor icons hide if they don’t fit.'),
   t('--workforce-mini-chip-height', '32px', 'size', 'Shift cell height in the Mini layout (very narrow days, e.g. a month), so more people fit.'),
   t('--workforce-mini-row-height', '44px', 'size', 'Row height in the Mini layout: the cell plus 6px above and below.'),
-  t('--workforce-header-height', '56px', 'size', 'Height of the date row. The open shifts row is pinned right below it.'),
+  t('--workforce-header-height', '56px', 'size', 'Height of the date row, which stays pinned while the grid scrolls.'),
   t('--workforce-panel-width', '380px', 'size', 'Width of the details panel on the right.'),
   t('--workforce-selected-bg', 'var(--background-primary-light)', 'color', 'Background of a selected cell, around its shift.'),
   t('--workforce-selected-border', 'var(--border-primary-default)', 'color', 'Outline around a selected range of cells.'),

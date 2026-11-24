@@ -220,6 +220,8 @@ Requirement: schedulers see every day of every range without a horizontal scroll
 
 Ideas not built yet: collapse the name column to initials; a per-user setting that remembers docked vs drawer; show the drawer over the grid without covering the selected cell (e.g. scroll or flip side).
 
+- Open shifts are **not pinned** (2026-11-24, user): they are the first rows and scroll with the grid. Only the date row and the name column stay pinned.
+
 ## Later (out of scope now, keep room for them)
 
 - Compact and Stacked densities (override `--schedule-row-height` / `--schedule-chip-height` under `[data-view]`); 15 range × density combinations.

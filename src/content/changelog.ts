@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Open shifts are no longer pinned: they scroll with the grid. The date row and names stay pinned.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'New Sizing for screens section: how the grid fits every range on screen and when cells switch to Compact or Mini, with examples at 1280, 1512 and 1920px.',
   },
   {

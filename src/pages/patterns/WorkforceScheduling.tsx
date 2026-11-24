@@ -167,7 +167,7 @@ export default function WorkforceScheduling() {
           </div>
         </Preview>
         <Stack gap="xs" mt="md">
-          <Text size="sm"><strong>Open shifts</strong> stay pinned under the dates. A shift nobody holds yet has a dashed outline and no fill, with an icon and a label: Open, or Live once it is posted to employees. Two weeks and longer show the icon and code only.</Text>
+          <Text size="sm"><strong>Open shifts</strong> are the first rows under the dates and scroll with the grid. A shift nobody holds yet has a dashed outline and no fill, with an icon and a label: Open, or Live once it is posted to employees. Two weeks and longer show the icon and code only.</Text>
           <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch.</Text>
           <Text size="sm"><strong>Staffing</strong> uses Team View’s coverage rows: Bodies, Supervisors, Hours and Time of day. Collapsed, it says how many days in the range are below target.</Text>
           <Text size="sm"><strong>Names</strong> show the rank for corporals and up, and a shield for supervisors. Select a name for the person’s details.</Text>
@@ -293,7 +293,7 @@ export default function WorkforceScheduling() {
         <Stack gap={6}>
           <Text size="sm"><strong>Codes are never lost.</strong> In every layout the tooltip, the cell’s accessible name and the panel give the full code, times and tags.</Text>
           <Text size="sm"><strong>Mini changes height, not just content.</strong> It sets the chip and row heights to --workforce-mini-chip-height and --workforce-mini-row-height, so more people fit on screen.</Text>
-          <Text size="sm"><strong>Pinned rows don’t change.</strong> The date row, open shifts and watch headers keep their heights; only their content gets smaller.</Text>
+          <Text size="sm"><strong>Some rows keep their height.</strong> The date row, open shifts and watch headers keep their heights; only their content gets smaller.</Text>
           <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. The view densities still to come (Compact, Stacked) change row height, not this rule.</Text>
         </Stack>
       </Section>
@@ -356,7 +356,7 @@ export default function WorkforceScheduling() {
             'Let people select cells the way they do in a spreadsheet: click, drag, Shift-click and Ctrl/⌘-click.',
             'Open details beside the grid, so the schedule stays visible while editing.',
             'Show the active cell’s name and date in their headers, so a busy grid stays readable.',
-            'Keep open shifts, dates and names pinned while the grid scrolls.',
+            'Keep dates and names pinned while the grid scrolls.',
             'Show what the panel is editing in its title: the date and the person or unit.',
           ]}
           dontItems={[

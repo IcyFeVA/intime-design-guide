@@ -1,12 +1,11 @@
 /* Workforce Scheduling grid. Reuses Team View's grid styles (Schedule.module.css) through `composes`
-   and adds selection, the pinned open shifts row and collapsible watches. */
+   and adds selection, the open shifts row and collapsible watches. */
 
 .scroller {
   composes: scroller from '../schedule/Schedule.module.css';
-  --open-row-height: 44px;
   height: 100%;
-  /* Keyboard moves scroll a cell into view below the pinned rows and beside the names */
-  scroll-padding-top: calc(var(--workforce-header-height) + var(--open-lines, 1) * var(--open-row-height));
+  /* Keyboard moves scroll a cell into view below the date row and beside the names */
+  scroll-padding-top: var(--workforce-header-height);
   scroll-padding-left: var(--workforce-label-width);
 }
 
@@ -83,25 +82,17 @@
   line-height: 1.2;
 }
 
-/* ---------- Open shifts (pinned under the dates) ---------- */
+/* ---------- Open shifts (first rows, scroll with the grid) ---------- */
 
 .openRow > .openLabel,
 .openRow > .openCell {
-  position: sticky;
-  top: calc(var(--workforce-header-height) + var(--line) * var(--open-row-height));
-  z-index: 2;
-  height: var(--open-row-height);
+  height: 44px;
   min-height: 0;
-  background: var(--mantine-color-body);
 }
 
 .openRow[data-last] > .openLabel,
 .openRow[data-last] > .openCell {
   border-bottom: 2px solid var(--border-default);
-}
-
-.openRow > .openLabel {
-  z-index: 4;
 }
 
 .openLabel {
@@ -425,7 +416,7 @@
   padding-inline: 2px;
 }
 
-/* Layered on the body color so pinned (open shift) cells stay opaque */
+/* Layered on the body color so the tint never shows what's behind */
 .cell[aria-selected='true'] {
   background:
     linear-gradient(var(--workforce-selected-bg), var(--workforce-selected-bg)),

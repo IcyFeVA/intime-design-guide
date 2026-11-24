@@ -170,7 +170,6 @@ export default function WorkforceGrid({
   const active = selection.active
   const activeRow = active ? model.byKey.get(active.row) : undefined
   const activeDay = activeRow && (activeRow.kind === 'member' || activeRow.kind === 'open') ? active?.day ?? null : null
-  const openLines = model.rows.filter((row) => row.kind === 'open').length
   const style = { gridTemplateColumns: `var(--workforce-label-width) repeat(${days.length}, minmax(0, 1fr))` } as CSSProperties
 
   const esc = selection.escapeProps
@@ -201,7 +200,7 @@ export default function WorkforceGrid({
     switch (row.kind) {
       case 'open':
         return (
-          <div role="row" className={`${classes.row} ${classes.openRow}`} style={{ '--line': row.line } as CSSProperties} data-last={row.line === row.lines - 1 || undefined} key={row.key}>
+          <div role="row" className={`${classes.row} ${classes.openRow}`} data-last={row.line === row.lines - 1 || undefined} key={row.key}>
             <div role="rowheader" className={classes.openLabel} data-row={row.key} data-day="label" {...esc} tabIndex={selection.isTabStop(row.key, null) ? 0 : -1}>
               {row.line === 0 ? (
                 <>
@@ -341,7 +340,7 @@ export default function WorkforceGrid({
     <div
       ref={scrollerRef}
       className={classes.scroller}
-      style={{ '--open-lines': openLines, ...(narrowLabel ? { '--workforce-label-width': 'var(--workforce-label-width-narrow)' } : {}) } as CSSProperties}
+      style={{ ...(narrowLabel ? { '--workforce-label-width': 'var(--workforce-label-width-narrow)' } : {}) } as CSSProperties}
       data-layout={density}
     >
       <div
