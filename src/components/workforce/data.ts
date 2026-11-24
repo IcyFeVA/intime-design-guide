@@ -21,6 +21,10 @@ export interface WorkforceMember {
   last: string
   initials: string
   rank: WorkforceRank
+  /** Day the current rank took effect (day number, as `dayOf`) */
+  rankEffective: number
+  /** Precedence number: a lower number comes first. People can share one. */
+  precedence: number
   /** Sergeants and lieutenants count towards the watch's supervisors */
   supervisor: boolean
   watch: WatchId
@@ -157,6 +161,8 @@ const buildMembers = (watch: WatchId): WorkforceMember[] => specs[watch].map(([i
   last,
   initials: `${first[0]}${last[0]}`,
   rank,
+  rankEffective: dayOf(2025 - ((watchSeeds[watch] / 100 + index * 3) % 9), ((index * 5 + offset) % 12) + 1, ((index * 11) % 27) + 1),
+  precedence: 1 + ((watchSeeds[watch] / 100 + index * 7) % 5),
   supervisor: rank === 'Sgt' || rank === 'Lt',
   watch,
   chips: week ? curated(watchSeeds[watch] + index, watch, offset, week) : rotation(watchSeeds[watch] + index, watch, offset),
@@ -291,21 +297,98 @@ export const openStatus = {
 export const describeOpenShift = (shift: OpenShift) =>
   `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${shift.needed} still needed`
 
-export const workforceTeams = [
-  { key: 'patrol', label: 'Patrol' },
-  { key: 'traffic', label: 'Traffic' },
-  { key: 'detectives', label: 'Detective squad' },
+/** Saved employee filters, as set up in Employee Settings. Counts are for the whole unit. */
+export const savedFilters: { key: string; label: string; description?: string; count: number }[] = [
+  { key: 'all', label: 'All employees', count: 32 },
+  { key: 'spanish', label: 'Spanish Speaking', description: 'Language attribute: Spanish', count: 9 },
+  { key: 'level1', label: 'Level 1 Certified', description: 'Certification: Level 1 (active)', count: 24 },
+  { key: 'supervisors', label: 'Supervisors', description: 'Employees flagged as supervisors', count: 6 },
+  { key: 'fto', label: 'Field Training Officers', description: 'Certification: FTO', count: 5 },
+  { key: 'ot', label: 'OT Volunteers', description: 'Signed up on the voluntary OT list', count: 12 },
+  { key: 'firearms', label: 'Firearms Qualified', description: 'Certification: Firearms (current)', count: 26 },
 ]
+
+/** The agency's units, as a tree. A unit with children can be picked as a whole (e.g. Patrol and its five watches). */
+export interface UnitNode {
+  key: string
+  label: string
+  children?: UnitNode[]
+}
+
+const leaf = (key: string, label: string): UnitNode => ({ key, label })
+
+export const unitTree: UnitNode[] = [
+  { key: 'command', label: 'Command', children: [leaf('am-command', 'AM Command'), leaf('pm-command', 'PM Command')] },
+  { key: 'special-ops', label: 'Special Ops', children: [leaf('k9', 'K9 Unit'), { key: 'swat', label: 'SWAT', children: [leaf('sub-swat', 'Sub SWAT')] }] },
+  {
+    key: 'patrol',
+    label: 'Patrol',
+    children: [leaf('day-patrol', 'Day Patrol'), leaf('swing-patrol', 'Swing Patrol'), leaf('night-patrol', 'Night Patrol'), leaf('floaters', 'Floaters'), leaf('trainees', 'Trainees')],
+  },
+  {
+    key: 'communications',
+    label: 'Communications',
+    children: [
+      { key: 'dispatch', label: 'Dispatch', children: [leaf('dispatch-day', 'Dispatch Day'), leaf('dispatch-swing', 'Dispatch Swing'), leaf('dispatch-night', 'Dispatch Night')] },
+      { key: 'call-taker', label: 'Call Taker', children: [leaf('call-taker-day', 'Call Taker Day'), leaf('call-taker-swing', 'Call Taker Swing'), leaf('call-taker-night', 'Call Taker Night')] },
+    ],
+  },
+  leaf('training', 'Training'),
+]
+
+/** Recently used units, newest first. `parent` is shown dimmed after the name. */
+export const recentUnits: { key: string; parent?: string }[] = [{ key: 'patrol' }, { key: 'night-patrol', parent: 'Patrol' }]
+
+export const findUnit = (key: string, nodes: UnitNode[] = unitTree): UnitNode | undefined => {
+  for (const node of nodes) {
+    if (node.key === key) return node
+    const found = node.children && findUnit(key, node.children)
+    if (found) return found
+  }
+  return undefined
+}
+
+/** Units whose name matches, with their parents for context. A matching parent keeps all its children. */
+export const filterUnits = (query: string, nodes: UnitNode[] = unitTree): UnitNode[] => {
+  const q = query.trim().toLowerCase()
+  if (!q) return nodes
+  return nodes.flatMap((node) => {
+    if (node.label.toLowerCase().includes(q)) return [node]
+    const children = filterUnits(q, node.children ?? [])
+    return children.length ? [{ ...node, children }] : []
+  })
+}
 
 /* ------------------------------------------------------------------ */
 /* Sorting and employee details                                        */
 /* ------------------------------------------------------------------ */
 
-export type WorkforceSort = 'watch' | 'name' | 'rank'
+export type WorkforceSort = 'watch' | 'name' | 'rank' | 'rankEffective' | 'rankPrecedence' | 'precedence' | 'precedenceRank'
+
+type Compare = (a: WorkforceMember, b: WorkforceMember) => number
+const byName: Compare = (a, b) => a.last.localeCompare(b.last) || a.first.localeCompare(b.first)
+const byRank: Compare = (a, b) => rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank)
+const byRankEffective: Compare = (a, b) => a.rankEffective - b.rankEffective
+const byPrecedence: Compare = (a, b) => a.precedence - b.precedence
+
+/** Each sort compares by these in turn; the name breaks any tie. `watch` keeps the roster order. */
+const sortKeys: Record<Exclude<WorkforceSort, 'watch'>, Compare[]> = {
+  name: [],
+  rank: [byRank],
+  rankEffective: [byRank, byRankEffective],
+  rankPrecedence: [byRank, byPrecedence],
+  precedence: [byPrecedence],
+  precedenceRank: [byPrecedence, byRank],
+}
 
 export const sortWorkforce = (members: WorkforceMember[], sort: WorkforceSort, direction: 'asc' | 'desc') => {
-  const sorted = sort === 'watch' ? members : [...members].sort((a, b) =>
-    (sort === 'rank' ? rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank) : 0) || a.last.localeCompare(b.last) || a.first.localeCompare(b.first))
+  const sorted = sort === 'watch' ? members : [...members].sort((a, b) => {
+    for (const compare of sortKeys[sort]) {
+      const result = compare(a, b)
+      if (result) return result
+    }
+    return byName(a, b)
+  })
   return direction === 'desc' ? [...sorted].reverse() : sorted
 }
 

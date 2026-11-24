@@ -24,7 +24,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Panel**: docked right, so the grid shrinks. Opens on a cell click (on pointer up), closes with its X, and the toolbar toggle does both. It has five modes (see Panel spec).
 - **Form**: inputs can be edited locally and reset when the selection changes. **The grid data never changes.** Assign, Leave, Add segment, Set actual and the icon buttons show a "Preview only" hint (`role="status"` demo bar).
 - **Bulk panel**: summary line, a list of the selected cells, shared fields, footer actions.
-- **Ranges**: 5 views: Day, One Week, Two Weeks, Three Weeks, One Month. ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
+- **Ranges**: 5 views: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month (numerals since 2026-11-24, user). ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
 - **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
 - **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Approvals (3), Posts (2), Mandate and Undo render and show a "Preview only" hint.
 - **Employee search** (2026-11-24): a search button after "Employee" in the corner header swaps the label for an input ("Search employees…"); X or Escape swaps it back. The input doesn't filter yet.
@@ -243,14 +243,40 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - [x] One Day replaces the placeholder: the same grid with one day column, at most `--workforce-day-max-width` (800px, names included) wide and centered with side borders, like the calendar's day view (user). `WorkforceGrid` fits the columns to `min(width, DAY_MAX_WIDTH)` and sets `data-single-day` on the scroller. The header shows the full date. All three densities work. The Day range token stays `draft` until approved.
 - Not built: an hour timeline inside the day (see the prototype screenshot and `calendar/TimeGridView`).
 
+## Sort fields and collapse all (2026-11-24, user, from a screenshot of the current app's sort menu)
+
+- [x] Sort fields: Watch order, Name, Rank, Rank then effective date, Rank then precedence, Precedence, Precedence then rank (`WorkforceSort`, `sortKeys` in `data.ts`). The name breaks remaining ties; Descending reverses the whole list. Members got mock `rankEffective` (day number) and `precedence` (1–5, shared by several people).
+- [x] Collapse all / Expand all: an icon button after Sort in the title row (`ChevronsDownUp` / `ChevronsUpDown`, tooltip). It collapses or expands every watch and its staffing block at once. It is a separate button, not part of the Sort modal, because it acts at once while the modal applies on Apply. The title-row icon buttons now have tooltips.
+
+## Saved filters menu (2026-11-24, user, from a screenshot of the current app)
+
+- [x] The Employees picker is `SavedFiltersMenu` (`WorkforceChrome.tsx`): a funnel button "All employees", then "Saved filters" with All employees (dot) and six saved filters (label, description, count) from `savedFilters` in `data.ts`, and a footnote. **No functionality** (user): All employees stays selected; the others show a "Preview only" hint. The old All / Scheduled in range / Supervisors options are gone; `buildGridModel` keeps its `filter` input (the demo passes `'all'`).
+
+- [x] No funnel icon on the saved filters button (user).
+
+## Unit picker (2026-11-24, user, from screenshots of the current app)
+
+- [x] `workforce/UnitPicker.tsx`: a Mantine `Combobox` opened from a "Patrol" button. `Combobox.Search` ("Search units…"), a "Recently used" group (History icon, parent unit dimmed) and "All units" as an indented tree (`unitTree` in `data.ts`; 14px per level; units with sub-units bold with their count; check on the current unit). Hover highlights like the arrow keys. Search filters the list (matches plus their parents; hides Recently used). **No functionality** (user): picking any unit but Patrol shows a "Preview only" hint. Replaces the old Team `PickerMenu` and `workforceTeams`.
+
+## Coverage alerts (2026-11-24, user, from screenshots of the current app)
+
+- [x] The Understaffed button opens `workforce/CoverageAlerts.tsx`, a Mantine `Popover` (`trapFocus`, Escape closes): "Coverage alerts", "Days below the section minimum for Patrol · full unit", then one row per watch-day below the bodies minimum (`model.underAlerts`, by watch then day; `underCount` is its length): red triangle, "Day · Mon, Jun 1, 2026", "6 of 8 minimum scheduled", and two icon buttons with tooltips: Post this shift (`Radio`) and Find-Fill · Mandatory OT (`UserSearch`), filled primary on hover. **No functionality** (user): the actions close the popover and show a "Preview only" hint. Scrolls past 360px (month view).
+
+## Legend (2026-11-24, user, from a screenshot of the current app)
+
+- [x] `workforce/WorkforceLegend.tsx`: a `BookOpen` icon button (tooltip "Legend") between Undo and the panel toggle opens a `Popover` (bottom-end, 440px, `trapFocus`). Each row draws the **real cell for the current view density** (`ShiftChip` / `DetailedChip` / `StackedChip` / `OpenShiftChip`, Full layout) next to its name and meaning. Rows and copy are draft tokens: `legendItems` in `src/tokens/workforce.ts`.
+- Only cells the grid shows today are listed (my default; the user didn't pick between leaving them out and "Coming soon" rows). Left out from the current app's legend until the grid shows them: Officer in charge (cross-hatched, shield), On-Call (dashed, phone), Trainee pairing (graduation cap, "Train Meet"), Pending leave request (hourglass badge in the corner), Pre-fill with OT (red border + OT tag), Statutory holiday (Hol badge in the day header), Leave over shift (diagonal stripes, leave icon + label).
+
 ## Later (out of scope now, keep room for them)
 
+- Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
-- Under staffed filter, Search, Approvals, Posts, Mandate.
+- Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
+- Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
 - Keyboard shortcuts scope in `src/tokens/shortcuts.ts`; copy/paste of cells; resizable panel.
 - Mobile layout.
 - Panel as a drawer over the grid (built, hidden): bring back the pin in the panel header and document it.
@@ -261,6 +287,7 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
 - Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
+- Precedence and the rank effective date aren't shown anywhere in the demo, so those sorts look arbitrary. What exactly is "precedence" in InTime, and should either value appear (e.g. in the name tooltip or employee details)?
 - How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
 

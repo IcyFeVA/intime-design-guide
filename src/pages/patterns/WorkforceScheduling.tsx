@@ -64,7 +64,7 @@ const layoutSpecimens: Chip[] = [
 /** Collapsed nav rail and borders: the grid is this much narrower than the screen */
 const APP_CHROME = 60
 const screens = [1280, 1512, 1920]
-const rangeDays: [string, number][] = [['One week', 7], ['Two weeks', 14], ['Three weeks', 21], ['One month', 30]]
+const rangeDays: [string, number][] = [['1 week', 7], ['2 weeks', 14], ['3 weeks', 21], ['1 month', 30]]
 /** Detailed needs Full-width days: true when the range gets them on a 1920px screen with the panel closed */
 const detailedFits = (range: string) => {
   const count = { day: 1, week: 7, '2weeks': 14, '3weeks': 21, month: 30 }[range]
@@ -190,9 +190,10 @@ export default function WorkforceScheduling() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Open shifts</strong> are the first rows under the dates and scroll with the grid. A shift nobody holds yet has a dashed outline and no fill, with an icon and a label: Open, or Live once it is posted to employees. Two weeks and longer show the icon and code only.</Text>
-          <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch.</Text>
+          <Text size="sm"><strong>Watches</strong> (Day, Swing, Night) show how many officers they have and, for each day, staff scheduled against staff needed. ▼ is below target, ▲ above. Select the header to collapse the watch. Collapse all, next to Sort, closes every watch and its staffing rows; once all are closed it turns into Expand all.</Text>
           <Text size="sm"><strong>Staffing</strong> uses Team View’s coverage rows: Bodies, Supervisors, Hours and Time of day. Collapsed, it says how many days in the range are below target.</Text>
           <Text size="sm"><strong>Names</strong> show the rank for corporals and up, and a shield for supervisors.</Text>
+          <Text size="sm"><strong>Sort</strong> orders the people inside each watch: by watch order, name, rank or precedence, or by rank then effective date or precedence, or precedence then rank. The name breaks any remaining tie. Ascending puts the highest rank and the lowest precedence number first.</Text>
         </Stack>
       </Section>
 
@@ -226,6 +227,7 @@ export default function WorkforceScheduling() {
         <Text size="xs" c="dimmed" mt="xs">Shows Compact: the days are too narrow for Detailed even on a 1920px screen, so the grid shows Compact cells.</Text>
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
+          <Text size="sm"><strong>Legend:</strong> the book button in the title row explains each kind of cell, drawn as the current density shows it. It only lists cells the grid can show.</Text>
         </Stack>
         <Text size="sm" mt="md"><strong>One day</strong> is a single centered column, at most {DAY_MAX_WIDTH}px wide with the names, as in the calendar’s day view. Its header gives the full date. All three densities work.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>

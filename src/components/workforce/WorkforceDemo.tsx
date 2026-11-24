@@ -4,23 +4,29 @@ import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
 import { DesktopDemoFrame } from '../schedule/ScheduleChrome'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
-import { SortModal } from '../sort/SortModal'
+import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { watches, workforceTeams, type Watch, type WatchId, type WorkforceSort } from './data'
-import { HEADER_ROW, buildGridModel, panelContent, type EmployeeFilter } from './model'
+import { findUnit, watches, type Watch, type WatchId, type WorkforceSort } from './data'
+import { HEADER_ROW, buildGridModel, panelContent } from './model'
 import { useGridSelection } from './useGridSelection'
 import WorkforceGrid from './WorkforceGrid'
 import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
 import classes from './WorkforceDemo.module.css'
 
-const sortFields: { key: WorkforceSort; label: string }[] = [
+const sortFields: SortField<WorkforceSort>[] = [
   { key: 'watch', label: 'Watch order' },
   { key: 'name', label: 'Name' },
   { key: 'rank', label: 'Rank' },
+  { key: 'rankEffective', label: 'Rank, then effective date', description: 'Same rank: by the date the rank took effect' },
+  { key: 'rankPrecedence', label: 'Rank, then precedence' },
+  { key: 'precedence', label: 'Precedence' },
+  { key: 'precedenceRank', label: 'Precedence, then rank' },
 ]
+
+const ALL_WATCHES: ReadonlySet<WatchId> = new Set(watches.map((watch) => watch.id))
 
 const panelSlide = {
   in: { opacity: 1, transform: 'translateX(0)' },
@@ -36,8 +42,6 @@ export default function WorkforceDemo() {
   const reduceMotion = useReducedMotion()
   const [range, setRange] = useState<WorkforceRange>('week')
   const [anchor, setAnchor] = useState(MOCK_TODAY)
-  const [team, setTeam] = useState('patrol')
-  const [filter, setFilter] = useState<EmployeeFilter>('all')
   const [view, setView] = useState<ViewDensity>(DEFAULT_VIEW_DENSITY)
   const [sort, setSort] = useState<WorkforceSort>('watch')
   const [direction, setDirection] = useState<SortDirection>('asc')
@@ -55,8 +59,8 @@ export default function WorkforceDemo() {
   const stepperDays = useMemo(() => rangeDays(range, anchor), [range, anchor])
 
   const model = useMemo(
-    () => buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter }),
-    [days, collapsed, staffingCollapsed, sort, direction, filter],
+    () => buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter: 'all' }),
+    [days, collapsed, staffingCollapsed, sort, direction],
   )
 
   const onActivate = useCallback((via: 'pointer' | 'keyboard') => {
@@ -97,7 +101,7 @@ export default function WorkforceDemo() {
   }
 
   const reset = () => {
-    setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setFilter('all'); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
+    setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
     setCoverage(null); selection.reset()
   }
@@ -115,6 +119,11 @@ export default function WorkforceDemo() {
           panelOpen={panelOpen}
           onTogglePanel={() => (panelOpen ? closePanel() : setPanelOpen(true))}
           onSort={() => setSortOpen(true)}
+          allCollapsed={collapsed.size === ALL_WATCHES.size}
+          onCollapseAll={(collapse) => {
+            setCollapsed(collapse ? ALL_WATCHES : new Set())
+            setStaffingCollapsed(collapse ? ALL_WATCHES : new Set())
+          }}
           onPreview={preview}
         />
       )}
@@ -125,11 +134,9 @@ export default function WorkforceDemo() {
           days={stepperDays}
           anchor={anchor}
           onAnchorChange={setAnchor}
-          team={team}
-          onTeam={(key) => (key === 'patrol' ? setTeam(key) : setHint(`Preview only: the demo has data for Patrol only, not ${workforceTeams.find((item) => item.key === key)?.label}.`))}
-          filter={filter}
-          onFilter={setFilter}
-          underCount={placeholder ? 0 : model.underCount}
+          team="patrol"
+          onTeam={(key) => key !== 'patrol' && setHint(`Preview only: the demo has data for Patrol only, not ${findUnit(key)?.label}.`)}
+          underAlerts={placeholder ? [] : model.underAlerts}
           onPreview={preview}
         />
       )}

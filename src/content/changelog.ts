@@ -51,6 +51,50 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Legend button in the title row: a popover that explains each kind of cell, drawn with the real cells in the current view density.',
+    changes: [
+      'Scheduled shift, two or more assignments, overtime, runs into overtime, leave, out of unit, open and live shifts.',
+      'Names and meanings are draft tokens (legendItems in src/tokens/workforce.ts).',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Understaffed opens Coverage alerts: every watch and day below the minimum in the range, with Post this shift and Find-Fill · Mandatory OT.',
+    changes: ['The list comes from the same counts as the watch badges, so it always matches the button’s number. The actions are preview only.'],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The unit picker (Patrol) lists every unit as an indented tree, with search and recently used units. The employee filter button loses its funnel icon.',
+    changes: [
+      'Units with sub-units are bold and show how many they have; each level is indented 14px. Recently used units show their parent unit.',
+      'Preview only: the demo has data for Patrol, so other units show a hint.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The employee filter is now a Saved filters menu: All employees, then filters set up in Employee Settings, each with a description and a head count.',
+    changes: ['Preview only: All employees stays selected, and the other filters show a hint.'],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The range menu uses numerals: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'More ways to sort, and Collapse all / Expand all for the watches.',
+    changes: [
+      'Sort adds Rank then effective date, Rank then precedence, Precedence, and Precedence then rank, next to Watch order, Name and Rank.',
+      'Collapse all (next to Sort) closes every watch and its staffing rows. When all are closed, the button becomes Expand all.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Target resolution button on the desktop demo: full screen, but no wider than 1512px (a 14-inch MacBook), for screenshots at the size we design for.',
   },
   {

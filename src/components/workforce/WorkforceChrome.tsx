@@ -1,12 +1,15 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
-import { ActionIcon, Badge, Button, Group, Menu, Text } from '@mantine/core'
+import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
-  ArrowUpDown, Check, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
+  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, Undo2, UserRoundPlus,
 } from 'lucide-react'
 import { PickerMenu, RangeStepper, ToolbarDivider } from '../schedule/ScheduleChrome'
 import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { employeeFilters, type EmployeeFilter } from './model'
-import { workforceTeams } from './data'
+import { findUnit, savedFilters } from './data'
+import type { UnderAlert } from './model'
+import CoverageAlerts from './CoverageAlerts'
+import WorkforceLegend from './WorkforceLegend'
+import UnitPicker from './UnitPicker'
 import classes from './Workforce.module.css'
 
 /** View density: Compact (the default), Detailed and Stacked. */
@@ -37,6 +40,49 @@ export function DensityMenu({ value, onChange }: { value: ViewDensity; onChange:
   )
 }
 
+/** Saved employee filters. Visual only for now: All employees stays selected and the others show a preview hint. */
+function SavedFiltersMenu({ onPreview }: { onPreview: (action: string) => void }) {
+  const [all, ...saved] = savedFilters
+  const item = (filter: (typeof savedFilters)[number]) => {
+    const checked = filter.key === all.key
+    return (
+      <Menu.Item
+        key={filter.key}
+        onClick={() => !checked && onPreview(`Saved filter: ${filter.label}`)}
+        leftSection={<span className={classes.savedDot} data-checked={checked || undefined} aria-hidden="true" />}
+        rightSection={<Text size="sm" c="dimmed" className="tabular">{filter.count}</Text>}
+        classNames={{ item: classes.savedItem }}
+      >
+        <Text size="sm">{filter.label}</Text>
+        {filter.description && <Text size="xs" c="dimmed">{filter.description}</Text>}
+      </Menu.Item>
+    )
+  }
+  return (
+    <Menu position="bottom-start" offset={4} width={300}>
+      <Menu.Target>
+        <Button
+          variant="default"
+          size="sm"
+          fw={400}
+          rightSection={<ChevronDown size={16} aria-hidden="true" />}
+          aria-label={`Employees: ${all.label}`}
+        >
+          {all.label}
+        </Button>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Label>Saved filters</Menu.Label>
+        {item(all)}
+        <Menu.Divider />
+        {saved.map(item)}
+        <Menu.Divider />
+        <Text size="xs" c="dimmed" px="sm" py={6}>Filters are managed in Employee Settings. Coverage counts always include the full unit.</Text>
+      </Menu.Dropdown>
+    </Menu>
+  )
+}
+
 /** Count badge inside a toolbar button */
 const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => (
   <Badge size="sm" circle variant={color === 'red' ? 'filled' : 'light'} color={color} className="tabular">{value}</Badge>
@@ -44,7 +90,7 @@ const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => 
 
 /** Filters and status buttons: the frame's toolbar row. */
 export function WorkforceToolbar({
-  range, onRange, days, anchor, onAnchorChange, team, onTeam, filter, onFilter, underCount, onPreview,
+  range, onRange, days, anchor, onAnchorChange, team, onTeam, underAlerts, onPreview,
 }: {
   range: WorkforceRange
   onRange: (range: WorkforceRange) => void
@@ -53,10 +99,8 @@ export function WorkforceToolbar({
   onAnchorChange: Dispatch<SetStateAction<number>>
   team: string
   onTeam: (team: string) => void
-  filter: EmployeeFilter
-  onFilter: (filter: EmployeeFilter) => void
   /** Watch-days below target in the range */
-  underCount: number
+  underAlerts: UnderAlert[]
   /** A control that is not built yet was used */
   onPreview: (action: string) => void
 }) {
@@ -79,20 +123,10 @@ export function WorkforceToolbar({
       <RangeStepper range={range} days={days} anchor={anchor} onAnchorChange={onAnchorChange} />
       <PickerMenu label="Range" value={range} options={workforceRanges.map(({ key, label }) => ({ key, label }))} onChange={onRange} />
       <ToolbarDivider />
-      <PickerMenu label="Team" value={team} options={workforceTeams} onChange={onTeam} />
-      <PickerMenu label="Employees" value={filter} options={employeeFilters} onChange={onFilter} />
+      <UnitPicker value={team} onChange={onTeam} />
+      <SavedFiltersMenu onPreview={onPreview} />
       <div className={classes.spacer} />
-      <Button
-        aria-label={`${underCount} understaffed`}
-        variant="light"
-        color={underCount ? 'red' : 'gray'}
-        size="sm"
-        fw={500}
-        leftSection={<TriangleAlert size={16} aria-hidden="true" />}
-        onClick={() => onPreview('Understaffed')}
-      >
-        <span className="tabular">{underCount}</span><span className={classes.collapsibleText}>&nbsp;understaffed</span>
-      </Button>
+      <CoverageAlerts alerts={underAlerts} unit={findUnit(team)?.label ?? ''} onPreview={onPreview} />
       {labelled('Approvals', Inbox, <Count value={3} color="red" />)}
       {labelled('Posts', Megaphone, <Count value={2} />)}
       {labelled('Mandate', UserRoundPlus)}
@@ -100,23 +134,33 @@ export function WorkforceToolbar({
   )
 }
 
-/** Search, sort, density, undo and the panel toggle: the right side of the title row. */
-export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, onPreview }: {
+/** Sort, collapse/expand all, density, undo, legend and the panel toggle: the right side of the title row. */
+export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, allCollapsed, onCollapseAll, onPreview }: {
   density: ViewDensity
   onDensity: (density: ViewDensity) => void
   panelOpen: boolean
   onTogglePanel: () => void
   onSort: () => void
+  /** Every watch is collapsed: the toggle offers Expand all */
+  allCollapsed: boolean
+  /** true collapses every watch and its staffing rows, false expands them all */
+  onCollapseAll: (collapse: boolean) => void
   onPreview: (action: string) => void
 }) {
   const icon = (label: string, Icon: typeof Search, onClick: () => void) => (
-    <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
+    <Tooltip label={label}>
+      <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
+    </Tooltip>
   )
   return (
     <Group gap={8} wrap="nowrap">
       {icon('Sort', ArrowUpDown, onSort)}
+      {allCollapsed
+        ? icon('Expand all', ChevronsUpDown, () => onCollapseAll(false))
+        : icon('Collapse all', ChevronsDownUp, () => onCollapseAll(true))}
       <DensityMenu value={density} onChange={onDensity} />
       {icon('Undo', Undo2, () => onPreview('Undo'))}
+      <WorkforceLegend view={density} />
       <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>
         {panelOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
       </ActionIcon>

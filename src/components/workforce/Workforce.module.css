@@ -898,3 +898,142 @@
     display: none;
   }
 }
+
+/* Saved filters menu: a dot marks the current filter; the others keep its space so labels line up */
+.savedItem {
+  align-items: flex-start;
+}
+
+.savedItem [data-position] {
+  margin-top: 4px;
+}
+
+.savedDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 3px 4px 0;
+  border-radius: 50%;
+}
+
+.savedDot[data-checked] {
+  background: var(--text-default);
+}
+
+/* Unit picker: an indented tree. Each level moves 14px to the right. */
+.unitOption {
+  padding-inline-start: calc(10px + var(--unit-depth, 0) * 14px);
+}
+
+.unitMeta {
+  color: var(--text-dimmed);
+  font-weight: 400;
+}
+
+.unitOption[data-combobox-selected] .unitMeta {
+  color: inherit;
+}
+
+.unitCheck {
+  margin-inline-start: auto;
+  flex: none;
+}
+
+/* Plain group labels, with a full-width line between the groups instead of Mantine's line after the label */
+.unitGroupLabel::after {
+  display: none;
+}
+
+.unitGroup + .unitGroup {
+  border-top: 1px solid var(--border-default);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+/* Coverage alerts (the Understaffed popover) */
+.alertsHeader {
+  padding: 12px 16px 8px;
+}
+
+.alertsList {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px;
+}
+
+.alertRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px 8px 16px;
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.alertRow:hover,
+.alertRow:focus-within {
+  background: var(--background-default-hover);
+}
+
+.alertIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-error-default);
+}
+
+.alertText {
+  flex: 1;
+  min-width: 0;
+}
+
+.alertAction {
+  align-self: center;
+  color: var(--text-dimmed);
+}
+
+.alertAction:hover {
+  background: var(--background-primary-filled);
+  color: var(--neutral-white);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alertRow {
+    transition: none;
+  }
+}
+
+/* Legend popover: the real cell on the left (Full layout), its name and meaning on the right */
+.legendList {
+  margin: 0;
+  padding: 4px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legendList[data-view='detailed'] {
+  --schedule-chip-height: var(--workforce-detailed-chip-height);
+}
+
+.legendList[data-view='stacked'] {
+  --schedule-chip-height: var(--workforce-stacked-chip-height);
+}
+
+.legendRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.legendSpecimen {
+  flex: none;
+  display: flex;
+  align-items: center;
+  width: 168px;
+  min-height: var(--schedule-chip-height);
+}
+
+.legendText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
