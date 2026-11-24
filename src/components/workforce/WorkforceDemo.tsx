@@ -136,7 +136,7 @@ export default function WorkforceDemo() {
           onAnchorChange={setAnchor}
           team="patrol"
           onTeam={(key) => key !== 'patrol' && setHint(`Preview only: the demo has data for Patrol only, not ${findUnit(key)?.label}.`)}
-          underCount={placeholder ? 0 : model.underCount}
+          underAlerts={placeholder ? [] : model.underAlerts}
           onPreview={preview}
         />
       )}

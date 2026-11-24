@@ -258,6 +258,10 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - [x] `workforce/UnitPicker.tsx`: a Mantine `Combobox` opened from a "Patrol" button. `Combobox.Search` ("Search units…"), a "Recently used" group (History icon, parent unit dimmed) and "All units" as an indented tree (`unitTree` in `data.ts`; 14px per level; units with sub-units bold with their count; check on the current unit). Hover highlights like the arrow keys. Search filters the list (matches plus their parents; hides Recently used). **No functionality** (user): picking any unit but Patrol shows a "Preview only" hint. Replaces the old Team `PickerMenu` and `workforceTeams`.
 
+## Coverage alerts (2026-11-24, user, from screenshots of the current app)
+
+- [x] The Understaffed button opens `workforce/CoverageAlerts.tsx`, a Mantine `Popover` (`trapFocus`, Escape closes): "Coverage alerts", "Days below the section minimum for Patrol · full unit", then one row per watch-day below the bodies minimum (`model.underAlerts`, by watch then day; `underCount` is its length): red triangle, "Day · Mon, Jun 1, 2026", "6 of 8 minimum scheduled", and two icon buttons with tooltips: Post this shift (`Radio`) and Find-Fill · Mandatory OT (`UserSearch`), filled primary on hover. **No functionality** (user): the actions close the popover and show a "Preview only" hint. Scrolls past 360px (month view).
+
 ## Later (out of scope now, keep room for them)
 
 - Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
@@ -266,7 +270,7 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
-- Under staffed filter, Search, Approvals, Posts, Mandate.
+- Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
 - Keyboard shortcuts scope in `src/tokens/shortcuts.ts`; copy/paste of cells; resizable panel.
 - Mobile layout.
 - Panel as a drawer over the grid (built, hidden): bring back the pin in the panel header and document it.

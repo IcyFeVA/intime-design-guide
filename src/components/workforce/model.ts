@@ -17,6 +17,13 @@ export const staffingMetrics: { key: StaffingMetric; label: string }[] = [
 
 export type EmployeeFilter = 'all' | 'scheduled' | 'supervisors'
 
+export interface UnderAlert {
+  watch: Watch
+  day: number
+  have: number
+  need: number
+}
+
 export type GridRow =
   | { kind: 'open'; key: string; line: number; lines: number; cells: (OpenShift | null)[] }
   | { kind: 'group'; key: string; watch: Watch; expanded: boolean; count: number }
@@ -41,6 +48,8 @@ export interface GridModel {
   openCount: number
   /** Watch-days below the bodies target in the range */
   underCount: number
+  /** Each watch-day below the bodies target, by watch then day: the Understaffed menu */
+  underAlerts: UnderAlert[]
   isSelectable: (row: string, day: number) => boolean
 }
 
@@ -87,6 +96,11 @@ export function buildGridModel({ watches, days, collapsed, staffingCollapsed, so
     }
   }
 
+  const underAlerts = watches.flatMap((watch) => days.flatMap((day) => {
+    const { have, need } = watch.coverage(day).bodies
+    return have < need ? [{ watch, day, have, need }] : []
+  }))
+
   const byKey = new Map(rows.map((row) => [row.key, row]))
   const groups = new Map<string, string[]>()
   for (const row of rows) {
@@ -105,7 +119,8 @@ export function buildGridModel({ watches, days, collapsed, staffingCollapsed, so
     byKey,
     days,
     openCount: openByDay.reduce((sum, shifts) => sum + shifts.length, 0),
-    underCount: watches.reduce((sum, watch) => sum + daysUnder(watch, days), 0),
+    underCount: underAlerts.length,
+    underAlerts,
     isSelectable: (key, day) => {
       const row = byKey.get(key)
       const index = dayIndex.get(day)

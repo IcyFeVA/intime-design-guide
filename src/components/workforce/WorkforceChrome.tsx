@@ -1,11 +1,13 @@
 import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
-  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, TriangleAlert, Undo2, UserRoundPlus,
+  ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, Undo2, UserRoundPlus,
 } from 'lucide-react'
 import { PickerMenu, RangeStepper, ToolbarDivider } from '../schedule/ScheduleChrome'
 import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { savedFilters } from './data'
+import { findUnit, savedFilters } from './data'
+import type { UnderAlert } from './model'
+import CoverageAlerts from './CoverageAlerts'
 import UnitPicker from './UnitPicker'
 import classes from './Workforce.module.css'
 
@@ -87,7 +89,7 @@ const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => 
 
 /** Filters and status buttons: the frame's toolbar row. */
 export function WorkforceToolbar({
-  range, onRange, days, anchor, onAnchorChange, team, onTeam, underCount, onPreview,
+  range, onRange, days, anchor, onAnchorChange, team, onTeam, underAlerts, onPreview,
 }: {
   range: WorkforceRange
   onRange: (range: WorkforceRange) => void
@@ -97,7 +99,7 @@ export function WorkforceToolbar({
   team: string
   onTeam: (team: string) => void
   /** Watch-days below target in the range */
-  underCount: number
+  underAlerts: UnderAlert[]
   /** A control that is not built yet was used */
   onPreview: (action: string) => void
 }) {
@@ -123,17 +125,7 @@ export function WorkforceToolbar({
       <UnitPicker value={team} onChange={onTeam} />
       <SavedFiltersMenu onPreview={onPreview} />
       <div className={classes.spacer} />
-      <Button
-        aria-label={`${underCount} understaffed`}
-        variant="light"
-        color={underCount ? 'red' : 'gray'}
-        size="sm"
-        fw={500}
-        leftSection={<TriangleAlert size={16} aria-hidden="true" />}
-        onClick={() => onPreview('Understaffed')}
-      >
-        <span className="tabular">{underCount}</span><span className={classes.collapsibleText}>&nbsp;understaffed</span>
-      </Button>
+      <CoverageAlerts alerts={underAlerts} unit={findUnit(team)?.label ?? ''} onPreview={onPreview} />
       {labelled('Approvals', Inbox, <Count value={3} color="red" />)}
       {labelled('Posts', Megaphone, <Count value={2} />)}
       {labelled('Mandate', UserRoundPlus)}

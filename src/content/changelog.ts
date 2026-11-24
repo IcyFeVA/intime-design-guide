@@ -12,6 +12,12 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'Understaffed opens Coverage alerts: every watch and day below the minimum in the range, with Post this shift and Find-Fill · Mandatory OT.',
+    changes: ['The list comes from the same counts as the watch badges, so it always matches the button’s number. The actions are preview only.'],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'The unit picker (Patrol) lists every unit as an indented tree, with search and recently used units. The employee filter button loses its funnel icon.',
     changes: [
       'Units with sub-units are bold and show how many they have; each level is indented 14px. Recently used units show their parent unit.',
