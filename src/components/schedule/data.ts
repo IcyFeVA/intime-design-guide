@@ -161,6 +161,46 @@ export function chipFills(chip: Chip): [ShiftKind, ShiftKind] {
 
 export const chipHasOvertime = (chip: Chip) => chip.segments.some((segment) => segment.overtime)
 
+/** One assignment in a cell with its own times. Overtime is always a part of its own. */
+export interface ChipPart {
+  code: string
+  /** "Day patrol", or the segment's label */
+  title: string
+  start: number
+  end: number
+  kind: ShiftKind
+  overtime: boolean
+  cancelled: boolean
+}
+
+/** Hours at the end of a partly-overtime assignment that are overtime (a holdover). */
+export const PARTIAL_OVERTIME_HOURS = 2
+
+/**
+ * A cell as separate parts, in time order, as the calendar shows them: a partly-overtime assignment becomes the
+ * regular part plus an overtime part for its last PARTIAL_OVERTIME_HOURS. No diagonals. `partialKind` has no times,
+ * so it isn't a part (it stays in the description).
+ */
+export function chipParts(chip: Chip): ChipPart[] {
+  return chip.segments.flatMap((segment): ChipPart[] => {
+    const { start, end } = segmentHours(segment)
+    const base = {
+      code: segment.code,
+      title: segment.label ?? shiftCodeMap[segment.code]?.label ?? segment.code,
+      cancelled: !!segment.cancelled,
+    }
+    if (segment.overtime !== 'partial') return [{ ...base, start, end, kind: segmentKind(segment), overtime: segment.overtime === 'full' }]
+    const split = Math.max(start + (end - start) / 2, end - PARTIAL_OVERTIME_HOURS)
+    return [
+      { ...base, start, end: split, kind: shiftCodeMap[segment.code]?.kind ?? 'regular', overtime: false },
+      { ...base, start: split, end, kind: 'overtime', overtime: true },
+    ]
+  }).sort((a, b) => a.start - b.start)
+}
+
+/** "07:00–17:00", or "All day" for a whole day */
+export const formatHours = (start: number, end: number) => (end - start >= 24 ? 'All day' : `${formatHour(start)}–${formatHour(end)}`)
+
 export function describeChip(chip: Chip): string {
   const parts = chip.segments.map((segment) => {
     const code = shiftCodeMap[segment.code]

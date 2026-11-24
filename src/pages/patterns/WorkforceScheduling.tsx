@@ -10,13 +10,13 @@ import ShortcutKeys from '../../components/shortcuts/ShortcutKeys'
 import { detectPlatform, spokenKeys } from '../../components/shortcuts/keys'
 import WorkforceDemo from '../../components/workforce/WorkforceDemo'
 import OpenShiftChip from '../../components/workforce/OpenShiftChip'
+import DetailedChip from '../../components/workforce/DetailedChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
-import { MOCK_TODAY } from '../../components/schedule/data'
+import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, type Chip } from '../../components/schedule/data'
 import {
   LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
-import type { Chip } from '../../components/schedule/data'
 import classes from './WorkforceScheduling.module.css'
 
 const mouse: [string, string][] = [
@@ -77,6 +77,16 @@ const layoutDetails: [string, string, string, string][] = [
   ['Open shifts', 'Icon, label and code', 'Icon over code', 'Icon only'],
   ['Date header', '“Fri Jun 5”', '“Fr 5”', '“Fr” over “5”'],
   ['Coverage', 'As Team View', 'As Team View, 13px', '11px; hours without decimals; no arrow in the group badge'],
+]
+
+/** Detailed view cells, with what each one shows */
+const detailedSpecimens: { chip: Chip; label: string }[] = [
+  { chip: { segments: [{ code: 'PatD' }] }, label: 'One assignment' },
+  { chip: { segments: [{ code: 'PatD', overtime: 'partial' }] }, label: 'Runs into overtime: the overtime is split out' },
+  { chip: { segments: [{ code: 'ExP', overtime: 'full' }] }, label: 'Overtime' },
+  { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }] }, label: 'Two assignments in one cell' },
+  { chip: { segments: [{ code: 'Train' }], outOfUnit: true }, label: 'Out of unit' },
+  { chip: { segments: [{ code: 'Sick' }] }, label: 'Leave for the whole day' },
 ]
 
 const specimen = (status: OpenShift['status']): OpenShift => ({
@@ -179,7 +189,7 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
-      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities. Day, Compact and Stacked are coming; the demo shows them as not available yet. Every range fits the width.">
+      <Section id="views" title="Views and densities" description="Five date ranges, each with three densities. Compact (the default) and Detailed are in the demo; the Day range and Stacked are coming. Every range fits the width.">
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead>
@@ -206,6 +216,28 @@ export default function WorkforceScheduling() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           {viewDensities.map((density) => <Text size="sm" key={density.key}><strong>{density.label}:</strong> {density.description}</Text>)}
+        </Stack>
+        <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>
+        <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with an OT tag, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
+        <Preview title="Detailed cells" align="start">
+          <div className={classes.detailedSpecimens}>
+            {detailedSpecimens.map(({ chip, label }) => (
+              <div className={classes.detailedSpecimen} key={label}>
+                <div className={classes.detailedCell}><DetailedChip chip={chip} /></div>
+                <Text size="xs" c="dimmed">{label}</Text>
+              </div>
+            ))}
+            <div className={classes.detailedSpecimen}>
+              <div className={classes.detailedCell}><OpenShiftChip shift={specimen('open')} density="detailed" /></div>
+              <Text size="xs" c="dimmed">Open shift</Text>
+            </div>
+          </div>
+        </Preview>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Only where it fits.</strong> Detailed needs days at least {cellLayouts[0].minWidth}px wide (the Full layout below), usually one week. Narrower days show Compact cells, and switch back when there is room again, e.g. when the panel closes.</Text>
+          <Text size="sm"><strong>Narrow days</strong> (about 120px, one week with the panel docked) drop the OT and OU labels and keep the icons, and stacked lines show codes instead of names.</Text>
+          <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times.</Text>
+          <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
         </Stack>
         <Text size="sm" fw={600} mb="xs" mt="lg">Every range fits the screen</Text>
         <Text size="sm" mb="sm">The days always share the full width, so schedulers never scroll sideways, from one week to a month, with or without the docked panel. The cell layout follows how wide a day column is, not the range. When columns would be narrower than 48px, the name column narrows to 168px and rank badges and supervisor icons hide if they don’t fit.</Text>
@@ -299,7 +331,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Codes are never lost.</strong> In every layout the tooltip, the cell’s accessible name and the panel give the full code, times and tags.</Text>
           <Text size="sm"><strong>Mini changes height, not just content.</strong> It sets the chip and row heights to --workforce-mini-chip-height and --workforce-mini-row-height, so more people fit on screen.</Text>
           <Text size="sm"><strong>Some rows keep their height.</strong> The date row, open shifts and watch headers keep their heights; only their content gets smaller.</Text>
-          <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. The view densities still to come (Compact, Stacked) change row height, not this rule.</Text>
+          <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. View densities don’t change this rule: Detailed only applies in the Full layout (showsDetailed) and sets the chip and row heights to --workforce-detailed-chip-height and --workforce-detailed-row-height.</Text>
         </Stack>
       </Section>
 
@@ -308,7 +340,7 @@ export default function WorkforceScheduling() {
         <PropsTable rows={[
           { prop: 'model', type: 'GridModel', description: 'Rows to render. Build it with buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter }) and memoise it on those inputs, not on the selection.' },
           { prop: 'selection', type: 'GridSelection', description: 'From useGridSelection({ rows: model.rowKeys, days: model.days, isSelectable: model.isSelectable }).' },
-          { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. Set as data-view on the grid; only detailed is styled yet.' },
+          { prop: 'view', type: "'detailed' | 'compact' | 'stacked'", description: 'View density. compact (DEFAULT_VIEW_DENSITY) shows codes. detailed shows names and times through DetailedChip, only in the Full layout; the scroller gets data-cells="detailed". stacked isn’t built yet.' },
           { prop: 'onToggleGroup / onToggleStaffing', type: '(watch) => void', description: 'Collapse or expand a watch or its staffing rows.' },
           { prop: 'onCoverageClick', type: '(watch, day) => void', description: 'A time-of-day bar was selected. The demo opens CoverageDrawer.' },
         ]} />
@@ -369,6 +401,7 @@ export default function WorkforceScheduling() {
             'Open the panel while the user is still dragging or moving with the arrow keys.',
             'Make coverage, staffing or group rows selectable.',
             'Use the shift fills for open shifts. They have no holder yet, so they have no fill.',
+            'Show overtime as a diagonal in the Detailed view. Split it into its own container with its times.',
             'Put a separate button inside each cell. The cell itself is the target.',
             'Clear the selection when a range gets longer. Keep the cells that are still in view.',
             'Make schedulers scroll sideways to see the rest of a week or month.',

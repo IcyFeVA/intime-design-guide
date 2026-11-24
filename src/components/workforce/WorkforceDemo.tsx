@@ -7,7 +7,7 @@ import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDeta
 import { SortModal } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, rangeDays } from '../schedule/data'
-import { workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
+import { DEFAULT_VIEW_DENSITY, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
 import { watches, workforceTeams, type Watch, type WatchId, type WorkforceSort } from './data'
 import { HEADER_ROW, buildGridModel, panelContent, type EmployeeFilter } from './model'
 import { useGridSelection } from './useGridSelection'
@@ -38,7 +38,7 @@ export default function WorkforceDemo() {
   const [anchor, setAnchor] = useState(MOCK_TODAY)
   const [team, setTeam] = useState('patrol')
   const [filter, setFilter] = useState<EmployeeFilter>('all')
-  const [view, setView] = useState<ViewDensity>('detailed')
+  const [view, setView] = useState<ViewDensity>(DEFAULT_VIEW_DENSITY)
   const [sort, setSort] = useState<WorkforceSort>('watch')
   const [direction, setDirection] = useState<SortDirection>('asc')
   const [sortOpen, setSortOpen] = useState(false)
@@ -97,7 +97,7 @@ export default function WorkforceDemo() {
   }
 
   const reset = () => {
-    setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setFilter('all'); setView('detailed'); setSort('watch'); setDirection('asc')
+    setRange('week'); setAnchor(MOCK_TODAY); setTeam('patrol'); setFilter('all'); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
     setCoverage(null); selection.reset()
   }

@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
     page: '/patterns/workforce-scheduling',
+    summary: 'View densities: Compact is the new default, and Detailed shows activity names and times.',
+    changes: [
+      'Compact is the grid as it was: shift codes in every cell.',
+      'Detailed shows each assignment’s activity and times, as in the calendar. Overtime gets its own red container with an OT tag instead of a diagonal; two or more assignments stack as one-line containers.',
+      'Detailed needs days at least 96px wide (usually one week). Narrower days show Compact cells.',
+      'New tokens --workforce-detailed-chip-height (44px) and --workforce-detailed-row-height (56px). Stacked is still coming.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
     summary: 'Employee search moved from the toolbar to the “Employee” header, and clicking “Employee” no longer selects everything.',
     changes: [
       'The search icon after “Employee” swaps the label for a search field; X or Escape closes it. Filtering comes later.',

@@ -53,14 +53,19 @@ export const panelPlacements: { key: PanelPlacement; label: string; description:
   { key: 'drawer', label: 'Drawer', description: 'Over the right edge of the grid, which keeps its full width.', status: 'draft' },
 ]
 
-/** How much each row shows. Separate from the cell layout, which follows the column width. */
+/** How much each cell shows. Detailed only applies where its text fits (the Full cell layout); narrower days show Compact cells. */
 export type ViewDensity = 'detailed' | 'compact' | 'stacked'
 
+export const DEFAULT_VIEW_DENSITY: ViewDensity = 'compact'
+
 export const viewDensities: { key: ViewDensity; label: string; description: string; available: boolean; status: TokenStatus }[] = [
-  { key: 'detailed', label: 'Detailed', description: 'Full rows with every shift cell, as in Team View.', available: true, status: 'draft' },
-  { key: 'compact', label: 'Compact', description: 'Shorter rows, so more people fit on screen.', available: false, status: 'draft' },
+  { key: 'detailed', label: 'Detailed', description: 'Activity names and times, with overtime split out. Needs wide days, usually one week.', available: true, status: 'draft' },
+  { key: 'compact', label: 'Compact', description: 'Shift codes only, so any range reads at a glance. The default.', available: true, status: 'draft' },
   { key: 'stacked', label: 'Stacked', description: 'A person’s activities for a day stacked in one cell.', available: false, status: 'draft' },
 ]
+
+/** The cells the grid shows: Detailed only when the view asks for it and the days are wide enough. */
+export const showsDetailed = (view: ViewDensity, layout: CellLayout) => view === 'detailed' && layout === 'comfortable'
 
 /* ------------------------------------------------------------------ */
 /* CSS variables                                                       */
@@ -83,6 +88,8 @@ export const workforceTokens: WorkforceToken[] = [
   t('--workforce-label-width-narrow', '168px', 'size', 'Name column when day columns would be narrower than 48px, e.g. a month. Rank badges and supervisor icons hide if they don’t fit.'),
   t('--workforce-mini-chip-height', '32px', 'size', 'Shift cell height in the Mini layout (very narrow days, e.g. a month), so more people fit.'),
   t('--workforce-mini-row-height', '44px', 'size', 'Row height in the Mini layout: the cell plus 6px above and below.'),
+  t('--workforce-detailed-chip-height', '44px', 'size', 'Shift cell height in the Detailed view: a name over its times, or two one-line assignments.'),
+  t('--workforce-detailed-row-height', '56px', 'size', 'Row height in the Detailed view: the cell plus 6px above and below.'),
   t('--workforce-header-height', '56px', 'size', 'Height of the date row, which stays pinned while the grid scrolls.'),
   t('--workforce-panel-width', '380px', 'size', 'Width of the details panel on the right.'),
   t('--workforce-selected-bg', 'var(--background-primary-light)', 'color', 'Background of a selected cell, around its shift.'),

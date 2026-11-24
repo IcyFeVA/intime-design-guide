@@ -25,7 +25,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Form**: inputs can be edited locally and reset when the selection changes. **The grid data never changes.** Assign, Leave, Add segment, Set actual and the icon buttons show a "Preview only" hint (`role="status"` demo bar).
 - **Bulk panel**: summary line, a list of the selected cells, shared fields, footer actions.
 - **Ranges**: 5 views: Day, One Week, Two Weeks, Three Weeks, One Month. **Day is a placeholder** (empty state "Day view is coming"); the stepper moves one day at a time.
-- **View density menu**: Detailed (active); Compact and Stacked disabled, marked "Coming soon". Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
+- **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
 - **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Approvals (3), Posts (2), Mandate and Undo render and show a "Preview only" hint.
 - **Employee search** (2026-11-24): a search button after "Employee" in the corner header swaps the label for an input ("Search employees…"); X or Escape swaps it back. The input doesn't filter yet.
 - ~~Clicking a name opens `EmployeeDetailsModal`~~ (replaced 2026-11-24: a name selects its row). Clicking a time-of-day cell opens `CoverageDrawer` (`contained`, as in Team View).
@@ -225,10 +225,23 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - Row and column selection (2026-11-24, user): a click on a name selects the person's row (all their lines, via `model.rowGroup`), a click on a date selects that day, the "Employee" corner selects nothing (since 2026-11-24; it holds the search), Open shifts selects all open shifts. Shift/Ctrl/drag extend or add, Space/Enter on a header select it, Ctrl/⌘+Space selects the active cell's day. The date row is part of keyboard navigation (`HEADER_ROW` first in `model.navRows`). Fully selected rows/days highlight their headers. **Names no longer open `EmployeeDetailsModal`**; `workforceProfile` stays in data.ts for when employee details come back (open question where: maybe the panel's chevron button).
 
+## View densities (2026-11-24, confirmed with user)
+
+- [x] **Compact** = the grid as it was (shift codes). It is the default (`DEFAULT_VIEW_DENSITY`) and Reset demo goes back to it.
+- [x] **Detailed** = `DetailedChip`: each assignment's activity name (`shiftCodeMap` label) and times, as in the calendar month cells. `chipParts(chip)` (`schedule/data.ts`) splits a cell into parts in time order; a partly-overtime segment becomes the regular part plus an overtime part for its last `PARTIAL_OVERTIME_HOURS` (2). Overtime parts are red (`--schedule-overtime`) with the Clock + OT tag (user: red, not the activity color). Leave covering 24h says "All day".
+- [x] One part: two lines (name + tags, times). Two or more parts: one-line bordered containers stacked (name, times, tags). Containers aren't clickable; the cell is the target.
+- [x] A separate assignment on the same day still goes to the extra line (user: keep the extra line), not into the same cell.
+- [x] Detailed only where the column is Full (≥ 96px, `showsDetailed`); narrower days show Compact cells (user: fall back). Scroller gets `data-cells="detailed"`, which sets `--workforce-detailed-chip-height` 44px / `--workforce-detailed-row-height` 56px and taller open-shift rows.
+- [x] Container queries on `.detailed`: < 150px tag labels hide (icons stay); < 190px stacked lines show codes instead of names; < 135px (one week docked, ~106px) tighter padding and 11px times.
+- [x] Open shifts in Detailed: icon, Open/Live, activity name over the times (`OpenShiftChip density="detailed"`).
+- [x] Page: "Detailed cells" specimens and notes in `views`; tokens; guideline; changelog.
+- [ ] **Stacked** density: still "Coming soon".
+
 ## Later (out of scope now, keep room for them)
 
 - Employee search: filter the member rows by the corner input (name, rank, badge).
-- Compact and Stacked densities (override `--schedule-row-height` / `--schedule-chip-height` under `[data-view]`); 15 range × density combinations.
+- Stacked density; 15 range × density combinations.
+- Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`showsDetailed`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
@@ -242,7 +255,9 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 - Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
-- Descriptions of the Compact and Stacked densities (`viewDensities` in `src/tokens/workforce.ts`) are placeholders.
+- Description of the Stacked density (`viewDensities` in `src/tokens/workforce.ts`) is a placeholder.
+- Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
+- How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.
 - The coverage drawer's Req/Act numbers come from Team View's mock `coverageWindows`, so they don't match the watch's bodies count.
 - Should switching to the Day placeholder close the panel? (Today it stays open and shows "Select a cell".)
 
