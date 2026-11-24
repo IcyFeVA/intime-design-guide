@@ -1,0 +1,106 @@
+.specimens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+}
+
+.specimen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 220px;
+}
+
+.specimenCells {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.specimenCell {
+  display: flex;
+  align-items: center;
+  width: 140px;
+}
+
+.specimenCell[data-compact] {
+  width: 56px;
+}
+
+.swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--mantine-radius-xs);
+  border: 1px solid var(--intime-border);
+}
+
+.figma {
+  display: block;
+  width: 100%;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--intime-border);
+}
+
+.figmaPanel {
+  composes: figma;
+  width: auto;
+  max-width: 100%;
+}
+
+.layoutSpecimens {
+  display: flex;
+  gap: 4px;
+}
+
+.layoutSpecimens > * {
+  width: 120px;
+}
+
+.layoutSpecimens[data-layout='compact'] > * {
+  width: 52px;
+}
+
+.layoutSpecimens[data-layout='mini'] {
+  --schedule-chip-height: var(--workforce-mini-chip-height);
+}
+
+.layoutSpecimens[data-layout='mini'] > * {
+  width: 30px;
+}
+
+.layoutSpecimens[data-layout='comfortable'] {
+  flex-direction: column;
+}
+
+.detailedSpecimens {
+  --schedule-chip-height: var(--workforce-detailed-chip-height);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.detailedSpecimen {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 200px;
+}
+
+.detailedCell {
+  display: flex;
+  align-items: center;
+}
+
+.stackedSpecimens {
+  --schedule-chip-height: var(--workforce-stacked-chip-height);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.stackedCell {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+}

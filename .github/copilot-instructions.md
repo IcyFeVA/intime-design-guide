@@ -12,6 +12,7 @@
 - Code is hidden for now: `SHOW_CODE = false` in `src/content/flags.ts` hides sections with ids in `CODE_SECTION_IDS` (`component` "Using the components", `usage` "Usage in code") from the page, TOC and search, and hides the `Preview` "Show code" toggle. Keep writing them with those ids so they return when the flag is on.
 - Figma references are hidden for now: `SHOW_FIGMA = false` in `src/content/flags.ts` hides sections with ids in `FIGMA_SECTION_IDS` (`figma` "Figma reference") the same way. Keep adding them as usual.
 - `.page-wide` (global.css) breaks a demo out of the 1000px page column to fill the main column, up to 1920px. Used for the Desktop demos on Team View, Location View and Calendar.
+- `plans/workforce-scheduling.md` is the living plan for the Workforce Scheduling page. Read it before working on that page and keep its progress checklist up to date.
 - Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry. The same applies when the user approves a page: set the page and its tokens to `confirmed` and add the changelog entry in the same change, without being asked.
 
 ## UI Conventions
@@ -20,6 +21,7 @@
 - Desktop Sort buttons open `SortModal` (`src/components/sort/SortModal.tsx`): direction, then one field, Cancel/Apply. Don't use a dropdown for sorting.
 - Dialogs inside a phone demo are full screen below the status bar: spread `phoneModalProps` (`src/components/phone-modal/phoneModalProps.ts`) over the `Modal` and wrap the content in `PhoneModalBody`. `SortModal` and the Approvals `VisibilityModal` take `fullScreen` for this.
 - Keyboard shortcuts use `ShortcutsModal`, `ShortcutsPanel` (the quick reference Ctrl/⌘ / opens, docked at the bottom, on the current page's tab) and `ShortcutKeys` (`src/components/shortcuts/`); actions and blocked keys live in `src/tokens/shortcuts.ts`. Every shortcut needs Ctrl/⌘ or Alt/⌥ (or is a function key), can be changed or turned off, shows its current keys in tooltips and menus with `aria-keyshortcuts`, and is hidden on touch-only devices.
+- Workforce Scheduling (`src/components/workforce/`) selects cells like a spreadsheet with `useGridSelection` and edits them in a docked `WorkforcePanel`; it reuses the schedule components and Team View's cell design. View densities: Compact (default, shift codes) and Detailed (`DetailedChip`: activity names and times, overtime split into its own container), Detailed only where days are 96px or wider; Stacked (`StackedChip`: a 16px colored bar per assignment, no text) at any width.
 - Prefer Mantine components and theme tokens over hand-built equivalents.
 - Use CSS variables (`--intime-surface`, `--intime-surface-raised`, `--intime-border`, `--mantine-color-*`) so both color schemes work.
 - Show shift states with an icon and a label, never color alone.

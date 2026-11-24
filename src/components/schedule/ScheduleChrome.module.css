@@ -181,6 +181,12 @@
   --mb-padding: initial;
 }
 
+/* Target resolution: centered at the target width, with a border where it meets the wider screen */
+.shell[data-target] {
+  margin-inline: auto;
+  box-shadow: 1px 0 0 var(--intime-border), -1px 0 0 var(--intime-border);
+}
+
 .shell[data-full-screen] :global(.mantine-Modal-content) {
   --modal-content-flex: initial;
   --modal-content-max-height: initial;
@@ -193,11 +199,14 @@
 }
 
 .modalHeader {
+  padding-inline: var(--mantine-spacing-md);
   border-bottom: 1px solid var(--intime-border);
 }
 
 .modalBody {
   padding: 0;
+  /* Shows beside the demo at Target resolution on wider screens */
+  background: var(--background-body-alt);
 }
 
 .phoneOverlay {

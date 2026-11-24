@@ -121,21 +121,24 @@ export const startOfWeek = (day: number) => day - weekdayIndex(day)
 const startOfMonth = (day: number) => { const d = toDate(day); return dayOf(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) }
 const daysInMonth = (day: number) => { const d = toDate(day); return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate() }
 
-/** Visible days for a range that contains `anchor`. */
-export function rangeDays(range: ScheduleRange, anchor: number): number[] {
+/** Visible days for a range that contains `anchor`. `day` is just the anchor. */
+export function rangeDays(range: ScheduleRange | 'day', anchor: number): number[] {
+  if (range === 'day') return [anchor]
   const start = range === 'month' ? startOfMonth(anchor) : startOfWeek(anchor)
   const count = range === 'month' ? daysInMonth(anchor) : { week: 7, '2weeks': 14, '3weeks': 21 }[range]
   return Array.from({ length: count }, (_, index) => start + index)
 }
 
 /** Move the anchor one range forward or back. */
-export function shiftRange(range: ScheduleRange, anchor: number, direction: 1 | -1): number {
+export function shiftRange(range: ScheduleRange | 'day', anchor: number, direction: 1 | -1): number {
+  if (range === 'day') return anchor + direction
   if (range !== 'month') return anchor + direction * { week: 7, '2weeks': 14, '3weeks': 21 }[range]
   const d = toDate(anchor)
   return dayOf(d.getUTCFullYear(), d.getUTCMonth() + 1 + direction, 1)
 }
 
 export function formatRange(days: number[]): string {
+  if (days.length === 1) return `${formatHeader(days[0])}, ${toDate(days[0]).getUTCFullYear()}`
   const first = toDate(days[0])
   const last = toDate(days[days.length - 1])
   return `${formatMonthDay(days[0])} – ${formatMonthDay(days[days.length - 1])}, ${(first.getUTCFullYear() === last.getUTCFullYear() ? last : first).getUTCFullYear()}`
@@ -166,6 +169,53 @@ export function chipFills(chip: Chip): [ShiftKind, ShiftKind] {
 
 export const chipHasOvertime = (chip: Chip) => chip.segments.some((segment) => segment.overtime)
 
+/** One assignment in a cell with its own times. Overtime is always a part of its own. */
+export interface ChipPart {
+  code: string
+  /** "Day patrol", or the segment's label */
+  title: string
+  start: number
+  end: number
+  kind: ShiftKind
+  overtime: boolean
+  cancelled: boolean
+}
+
+/** Hours at the end of a partly-overtime assignment that are overtime (a holdover). */
+export const PARTIAL_OVERTIME_HOURS = 2
+
+/**
+ * A cell as separate parts, in time order, as the calendar shows them: a partly-overtime assignment becomes the
+ * regular part plus an overtime part for its last PARTIAL_OVERTIME_HOURS. No diagonals. `partialKind` has no times,
+ * so it isn't a part (it stays in the description).
+ */
+export function chipParts(chip: Chip): ChipPart[] {
+  return chip.segments.flatMap((segment): ChipPart[] => {
+    const { start, end } = segmentHours(segment)
+    const base = {
+      code: segment.code,
+      title: segment.label ?? shiftCodeMap[segment.code]?.label ?? segment.code,
+      cancelled: !!segment.cancelled,
+    }
+    if (segment.overtime !== 'partial') return [{ ...base, start, end, kind: segmentKind(segment), overtime: segment.overtime === 'full' }]
+    const split = Math.max(start + (end - start) / 2, end - PARTIAL_OVERTIME_HOURS)
+    return [
+      { ...base, start, end: split, kind: shiftCodeMap[segment.code]?.kind ?? 'regular', overtime: false },
+      { ...base, start: split, end, kind: 'overtime', overtime: true },
+    ]
+  }).sort((a, b) => a.start - b.start)
+}
+
+/** 7 → "07", 7.5 → "07:30": hours without minutes when they're on the hour */
+const formatHourShort = (hour: number) => (hour % 1 ? formatHour(hour) : formatHour(hour).slice(0, 2))
+
+/** "07:00–17:00" (`short`: "07–17"), or "All day" for a whole day */
+export const formatHours = (start: number, end: number, short = false) => {
+  if (end - start >= 24) return 'All day'
+  const format = short ? formatHourShort : formatHour
+  return `${format(start)}–${format(end)}`
+}
+
 export function describeChip(chip: Chip): string {
   const parts = chip.segments.map((segment) => {
     const code = shiftCodeMap[segment.code]
@@ -181,7 +231,7 @@ export function describeChip(chip: Chip): string {
 /* ------------------------------------------------------------------ */
 
 /** Deterministic pseudo-random number in [0, 1) */
-function rand(seed: number) {
+export function rand(seed: number) {
   let x = Math.imul(seed ^ 0x9e3779b9, 0x85ebca6b)
   x ^= x >>> 13
   x = Math.imul(x, 0xc2b2ae35)

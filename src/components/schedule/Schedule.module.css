@@ -287,6 +287,25 @@
   font-size: 11px;
 }
 
+/* Mini: very narrow desktop columns (Workforce Scheduling month), no codes */
+.chip[data-density='mini'] .tags {
+  top: 2px;
+  right: 2px;
+}
+
+.chip[data-density='mini'][data-cancelled] {
+  align-items: center;
+  justify-content: center;
+}
+
+.chip[data-density='mini'][data-cancelled]::after {
+  content: '';
+  width: 70%;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--schedule-chip-text);
+}
+
 /* Strip: mobile week, no codes */
 .chip[data-density='strip'] {
   height: 100%;

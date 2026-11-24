@@ -1,0 +1,900 @@
+/* Workforce Scheduling grid. Reuses Team View's grid styles (Schedule.module.css) through `composes`
+   and adds selection, the open shifts row and collapsible watches. */
+
+.scroller {
+  composes: scroller from '../schedule/Schedule.module.css';
+  height: 100%;
+  /* Keyboard moves scroll a cell into view below the date row and beside the names */
+  scroll-padding-top: var(--workforce-header-height);
+  scroll-padding-left: var(--workforce-label-width);
+}
+
+/* Mini layout: shorter cells and rows, so more people fit (Team View's chip and row heights are variables) */
+.scroller[data-layout='mini'] {
+  --schedule-chip-height: var(--workforce-mini-chip-height);
+  --schedule-row-height: var(--workforce-mini-row-height);
+}
+
+.grid {
+  composes: grid from '../schedule/Schedule.module.css';
+  /* Days share the width (minmax(0, 1fr) columns): never wider than the scroller, so no sideways scrolling */
+  width: 100%;
+  min-width: 0;
+  user-select: none;
+}
+
+/* One day: a centered column at most 800px wide, as in the calendar's day view */
+.scroller[data-single-day] .grid {
+  max-width: var(--workforce-day-max-width);
+  margin-inline: auto;
+  border-inline: 1px solid var(--border-default);
+}
+
+.row {
+  display: contents;
+}
+
+/* ---------- Date row ---------- */
+
+.corner {
+  composes: corner from '../schedule/Schedule.module.css';
+  z-index: 5;
+  height: var(--workforce-header-height);
+  min-height: 0;
+  padding-inline: 18px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+  gap: 4px;
+}
+
+/* The search input replaces the label and fills the cell */
+.cornerSearch {
+  flex: 1;
+  min-width: 0;
+  margin-inline: -10px;
+  cursor: auto;
+}
+
+.cornerSearchInput {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.dayHeader {
+  composes: dayHeader from '../schedule/Schedule.module.css';
+  z-index: 3;
+  gap: 6px;
+  height: var(--workforce-header-height);
+  min-height: 0;
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.dayHeader[data-density='compact'] {
+  font-size: 13px;
+}
+
+.weekday {
+  font-weight: 600;
+}
+
+.dayHeader[data-active] {
+  color: var(--workforce-header-active-text);
+  box-shadow: inset 0 -2px 0 var(--workforce-header-active-text);
+}
+
+/* Headers select, as in a spreadsheet: a date selects its day, a name its row */
+.dayHeader,
+.label[data-row-header],
+.openLabel[data-row-header] {
+  cursor: pointer;
+}
+
+.dayHeader:hover,
+.label[data-row-header]:hover,
+.openLabel[data-row-header]:hover {
+  background:
+    linear-gradient(var(--background-default-hover), var(--background-default-hover)),
+    var(--mantine-color-body);
+}
+
+/* Every cell in the day or row is selected */
+.dayHeader[data-selected] {
+  color: var(--workforce-header-active-text);
+  background:
+    linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg)),
+    var(--mantine-color-body);
+  box-shadow: inset 0 -2px 0 var(--workforce-header-active-text);
+}
+
+.dayHeader[data-density='mini'] {
+  padding: 0;
+}
+
+.stackedDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+/* ---------- Open shifts (first rows, scroll with the grid) ---------- */
+
+.openRow > .openLabel,
+.openRow > .openCell {
+  height: 44px;
+  min-height: 0;
+}
+
+.openRow[data-last] > .openLabel,
+.openRow[data-last] > .openCell {
+  border-bottom: 2px solid var(--border-default);
+}
+
+.openLabel {
+  composes: label from '../schedule/Schedule.module.css';
+  gap: 8px;
+  color: var(--text-default);
+}
+
+.openTitle {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.openCell {
+  padding-block: 4px;
+}
+
+.openCell[data-density='mini'] {
+  padding-inline: 2px;
+}
+
+.openChip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 34px;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 1.5px dashed var(--workforce-open-border);
+  border-radius: var(--mantine-radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--text-default);
+}
+
+.openChip[data-density='compact'] {
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 2px;
+  font-size: 12px;
+}
+
+.openChip[data-density='compact'] .openCode {
+  max-width: 100%;
+  margin: 0;
+}
+
+.openIcon {
+  flex: none;
+  color: var(--text-dimmed);
+}
+
+.openChip[data-status='live'] .openIcon {
+  color: var(--text-primary-default);
+}
+
+.openStatus {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dimmed);
+}
+
+.openCode {
+  margin-inline-start: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Detailed view: activity name over the times. Narrow days drop the name, then shrink the times. */
+.openChip[data-density='detailed'] {
+  container: open-chip / inline-size;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1px;
+  height: var(--schedule-chip-height);
+  padding: 0 6px;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.openLine {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.openName {
+  margin-inline-start: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.openTime {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+}
+
+@container open-chip (width < 130px) {
+  .openName {
+    display: none;
+  }
+}
+
+@container open-chip (width < 85px) {
+  .openTime {
+    font-size: 11px;
+  }
+}
+
+/* ---------- Detailed cells: names and times, overtime split out ---------- */
+
+/* Taller cells and rows for two lines (Team View's chip and row heights are variables) */
+.scroller[data-cells='detailed'] {
+  --schedule-chip-height: var(--workforce-detailed-chip-height);
+  --schedule-row-height: var(--workforce-detailed-row-height);
+}
+
+.scroller[data-cells='detailed'] .openRow > .openLabel,
+.scroller[data-cells='detailed'] .openRow > .openCell {
+  height: calc(var(--schedule-chip-height) + 8px);
+}
+
+.detailed {
+  container: detailed / inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--schedule-chip-height);
+  color: var(--schedule-chip-text);
+  line-height: 1.25;
+}
+
+/* One assignment: name and tags, times below */
+.part {
+  --part-fill: var(--schedule-regular);
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'title tags' 'time time';
+  align-content: center;
+  column-gap: 6px;
+  min-width: 0;
+  padding: 3px 8px;
+  overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--part-fill);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.part[data-kind='leave'] { --part-fill: var(--schedule-leave); }
+.part[data-kind='overtime'] { --part-fill: var(--schedule-overtime); }
+
+.part[data-out-of-unit] {
+  background:
+    repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 9px),
+    var(--part-fill);
+}
+
+.cell:hover .part {
+  filter: brightness(1.12);
+}
+
+.partTitle,
+.partCode {
+  grid-area: title;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+.partCode {
+  display: none;
+}
+
+.partTime {
+  grid-area: time;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+/* Hours only ("07–17"), for the narrowest stacked lines */
+.partTimeShort {
+  display: none;
+  flex: none;
+  margin-inline-start: auto;
+  font-size: 11px;
+}
+
+.part[data-cancelled] :is(.partTitle, .partCode, .partTime, .partTimeShort) {
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.partTags {
+  grid-area: tags;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.partTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Two or more assignments: one bordered line each */
+.detailed[data-stacked] .part {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 6px;
+  font-size: 12px;
+  box-shadow: inset 0 0 0 1px var(--schedule-chip-divider);
+}
+
+.detailed[data-stacked] .partTitle {
+  flex: 0 1 auto;
+}
+
+.detailed[data-stacked] .partTime {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.detailed[data-stacked] .partTags {
+  flex: none;
+}
+
+/*
+ * Detailed fits its text to the cell. Widths are of the cell's content box, about 15px less than the day column:
+ * < 190px: stacked lines show codes instead of names, tags keep their icon only.
+ * < 150px: single assignments' tags keep their icon only too.
+ * < 135px: stacked lines get tighter, with 11px times.
+ * < 125px: stacked lines show hours without minutes ("08–12").
+ * < 100px (days just above the 96px Detailed minimum): everything tighter, with 12px names and 11px times and codes.
+ */
+@container detailed (width < 190px) {
+  .detailed[data-stacked] .partTagText {
+    display: none;
+  }
+
+  .detailed[data-stacked] .partTitle {
+    display: none;
+  }
+
+  .detailed[data-stacked] .partCode {
+    display: block;
+    flex: 0 1 auto;
+  }
+}
+
+@container detailed (width < 150px) {
+  .partTagText {
+    display: none;
+  }
+}
+
+@container detailed (width < 135px) {
+  .detailed[data-stacked] .part {
+    gap: 4px;
+    padding-inline: 4px;
+  }
+
+  .detailed[data-stacked] .partTime {
+    font-size: 11px;
+  }
+}
+
+@container detailed (width < 125px) {
+  .detailed[data-stacked] .partTime {
+    display: none;
+  }
+
+  .detailed[data-stacked] .partTimeShort {
+    display: block;
+  }
+}
+
+@container detailed (width < 100px) {
+  .part {
+    padding-inline: 5px;
+  }
+
+  .partTitle {
+    font-size: 12px;
+  }
+
+  .partTime {
+    font-size: 11px;
+  }
+
+  .detailed[data-stacked] .part {
+    gap: 3px;
+    padding-inline: 3px;
+  }
+
+  .detailed[data-stacked] .partCode {
+    font-size: 11px;
+  }
+}
+
+/* ---------- Stacked cells: one 16px bar per assignment, no text ---------- */
+
+/* After the Mini rule above, so Stacked's heights win in a month too */
+.scroller[data-cells='stacked'] {
+  --schedule-chip-height: var(--workforce-stacked-chip-height);
+  --schedule-row-height: var(--workforce-stacked-row-height);
+}
+
+.scroller[data-cells='stacked'] .openRow > .openLabel,
+.scroller[data-cells='stacked'] .openRow > .openCell {
+  height: var(--schedule-row-height);
+}
+
+/* Names, cells and the plus on empty cells must not make the short rows taller */
+.scroller[data-cells='stacked'] .label {
+  padding-block: 0;
+  line-height: 1.2;
+}
+
+.scroller[data-cells='stacked'] .cell {
+  padding-block: 5px;
+}
+
+/* The plus on empty cells must not make the short rows taller */
+.scroller[data-cells='stacked'] .add {
+  width: var(--schedule-chip-height);
+  height: var(--schedule-chip-height);
+}
+
+.openChip[data-density='stacked'] {
+  justify-content: center;
+  height: var(--schedule-chip-height);
+  padding: 0;
+  border-width: 1px;
+  border-radius: var(--mantine-radius-xs);
+}
+
+.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.bar {
+  --part-fill: var(--schedule-regular);
+  position: relative;
+  height: var(--schedule-chip-height);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--part-fill);
+  box-shadow: inset 0 0 0 1px var(--schedule-chip-divider);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.bar[data-kind='leave'] { --part-fill: var(--schedule-leave); }
+.bar[data-kind='overtime'] { --part-fill: var(--schedule-overtime); }
+
+.bar[data-out-of-unit] {
+  background:
+    repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 7px),
+    var(--part-fill);
+}
+
+/* Cancelled: struck through, as Mini's bar */
+.bar[data-cancelled]::after {
+  content: '';
+  position: absolute;
+  inset: 50% 15% auto;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--schedule-chip-text);
+}
+
+.cell:hover .bar {
+  filter: brightness(1.12);
+}
+
+/* ---------- Watch groups ---------- */
+
+.groupLabel,
+.groupCell {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  background: var(--schedule-group-bg);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.groupLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  padding-inline: 8px 12px;
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.groupCell {
+  padding: 4px 7px;
+}
+
+.groupCell[data-density='mini'] {
+  justify-content: center;
+  padding-inline: 1px;
+}
+
+/* No room for the arrow: the color and the Bodies row below still say it */
+.groupCell[data-density='mini'] .badge {
+  gap: 0;
+  padding: 1px 2px;
+  font-size: 11px;
+}
+
+.groupCell[data-density='mini'] .badge svg {
+  display: none;
+}
+
+.groupCell[data-boundary] {
+  box-shadow: inset 2px 0 0 var(--schedule-boundary);
+}
+
+.toggle {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 4px 8px 4px 6px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--text-default);
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.toggle:hover {
+  background: var(--background-default-hover);
+}
+
+.chevron {
+  flex: none;
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.chevron[data-collapsed] {
+  transform: rotate(-90deg);
+}
+
+.groupCount {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-dimmed);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-default);
+}
+
+.badge[data-level='under'] {
+  color: var(--schedule-under-text);
+  background: var(--schedule-under-bg);
+}
+
+.badge[data-level='over'] {
+  color: var(--schedule-over-text);
+  background: var(--schedule-over-bg);
+}
+
+/* ---------- Staffing ---------- */
+
+.staffingLabel {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: 22px 12px;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--border-default);
+  border-inline-end: 1px solid var(--border-default);
+}
+
+.staffingLabel .toggle {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.staffingSummary {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding-inline: 8px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.under {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: var(--schedule-under-text);
+}
+
+.onTarget {
+  color: var(--text-dimmed);
+}
+
+.coverageLabel {
+  composes: coverageLabel from '../schedule/Schedule.module.css';
+  padding-inline-start: 48px;
+  font-size: 14px;
+}
+
+.coverageCell {
+  composes: coverageCell from '../schedule/Schedule.module.css';
+}
+
+.coverageCell[data-density='mini'] {
+  padding-inline: 1px;
+}
+
+.coverageCell[data-density='mini'] > * {
+  gap: 1px;
+  font-size: 11px;
+}
+
+.coverageCell[data-boundary] {
+  box-shadow: inset 2px 0 0 var(--schedule-boundary);
+}
+
+.coverageButton {
+  composes: coverageButton from '../schedule/Schedule.module.css';
+}
+
+/* ---------- Names ---------- */
+
+.label {
+  composes: label from '../schedule/Schedule.module.css';
+  /* Rank badges and supervisor icons hide when the name column is too narrow for them */
+  container-type: inline-size;
+  padding-inline-start: 12px;
+  transition: box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.label[data-active],
+.label[data-selected],
+.openLabel[data-selected] {
+  background:
+    linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg)),
+    var(--mantine-color-body);
+  box-shadow: inset 3px 0 0 var(--workforce-header-active-text);
+}
+
+.nameButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-inline: 6px;
+}
+
+.name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-default);
+}
+
+.label[data-active] .name,
+.label[data-selected] .name {
+  color: var(--workforce-header-active-text);
+}
+
+.rank {
+  flex: none;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.supervisor {
+  flex: none;
+  color: var(--text-dimmed);
+}
+
+@container (max-width: 200px) {
+  .rank,
+  .supervisor {
+    display: none;
+  }
+}
+
+/* ---------- Selectable cells ---------- */
+
+.cell {
+  composes: cell from '../schedule/Schedule.module.css';
+  position: relative;
+}
+
+.cell[data-selectable] {
+  cursor: cell;
+}
+
+.cell[data-density='mini'] {
+  padding-inline: 2px;
+}
+
+/* Layered on the body color so the tint never shows what's behind */
+.cell[aria-selected='true'] {
+  background:
+    linear-gradient(var(--workforce-selected-bg), var(--workforce-selected-bg)),
+    var(--mantine-color-body);
+}
+
+/* One outline around each selected range */
+.cell[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 0 solid var(--workforce-selected-border);
+}
+
+.cell[data-edges~='t']::after { border-top-width: 1px; }
+.cell[data-edges~='r']::after { border-right-width: 1px; }
+.cell[data-edges~='b']::after { border-bottom-width: 1px; }
+.cell[data-edges~='l']::after { border-left-width: 1px; }
+
+/* The active cell: the one the keyboard and the panel work on */
+.cell[data-active]::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  z-index: 1;
+  pointer-events: none;
+  border: 2px solid var(--workforce-active-outline);
+  border-radius: var(--mantine-radius-sm);
+}
+
+/* A single selected cell only needs the active outline */
+.cell[data-active][data-edges='t r b l']::after {
+  border-width: 0;
+}
+
+.add {
+  margin: auto;
+  color: var(--workforce-add-icon);
+  opacity: 0;
+  transition: opacity 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.cell:hover .add,
+.cell[aria-selected='true'] .add {
+  opacity: 1;
+}
+
+.grid[data-dragging] .cell:not([aria-selected='true']) .add {
+  opacity: 0;
+}
+
+/* ---------- Focus ---------- */
+
+.grid [data-row]:focus {
+  outline: none;
+}
+
+.grid [data-row]:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: -2px;
+}
+
+.grid .cell[data-active]:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dayHeader,
+  .label,
+  .toggle,
+  .chevron,
+  .add,
+  .part,
+  .bar {
+    transition: none;
+  }
+}
+
+/* ---------- Toolbar ---------- */
+
+/* Fills the frame's toolbar row so the labels below can respond to its width */
+.toolbar {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Approvals, Posts and Mandate drop their labels when the toolbar is narrow (they keep tooltips and accessible names) */
+@container (max-width: 1300px) {
+  .collapsibleLabel {
+    display: none;
+  }
+
+  .collapsibleSection[data-position='left'] {
+    margin-inline-end: 0;
+  }
+
+  .collapsibleSection[data-position='right'] {
+    margin-inline-start: 6px;
+  }
+}
+
+/* Then “understaffed” keeps only its count */
+@container (max-width: 1150px) {
+  .collapsibleText {
+    display: none;
+  }
+}

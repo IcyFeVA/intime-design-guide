@@ -49,6 +49,125 @@ export const changelog: ChangelogEntry[] = [
     summary: 'Removed tooltips from the Team View, Location View and Calendar demos: shift cells, toolbar buttons, the phone controls and the navigation rail.',
   },
   {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Target resolution button on the desktop demo: full screen, but no wider than 1512px (a 14-inch MacBook), for screenshots at the size we design for.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'One Day view: a single centered column, at most 800px wide, as in the calendar’s day view.',
+    changes: [
+      'Replaces the “Day view is coming” placeholder. Compact, Detailed and Stacked all work, and the panel and selection work as in the other ranges.',
+      'The date header gives the full date, e.g. “Friday, June 5, 2026”.',
+      'New token --workforce-day-max-width (800px). The One Day range is a draft until it is approved.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Workforce Scheduling is confirmed, with its tokens: ranges, cell layouts, view densities and --workforce-* variables.',
+    changes: [
+      'The One Day range is still coming, so it stays a draft.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Stacked view density: every assignment as a plain 16px bar, at any range.',
+    changes: [
+      'No names, times, codes, tags or icons in the cells. Overtime is a red bar of its own, leave is yellow, out of unit striped and cancelled struck through.',
+      'Rows with one assignment are 28px high. More assignments make the row taller; separate assignments still go on the extra line.',
+      'Open shifts keep the Open or Live icon in a small dashed outline.',
+      'New tokens --workforce-stacked-chip-height (16px) and --workforce-stacked-row-height (28px).',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Detailed view: cells with three assignments, and text that fits narrow days.',
+    changes: [
+      'K. Brennan (Thu, Jun 4) and P. Fitzgerald (Tue, Jun 2) have three assignments in one cell. The row gets taller to fit them.',
+      'On narrow days, stacked lines show hours without minutes (“08–12”), so codes and the OT icon are no longer cut off.',
+      'Open shifts drop the activity name when days are narrow, and times shrink just above the 96px minimum.',
+      'The views table marks where Detailed shows Compact cells because the days are too narrow.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'View densities: Compact is the new default, and Detailed shows activity names and times.',
+    changes: [
+      'Compact is the grid as it was: shift codes in every cell.',
+      'Detailed shows each assignment’s activity and times, as in the calendar. Overtime gets its own red container with an OT tag instead of a diagonal; two or more assignments stack as one-line containers.',
+      'Detailed needs days at least 96px wide (usually one week). Narrower days show Compact cells.',
+      'New tokens --workforce-detailed-chip-height (44px) and --workforce-detailed-row-height (56px). Stacked is still coming.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Employee search moved from the toolbar to the “Employee” header, and clicking “Employee” no longer selects everything.',
+    changes: [
+      'The search icon after “Employee” swaps the label for a search field; X or Escape closes it. Filtering comes later.',
+      'Ctrl/⌘+A still selects every cell in view.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Names and dates now select, as in a spreadsheet: a name selects the person’s row, a date the whole day, and “Employee” everything. Names no longer open the employee details.',
+    changes: [
+      'Shift-click, Ctrl/⌘-click and dragging along names or dates select several rows or days.',
+      'Space or Enter on a name or date selects it; Ctrl/⌘+Space selects the active cell’s day.',
+      'Headers of fully selected rows and days are highlighted.',
+    ],
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Tue, Jun 2 now has three open shifts in the demo: Swing Patrol (open), Day Patrol (live) and Night Patrol (open, 2 needed).',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Removed the Today badge from the date row. Today is still shown by its highlighted column header.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Open shifts are no longer pinned: they scroll with the grid. The date row and names stay pinned.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'New Sizing for screens section: how the grid fits every range on screen and when cells switch to Compact or Mini, with examples at 1280, 1512 and 1920px.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Mini cells (very narrow days, e.g. a month) are now 32px high, with 44px rows, so more people fit on screen.',
+  },
+  {
+    date: '2026-11-23',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Every range now fits the width with no sideways scrolling.',
+    changes: [
+      'Cells pick a layout from the column width: Full, Compact, or Mini (fill, out-of-unit stripes and arrow, no codes).',
+      'The name column narrows for very narrow days; rank badges and supervisor icons hide if they don’t fit.',
+    ],
+  },
+  {
+    date: '2026-11-23',
+    page: '/patterns/workforce-scheduling',
+    summary: 'New Workforce Scheduling page (draft): a scheduler’s grid with open shifts, Day, Swing and Night watches and their staffing, cells you can select like a spreadsheet, and a details panel beside the grid.',
+    changes: [
+      'Click, drag, Shift-click, Ctrl/⌘-click and the keyboard select cells; the panel shows one activity, a new activity or several cells.',
+      'Five ranges (Day is coming) and a view density menu (Compact and Stacked are coming).',
+      'Added the PatS (Swing patrol) and C-PM (Court, afternoon) shift codes.',
+    ],
+  },
+  {
     date: '2026-11-23',
     page: '/patterns/approvals',
     summary: 'On a phone, Configure visibility and Sort now open full screen below the status bar, with Cancel and Apply at the bottom.',
