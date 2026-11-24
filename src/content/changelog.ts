@@ -11,6 +11,16 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
+    page: '/patterns/approvals',
+    summary: 'Only timesheets link to their source now. Activity and trade requests no longer show “View in Team View”, and leave no longer shows “View in Calendar”.',
+  },
+  {
+    date: '2026-11-24',
+    page: '/patterns/approvals',
+    summary: 'The Activity, Leave, Timesheets and Trade tabs now match the Unit / Location tabs on Team View: same size, regular weight, and no outline on the active tab.',
+  },
+  {
+    date: '2026-11-24',
     page: '/patterns/team-view',
     summary: 'Expired employees are now called inactive employees. The cell label reads “Inactive”, and the mobile row name adds “Inactive since Jun 3”.',
     changes: [

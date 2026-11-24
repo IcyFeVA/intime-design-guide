@@ -6,8 +6,8 @@ export type ApprovalKind = 'activity' | 'leave' | 'trade' | 'timesheet'
 export interface ApprovalKindDef {
   key: ApprovalKind
   label: string
-  /** Link to the source, above the details */
-  link: string
+  /** Link to the source, above the details. Only timesheets have one. */
+  link?: string
   meaning: string
   /** Heading for blocking alerts in the details */
   blockingLabel: 'Prevent' | 'Critical'
@@ -23,10 +23,10 @@ export interface ApprovalKindDef {
 }
 
 export const approvalKinds: ApprovalKindDef[] = [
-  { key: 'activity', label: 'Activity', link: 'View in Team View', meaning: 'Special events, hold overs and patrols an employee asked to work or already worked.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'modify', status: 'confirmed' },
-  { key: 'leave', label: 'Leave', link: 'View in Calendar', meaning: 'Vacation, comp time, sick leave and other time off.', blockingLabel: 'Critical', clearWhilePending: false, showRank: true, showAlertIcon: false, decidedPanel: 'modify', status: 'confirmed' },
+  { key: 'activity', label: 'Activity', meaning: 'Special events, hold overs and patrols an employee asked to work or already worked.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'modify', status: 'confirmed' },
+  { key: 'leave', label: 'Leave', meaning: 'Vacation, comp time, sick leave and other time off.', blockingLabel: 'Critical', clearWhilePending: false, showRank: true, showAlertIcon: false, decidedPanel: 'modify', status: 'confirmed' },
   { key: 'timesheet', label: 'Timesheets', link: 'View Timesheet', meaning: 'An employee’s hours for a pay period. Schedulers can also submit timesheets the employee has not.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: false, decidedPanel: 'modify', status: 'confirmed' },
-  { key: 'trade', label: 'Trade', link: 'View in Team View', meaning: 'Two employees swapping shifts: the sender gives one, the receiver gives one back. Both sides are shown.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'note', status: 'confirmed' },
+  { key: 'trade', label: 'Trade', meaning: 'Two employees swapping shifts: the sender gives one, the receiver gives one back. Both sides are shown.', blockingLabel: 'Prevent', clearWhilePending: true, showRank: false, showAlertIcon: true, decidedPanel: 'note', status: 'confirmed' },
 ]
 
 export const approvalKind = (key: ApprovalKind) => approvalKinds.find((kind) => kind.key === key)!

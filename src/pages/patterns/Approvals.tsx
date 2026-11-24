@@ -194,7 +194,7 @@ export default function Approvals() {
                 <Table.Tr key={kind.key}>
                   <Table.Td><Text size="sm" fw={600}>{kind.label}</Text></Table.Td>
                   <Table.Td><Text size="sm">{kind.meaning}</Text></Table.Td>
-                  <Table.Td><Text size="sm">{kind.link}</Text></Table.Td>
+                  <Table.Td><Text size="sm" c={kind.link ? undefined : 'dimmed'}>{kind.link ?? 'None'}</Text></Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>

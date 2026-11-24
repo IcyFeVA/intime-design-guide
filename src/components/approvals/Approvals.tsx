@@ -417,9 +417,11 @@ export function ApprovalDetail({ request, onLink, compact }: { request: Approval
         <h4 className={classes.detailTitle}>{request.kind === 'timesheet' ? request.title : <RequestHeading request={request} />}</h4>
         {request.status !== 'unsubmitted' && request.list === 'submitted' && <RequestStatusBadge stateKey={approvalStatusBadge[request.status]} />}
       </div>
-      <Anchor component="button" type="button" className={classes.detailLink} onClick={() => onLink(link)} fw={600}>
-        {link} <ExternalLink size={18} aria-hidden="true" />
-      </Anchor>
+      {link && (
+        <Anchor component="button" type="button" className={classes.detailLink} onClick={() => onLink(link)} fw={600}>
+          {link} <ExternalLink size={18} aria-hidden="true" />
+        </Anchor>
+      )}
 
       {request.submittedLong && request.list === 'submitted' && (
         <Block title="Submitted on"><Text size="lg" className="tabular">{request.submittedLong}</Text></Block>
