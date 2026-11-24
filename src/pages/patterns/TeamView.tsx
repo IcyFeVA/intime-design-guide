@@ -284,7 +284,7 @@ function ExpiredDemo() {
   const [range, setRange] = useState<ScheduleRange>('week')
   const rangeDef = scheduleRanges.find((item) => item.key === range)!
   return (
-    <Preview flush title="Expired, Detective Tanaka">
+    <Preview flush title="Inactive, Detective Tanaka">
       <Stack gap={0} w="100%" miw={0}>
         <Group gap="xs" p="sm">
           <PickerMenu label="Range" value={range} options={scheduleRanges.filter((item) => item.key !== 'month').map(({ key, label }) => ({ key, label }))} onChange={(value) => setRange(value as ScheduleRange)} />
@@ -330,7 +330,7 @@ const patternSamples: Record<CellPatternKey, ReactNode> = {
   ),
   'out-of-unit': <div className={classes.patternChip}><ShiftChip chip={{ segments: [{ code: 'C-AM' }], outOfUnit: true }} context="Out of unit" /></div>,
   expired: (
-    <div className={classes.patternExpired} style={{ backgroundImage: hatchStripes.expired('var(--schedule-expired-hatch)') }} role="img" aria-label="Expired cell">
+    <div className={classes.patternExpired} style={{ backgroundImage: hatchStripes.expired('var(--schedule-expired-hatch)') }} role="img" aria-label="Inactive cell">
       <ExpiredMark />
     </div>
   ),
@@ -444,14 +444,14 @@ export default function TeamView() {
         </Stack>
       </Section>
 
-      <Section id="expired" title="Expired employees" description="When an employee’s record expires, for example at the end of a contract or on leaving the agency, their row stays in the team. From the expiry day on, their cells are hatched and hold no shifts.">
+      <Section id="expired" title="Inactive employees" description="When an employee becomes inactive, for example at the end of a contract or on leaving the agency, their row stays in the team. From the expiry day on, their cells are hatched and hold no shifts.">
         <ExpiredDemo />
         <Stack gap="xs" mt="md">
-          <Text size="sm"><strong>The expiry day</strong> is the first day the employee is no longer active. Tanaka expires on Wednesday, June 3, so Monday and Tuesday look as usual and Wednesday to Sunday are hatched.</Text>
-          <Text size="sm"><strong>One label.</strong> The first hatched day carries “Expired” with an icon; later days show only the hatch, so a long range stays calm. Compact cells and the mobile week show the icon alone. When the range starts after the expiry day, the label moves to the first visible day.</Text>
+          <Text size="sm"><strong>The expiry day</strong> is the first day the employee is no longer active. Tanaka is inactive from Wednesday, June 3, so Monday and Tuesday look as usual and Wednesday to Sunday are hatched.</Text>
+          <Text size="sm"><strong>One label.</strong> The first hatched day carries “Inactive” with an icon; later days show only the hatch, so a long range stays calm. Compact cells and the mobile week show the icon alone. When the range starts after the expiry day, the label moves to the first visible day.</Text>
           <Text size="sm"><strong>Quiet on purpose.</strong> The hatch is thin and gray, in the dimmed text color, on an empty cell. It does not compete with shift fills or coverage, and it is different from the blue out-of-unit stripes, which sit on a filled cell.</Text>
-          <Text size="sm"><strong>The name stays readable.</strong> Once the expiry day has passed, the initials get a dashed outline. On mobile, the row name adds “Expired Jun 3”, and the day view hatches the whole timeline.</Text>
-          <Text size="sm"><strong>Screen readers</strong> hear “Expired” in each hatched cell, and the name announces the expiry date.</Text>
+          <Text size="sm"><strong>The name stays readable.</strong> Once the expiry day has passed, the initials get a dashed outline. On mobile, the row name adds “Inactive since Jun 3”, and the day view hatches the whole timeline.</Text>
+          <Text size="sm"><strong>Screen readers</strong> hear “Inactive” in each hatched cell, and the name announces the expiry date.</Text>
           <Text size="sm">Try it in the <Anchor component={Link} to="/patterns/team-view?section=desktop" size="sm">Desktop</Anchor> demo: Tanaka is the last member of Patrol Alpha. Switch to two or three weeks to see the hatch run on.</Text>
         </Stack>
       </Section>
@@ -584,7 +584,7 @@ export default function TeamView() {
         <Text size="xs" c="dimmed" mt="xs">Two values are dark / light. To change a fill or stripe color, change it in <Anchor component={Link} to="/foundations/colors?section=cell-colors" size="xs">Shift cell colors</Anchor>; these variables follow.</Text>
       </Section>
 
-      <Section id="patterns" title="Cell patterns" description="The diagonal split, the out-of-unit stripes and the expired stripes are drawn in CSS, from the variables above. Copy CSS gives the pattern together with the variables it reads.">
+      <Section id="patterns" title="Cell patterns" description="The diagonal split, the out-of-unit stripes and the inactive stripes are drawn in CSS, from the variables above. Copy CSS gives the pattern together with the variables it reads.">
         <CellPatterns />
       </Section>
 
@@ -597,7 +597,7 @@ export default function TeamView() {
             'Put coverage directly above the team it describes.',
             'Put assignments outside the block’s hours in the extra row, and keep the block on its own in the main row.',
             'Open details over the schedule, so closing them returns the user to the same place.',
-            'Keep an expired employee’s row and the shifts before the expiry day, so the history stays intact.',
+            'Keep an inactive employee’s row and the shifts before the expiry day, so the history stays intact.',
           ]}
           dontItems={[
             'Shrink text to fit a month. Switch to compact cells and let the grid scroll.',
@@ -605,7 +605,7 @@ export default function TeamView() {
             'Show color alone for coverage. Keep the numbers, arrows and outlines.',
             'Offer ranges longer than a week on a phone.',
             'Navigate away from the schedule to show coverage or a profile.',
-            'Show shifts on or after an employee’s expiry day, or label every expired cell.',
+            'Show shifts on or after an employee’s expiry day, or label every inactive cell.',
           ]}
         />
       </Section>

@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-24',
+    page: '/patterns/team-view',
+    summary: 'Expired employees are now called inactive employees. The cell label reads “Inactive”, and the mobile row name adds “Inactive since Jun 3”.',
+    changes: [
+      'The section is now Inactive employees; its link (?section=expired) still works.',
+      'The cell pattern and the Colors page row are labeled Inactive. Variable names stay --schedule-expired-*.',
+    ],
+  },
+  {
+    date: '2026-11-24',
     page: '/patterns/calendar',
     summary: 'Calendar colors now come from the shift cell colors on the Colors page, with no literal values.',
     changes: [

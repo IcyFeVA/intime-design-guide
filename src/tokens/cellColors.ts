@@ -35,7 +35,7 @@ export const cellKinds: CellKind[] = [
   { key: 'ruler-date', label: 'Schedule ruler (date)', usage: 'Date header of the schedule ruler.' },
   { key: 'ruler-cell', label: 'Schedule ruler (cell)', usage: 'Day cells of the schedule ruler.' },
   { key: 'pending', label: 'Pending', usage: 'Requests waiting for approval.' },
-  { key: 'expired', label: 'Expired', usage: 'Days on and after an employee’s expiry day: thin stripes on the empty cell.', sample: '' },
+  { key: 'expired', label: 'Inactive', usage: 'Days on and after an employee’s expiry day: thin stripes on the empty cell.', sample: '' },
 ]
 
 const shared = {

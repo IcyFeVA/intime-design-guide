@@ -69,16 +69,16 @@ export const cellPatterns: CellPattern[] = [
   },
   {
     key: 'expired',
-    label: 'Expired',
-    usage: 'Thin stripes on the empty cell from the employee’s expiry day on. Only the first day carries the “Expired” label.',
+    label: 'Inactive',
+    usage: 'Thin stripes on the empty cell from the employee’s expiry day on. Only the first day carries the “Inactive” label.',
     tokens: ['--schedule-expired-hatch', '--schedule-expired-text'],
     status: 'confirmed',
-    css: `/* Expired: thin stripes on the empty cell, from the expiry day on. */
+    css: `/* Inactive: thin stripes on the empty cell, from the expiry day on. */
 .schedule-cell[data-expired] {
   background-image: ${hatchStripes.expired('var(--schedule-expired-hatch)')};
 }
 
-/* The "Expired" label on the first expired day */
+/* The "Inactive" label on the first inactive day */
 .expired-label {
   display: inline-flex;
   align-items: center;

@@ -88,7 +88,7 @@ export function ExpiredMark({ density = 'comfortable' }: { density?: ChipDensity
   return (
     <span className={classes.expired} data-density={density} aria-hidden="true">
       <UserX size={14} strokeWidth={1.75} />
-      {density === 'comfortable' && 'Expired'}
+      {density === 'comfortable' && 'Inactive'}
     </span>
   )
 }

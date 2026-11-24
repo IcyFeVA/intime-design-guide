@@ -104,7 +104,7 @@ export default function ScheduleGrid({
               const labelDay = expiredLabelDay(row, days)
               /** Expired as of today (or the end of the range when there is no today) */
               const expiredNow = isExpired(row, today ?? days[days.length - 1])
-              const expiredNote = row.expiresOn !== undefined && expiredNow ? `, expired ${formatMonthDay(row.expiresOn)}` : ''
+              const expiredNote = row.expiresOn !== undefined && expiredNow ? `, inactive since ${formatMonthDay(row.expiresOn)}` : ''
               return Array.from({ length: lines }, (_, line) => (
                 <div role="row" className={classes.row} key={`${row.id}-${line}`}>
                   <div role="rowheader" className={classes.label} data-overflow={(overflow && line > 0) || undefined} data-expired={(line === 0 && expiredNow) || undefined}>
@@ -130,7 +130,7 @@ export default function ScheduleGrid({
                         data-expired={expired || undefined}
                         key={day}
                       >
-                        {expired && line === 0 && <>{day === labelDay && <ExpiredMark density={density} />}<VisuallyHidden>Expired</VisuallyHidden></>}
+                        {expired && line === 0 && <>{day === labelDay && <ExpiredMark density={density} />}<VisuallyHidden>Inactive</VisuallyHidden></>}
                         {!expired && chip && <ShiftChip chip={chip} density={density} context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}
                       </div>
                     )

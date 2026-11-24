@@ -38,8 +38,8 @@ function TimeOfDay({ section, day, onCoverageClick }: { section: ScheduleSection
   )
 }
 
-function RowName({ row, section, className, asOf, onRowClick }: { row: ScheduleRow; section: ScheduleSection; className: string; /** Shows “Expired Jun 3” after the name when the row is expired on this day */ asOf?: number; onRowClick?: MobileScheduleProps['onRowClick'] }) {
-  const expired = row.expiresOn !== undefined && asOf !== undefined && isExpired(row, asOf) ? `Expired ${formatMonthDay(row.expiresOn)}` : null
+function RowName({ row, section, className, asOf, onRowClick }: { row: ScheduleRow; section: ScheduleSection; className: string; /** Shows “Inactive since Jun 3” after the name when the row is expired on this day */ asOf?: number; onRowClick?: MobileScheduleProps['onRowClick'] }) {
+  const expired = row.expiresOn !== undefined && asOf !== undefined && isExpired(row, asOf) ? `Inactive since ${formatMonthDay(row.expiresOn)}` : null
   const content = <>{row.name}{expired && <span className={classes.expiredNote}>{expired}</span>}</>
   if (!onRowClick) return <div className={className}>{content}</div>
   return (
@@ -103,7 +103,7 @@ function WeekView({ sections, days, today, onRowClick, onCoverageClick, onChipCl
                       const chip = chipsByDay[index][line]
                       if (isExpired(row, day)) return (
                         <div className={classes.stripCell} data-expired key={day}>
-                          {line === 0 && <>{day === labelDay && <ExpiredMark density="strip" />}<VisuallyHidden>{formatHeader(day)}: expired</VisuallyHidden></>}
+                          {line === 0 && <>{day === labelDay && <ExpiredMark density="strip" />}<VisuallyHidden>{formatHeader(day)}: inactive</VisuallyHidden></>}
                         </div>
                       )
                       return <div className={classes.stripCell} key={day}>{chip && <ShiftChip chip={chip} density="strip" context={`${row.name}, ${formatHeader(day)}`} onClick={onChipClick && (() => onChipClick(row, day, chip))} />}</div>
@@ -149,7 +149,7 @@ function DayView({ sections, daySections, days, today, onRowClick, onCoverageCli
               <div className={classes.dayRow} key={row.id}>
                 <RowName row={row} section={section} className={classes.dayName} onRowClick={onRowClick} />
                 <div className={classes.track} data-expired={isExpired(row, day) || undefined}>
-                  {isExpired(row, day) && <><ExpiredMark /><VisuallyHidden>Expired</VisuallyHidden></>}
+                  {isExpired(row, day) && <><ExpiredMark /><VisuallyHidden>Inactive</VisuallyHidden></>}
                   {row.chips(day).flatMap((chip, chipIndex) => !chip ? [] : chip.segments.map((segment, index) => {
                     const { start, end } = segmentHours(segment)
                     const kind = segmentKind(segment)
