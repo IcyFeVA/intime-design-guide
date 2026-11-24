@@ -8,6 +8,7 @@ import { viewDensities, workforceRanges, type ViewDensity, type WorkforceRange }
 import { findUnit, savedFilters } from './data'
 import type { UnderAlert } from './model'
 import CoverageAlerts from './CoverageAlerts'
+import WorkforceLegend from './WorkforceLegend'
 import UnitPicker from './UnitPicker'
 import classes from './Workforce.module.css'
 
@@ -133,7 +134,7 @@ export function WorkforceToolbar({
   )
 }
 
-/** Sort, collapse/expand all, density, undo and the panel toggle: the right side of the title row. */
+/** Sort, collapse/expand all, density, undo, legend and the panel toggle: the right side of the title row. */
 export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, allCollapsed, onCollapseAll, onPreview }: {
   density: ViewDensity
   onDensity: (density: ViewDensity) => void
@@ -159,6 +160,7 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
         : icon('Collapse all', ChevronsDownUp, () => onCollapseAll(true))}
       <DensityMenu value={density} onChange={onDensity} />
       {icon('Undo', Undo2, () => onPreview('Undo'))}
+      <WorkforceLegend view={density} />
       <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>
         {panelOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
       </ActionIcon>

@@ -67,6 +67,24 @@ export const viewDensities: { key: ViewDensity; label: string; description: stri
   { key: 'stacked', label: 'Stacked', description: 'Colored bars without text, one per assignment, with overtime split out. Fits the most people on screen, at any range.', available: true, status: 'confirmed' },
 ]
 
+/* ------------------------------------------------------------------ */
+/* Legend: what each kind of cell means (the title row's Legend button) */
+/* ------------------------------------------------------------------ */
+
+export type LegendKey = 'scheduled' | 'several' | 'overtime' | 'partialOvertime' | 'leave' | 'outOfUnit' | 'open' | 'live'
+
+/** Only cells the grid shows today. The legend draws each with the real cell for the current view density. */
+export const legendItems: { key: LegendKey; label: string; meaning: string; status: TokenStatus }[] = [
+  { key: 'scheduled', label: 'Scheduled shift', meaning: 'Colored by kind. Shows the shift code, or the activity and times in Detailed.', status: 'draft' },
+  { key: 'several', label: 'Two or more assignments', meaning: 'Share one cell. A separate assignment on the same day goes on an extra line.', status: 'draft' },
+  { key: 'overtime', label: 'Overtime', meaning: 'Red, with an OT tag where there is room.', status: 'draft' },
+  { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'Split diagonally in Compact. Detailed and Stacked show the overtime part on its own.', status: 'draft' },
+  { key: 'leave', label: 'Leave', meaning: 'Sick, PTO or vacation.', status: 'draft' },
+  { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit: striped, with an OU tag where there is room.', status: 'draft' },
+  { key: 'open', label: 'Open shift', meaning: 'Nobody holds it yet: dashed outline, no fill.', status: 'draft' },
+  { key: 'live', label: 'Live shift', meaning: 'Posted to employees, who can sign up.', status: 'draft' },
+]
+
 /** What the grid's member and open-shift cells show: codes (Team View's cells), names and times, or bars. */
 export type CellView = 'codes' | 'detailed' | 'stacked'
 

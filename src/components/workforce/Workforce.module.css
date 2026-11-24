@@ -1000,3 +1000,40 @@
     transition: none;
   }
 }
+
+/* Legend popover: the real cell on the left (Full layout), its name and meaning on the right */
+.legendList {
+  margin: 0;
+  padding: 4px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legendList[data-view='detailed'] {
+  --schedule-chip-height: var(--workforce-detailed-chip-height);
+}
+
+.legendList[data-view='stacked'] {
+  --schedule-chip-height: var(--workforce-stacked-chip-height);
+}
+
+.legendRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.legendSpecimen {
+  flex: none;
+  display: flex;
+  align-items: center;
+  width: 168px;
+  min-height: var(--schedule-chip-height);
+}
+
+.legendText {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
