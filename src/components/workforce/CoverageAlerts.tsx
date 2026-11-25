@@ -30,6 +30,7 @@ export default function CoverageAlerts({ alerts, unit, onPreview }: {
           aria-expanded={opened}
           variant="light"
           color={count ? 'red' : 'gray'}
+          className={count ? classes.understaffedButton : undefined}
           size="sm"
           fw={500}
           leftSection={<TriangleAlert size={16} aria-hidden="true" />}
