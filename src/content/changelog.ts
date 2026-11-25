@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
+    summary: 'Approvals opens on top of the schedule. Approve requests, then “Back to Scheduling” returns instantly to where you were.',
+    changes: [
+      'Approvals covers the page below the top bar and opens on the Activity tab.',
+      'A “Back to Scheduling” link sits before the Approvals title. It only shows when Approvals is opened from the schedule.',
+      'The Approvals button shows the live count of requests still waiting for a decision.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
     summary: 'Selected cells stand out more: a thick primary outline over the grid lines, as in a spreadsheet.',
   },
   {

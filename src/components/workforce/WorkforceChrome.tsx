@@ -1,4 +1,4 @@
-import type { Dispatch, ReactNode, SetStateAction } from 'react'
+import type { Dispatch, ReactNode, Ref, SetStateAction } from 'react'
 import { ActionIcon, Badge, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import {
   ArrowUpDown, Check, ChevronDown, ChevronsDownUp, ChevronsUpDown, Inbox, Megaphone, PanelRightClose, PanelRightOpen, Rows3, Search, Undo2, UserRoundPlus,
@@ -90,7 +90,7 @@ const Count = ({ value, color = 'gray' }: { value: number; color?: string }) => 
 
 /** Filters and status buttons: the frame's toolbar row. */
 export function WorkforceToolbar({
-  range, onRange, days, anchor, onAnchorChange, team, onTeam, underAlerts, onPreview,
+  range, onRange, days, anchor, onAnchorChange, team, onTeam, underAlerts, approvals, onApprovals, approvalsRef, onPreview,
 }: {
   range: WorkforceRange
   onRange: (range: WorkforceRange) => void
@@ -101,18 +101,25 @@ export function WorkforceToolbar({
   onTeam: (team: string) => void
   /** Watch-days below target in the range */
   underAlerts: UnderAlert[]
+  /** Requests waiting for a decision, shown on the Approvals button */
+  approvals: number
+  /** Opens Approvals on top of the schedule */
+  onApprovals: () => void
+  /** The Approvals button, to give it focus back when Approvals closes */
+  approvalsRef?: Ref<HTMLButtonElement>
   /** A control that is not built yet was used */
   onPreview: (action: string) => void
 }) {
-  const labelled = (label: string, Icon: typeof Search, count?: ReactNode) => (
+  const labelled = (label: string, Icon: typeof Search, count?: ReactNode, onClick = () => onPreview(label), ref?: Ref<HTMLButtonElement>) => (
     <Button
+      ref={ref}
       variant="default"
       size="sm"
       fw={400}
       aria-label={label}
       leftSection={<Icon size={16} aria-hidden="true" />}
       rightSection={count}
-      onClick={() => onPreview(label)}
+      onClick={onClick}
       classNames={{ label: classes.collapsibleLabel, section: classes.collapsibleSection }}
     >
       {label}
@@ -127,7 +134,7 @@ export function WorkforceToolbar({
       <SavedFiltersMenu onPreview={onPreview} />
       <div className={classes.spacer} />
       <CoverageAlerts alerts={underAlerts} unit={findUnit(team)?.label ?? ''} onPreview={onPreview} />
-      {labelled('Approvals', Inbox, <Count value={3} color="red" />)}
+      {labelled('Approvals', Inbox, approvals > 0 ? <Count value={approvals} color="red" /> : undefined, onApprovals, approvalsRef)}
       {labelled('Posts', Megaphone, <Count value={2} />)}
       {labelled('Mandate', UserRoundPlus)}
     </div>

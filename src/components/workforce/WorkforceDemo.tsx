@@ -1,8 +1,13 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Button, Text, Transition } from '@mantine/core'
 import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
-import { DesktopDemoFrame } from '../schedule/ScheduleChrome'
+import { DesktopDemoFrame, FramePage } from '../schedule/ScheduleChrome'
+import { ApprovalFilters, ApprovalTabs } from '../approvals/Approvals'
+import ApprovalsWorkspace from '../approvals/ApprovalsWorkspace'
+import { useApprovals } from '../approvals/useApprovals'
+import { openCount } from '../approvals/data'
+import { approvalKinds } from '../../tokens/approvals'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
 import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
@@ -35,6 +40,7 @@ const panelSlide = {
 }
 
 const DEFAULT_STATUS = 'Preview only. “Today” is Friday, June 5, 2026 in this demo. Click, Shift-click, Ctrl/⌘-click or drag to select cells.'
+const APPROVALS_STATUS = 'Preview only. Approvals opens on top of the schedule, so going back is instant and keeps your place.'
 const DEFAULT_STAFFING: ReadonlySet<WatchId> = new Set(['swing'])
 
 /** The Workforce Scheduling desktop demo: toolbar, grid, details panel, coverage drawer and employee details. */
@@ -52,6 +58,15 @@ export default function WorkforceDemo() {
   const [focusTick, setFocusTick] = useState(0)
   const [hint, setHint] = useState<string | null>(null)
   const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
+  const [approvalsOpen, setApprovalsOpen] = useState(false)
+  const approvals = useApprovals({ kind: 'activity' })
+  const approvalsButton = useRef<HTMLButtonElement>(null)
+  const pendingApprovals = approvalKinds.reduce((sum, item) => sum + openCount(approvals.requests, item.key), 0)
+  const closeApprovals = () => {
+    setApprovalsOpen(false)
+    // The schedule is inert while Approvals is open: wait for it to come back before focusing
+    requestAnimationFrame(() => approvalsButton.current?.focus())
+  }
 
   const rangeDef = workforceRanges.find((item) => item.key === range)!
   const placeholder = !!rangeDef.placeholder
@@ -103,15 +118,26 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); selection.reset()
+    setCoverage(null); selection.reset(); setApprovalsOpen(false); approvals.reset()
   }
 
   return (
     <DesktopDemoFrame
       title="Workforce Scheduling"
-      status={hint ?? DEFAULT_STATUS}
+      status={approvalsOpen ? approvals.hint ?? APPROVALS_STATUS : hint ?? DEFAULT_STATUS}
       onReset={reset}
       targetWidth={TARGET_WIDTH}
+      overlayOpen={approvalsOpen}
+      overlay={(
+        <FramePage
+          title="Approvals"
+          back={{ label: 'Back to Scheduling', onClick: closeApprovals, autoFocus: true }}
+          tabs={<ApprovalTabs kind={approvals.kind} requests={approvals.requests} onChange={approvals.setKind} />}
+          toolbar={<ApprovalFilters state={approvals} />}
+        >
+          <ApprovalsWorkspace state={approvals} />
+        </FramePage>
+      )}
       actions={(
         <WorkforceViewActions
           density={view}
@@ -137,6 +163,9 @@ export default function WorkforceDemo() {
           team="patrol"
           onTeam={(key) => key !== 'patrol' && setHint(`Preview only: the demo has data for Patrol only, not ${findUnit(key)?.label}.`)}
           underAlerts={placeholder ? [] : model.underAlerts}
+          approvals={pendingApprovals}
+          onApprovals={() => { setApprovalsOpen(true); setHint(null) }}
+          approvalsRef={approvalsButton}
           onPreview={preview}
         />
       )}

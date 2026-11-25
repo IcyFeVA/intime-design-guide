@@ -1,10 +1,10 @@
-import { useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
+import { useEffect, useRef, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react'
 import { useNavigate } from 'react-router'
 import {
   ActionIcon, Button, Group, Indicator, Menu, Modal, SegmentedControl, Stack, Text, TextInput, UnstyledButton,
 } from '@mantine/core'
 import {
-  BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Laptop, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
+  ArrowLeft, BatteryFull, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Laptop, List, Logs, Maximize2, Menu as MenuIcon, RotateCcw, Signal,
   Search, SlidersHorizontal, UserRound, Wifi,
 } from 'lucide-react'
 import { PeriodPicker } from '../date-picker/DatePickers'
@@ -73,7 +73,50 @@ export function ViewTabs({ active }: { active: ScheduleView }) {
  * App-shell mock for the desktop demos: collapsed nav, top bar, title with view tabs, a toolbar and the grid.
  * Includes the demo bar (status, Target resolution when `targetWidth` is set, Full screen, Reset demo).
  */
-export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, children }: {
+/** A back link before a page title, e.g. "← Workforce Scheduling" on a screen opened on top of it. */
+export type BackLink = { label: string; onClick: () => void }
+
+/** Title row, toolbar and body of a page inside the demo app frame. */
+export function FramePage({ title, back, tabs, actions, toolbar, children }: {
+  title: string
+  back?: BackLink & { autoFocus?: boolean }
+  tabs?: ReactNode
+  actions?: ReactNode
+  toolbar: ReactNode
+  children: ReactNode
+}) {
+  return (
+    <>
+      <div className={classes.titleRow}>
+        {back && (
+          <>
+            <Button
+              variant="subtle"
+              color="intime"
+              size="sm"
+              fw={400}
+              px={8}
+              leftSection={<ArrowLeft size={18} aria-hidden="true" />}
+              onClick={back.onClick}
+              data-autofocus={back.autoFocus || undefined}
+              className={classes.backLink}
+            >
+              {back.label}
+            </Button>
+            <span className={classes.titleDivider} aria-hidden="true" />
+          </>
+        )}
+        <h3 className={classes.title}>{title}</h3>
+        {tabs}
+        {actions && <div className={classes.titleActions}>{actions}</div>}
+      </div>
+      <div className={classes.toolbar}>{toolbar}</div>
+      {children}
+    </>
+  )
+}
+
+export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, overlay, overlayOpen = false, children }: {
   /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
   view?: ScheduleView
   title?: string
@@ -88,9 +131,20 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   toolbar: ReactNode
   /** Adds a Target resolution button: full screen, but no wider than this (px). For screenshots at the product's target size. */
   targetWidth?: number
+  /**
+   * A screen that covers the page below the top bar (title row down), e.g. Approvals opened from Workforce Scheduling.
+   * It stays mounted while hidden, so it keeps its state and opens instantly. Use `FramePage` with a `back` link inside it.
+   */
+  overlay?: ReactNode
+  overlayOpen?: boolean
   children: ReactNode
 }) {
   const [screen, setScreen] = useState<'inline' | 'full' | 'target'>('inline')
+  const overlayRef = useRef<HTMLDivElement>(null)
+  // Move focus into the overlay when it opens (to its back link, marked data-autofocus)
+  useEffect(() => {
+    if (overlayOpen) overlayRef.current?.querySelector<HTMLElement>('[data-autofocus]')?.focus()
+  }, [overlayOpen])
   const fullScreen = screen !== 'inline'
   const target = screen === 'target' && targetWidth
   const shell = (
@@ -110,14 +164,16 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
             <ChevronDown size={16} aria-hidden="true" />
           </Group>
         </div>
-        <div className={classes.titleRow}>
-          <h3 className={classes.title}>{title}</h3>
-          {view && <ViewTabs active={view} />}
-          {tabs}
-          {actions && <div className={classes.titleActions}>{actions}</div>}
+        {overlay && (
+          <div ref={overlayRef} className={classes.overlay} hidden={!overlayOpen}>
+            {overlay}
+          </div>
+        )}
+        <div className={classes.page} inert={overlayOpen || undefined}>
+          <FramePage title={title} tabs={<>{view && <ViewTabs active={view} />}{tabs}</>} actions={actions} toolbar={toolbar}>
+            {children}
+          </FramePage>
         </div>
-        <div className={classes.toolbar}>{toolbar}</div>
-        {children}
       </div>
     </div>
   )

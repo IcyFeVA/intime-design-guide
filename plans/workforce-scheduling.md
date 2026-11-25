@@ -26,7 +26,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Bulk panel**: summary line, a list of the selected cells, shared fields, footer actions.
 - **Ranges**: 5 views: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month (numerals since 2026-11-24, user). ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
 - **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
-- **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Approvals (3), Posts (2), Mandate and Undo render and show a "Preview only" hint.
+- **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Posts (2), Mandate and Undo render and show a "Preview only" hint.
 - **Employee search** (2026-11-24): a search button after "Employee" in the corner header swaps the label for an input ("Search employees…"); X or Escape swaps it back. The input doesn't filter yet.
 - ~~Clicking a name opens `EmployeeDetailsModal`~~ (replaced 2026-11-24: a name selects its row). Clicking a time-of-day cell opens `CoverageDrawer` (`contained`, as in Team View).
 
@@ -266,6 +266,10 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 - [x] `workforce/WorkforceLegend.tsx`: a `BookOpen` icon button (tooltip "Legend") between Undo and the panel toggle opens a `Popover` (bottom-end, 440px, `trapFocus`). Each row draws the **real cell for the current view density** (`ShiftChip` / `DetailedChip` / `StackedChip` / `OpenShiftChip`, Full layout) next to its name and meaning. Rows and copy are draft tokens: `legendItems` in `src/tokens/workforce.ts`.
 - Only cells the grid shows today are listed (my default; the user didn't pick between leaving them out and "Coming soon" rows). Left out from the current app's legend until the grid shows them: Officer in charge (cross-hatched, shield), On-Call (dashed, phone), Trainee pairing (graduation cap, "Train Meet"), Pending leave request (hourglass badge in the corner), Pre-fill with OT (red border + OT tag), Statutory holiday (Hol badge in the day header), Leave over shift (diagonal stripes, leave icon + label).
+
+## Approvals overlay (2026-11-25, user)
+
+The toolbar's Approvals button opens the Approvals screen on top of the schedule (`DesktopDemoFrame` `overlay` + `overlayOpen`, built with `FramePage`). It covers everything below the top bar, opens on the Activity tab and stays mounted while hidden, so the schedule and the approvals keep their state and switching is instant. A "← Back to Scheduling" link (`FramePage` `back`) sits before the title, only in this case. Focus moves to the back link on open and back to the Approvals button on close; the schedule is `inert` meanwhile. The button's count is the live number of open requests across all tabs. Reset demo closes it.
 
 ## Later (out of scope now, keep room for them)
 
