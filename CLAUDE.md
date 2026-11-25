@@ -10,6 +10,7 @@ Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 
 - `npx tsc -b`: type-check (faster than `npm run build`)
 - `npx eslint src`: lint
 - Run both after every change. They must pass with no output.
+- `npm run figma:capture` / `npm run figma:build`: copy a live demo into a Figma frame as editable layers. Workflow in the `figma-push` skill (`.claude/skills/figma-push/SKILL.md`), options in `scripts/figma-capture/README.md`.
 
 ## Adding a page (checklist)
 

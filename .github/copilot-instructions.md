@@ -31,6 +31,7 @@
 - `npm run dev` starts the local app.
 - `npm run build` type-checks and builds for production.
 - `npm run lint` checks the source with ESLint.
+- `npm run figma:capture` and `npm run figma:build` copy a live demo into a Figma frame as editable layers. See `scripts/figma-capture/README.md`.
 
 ## Deployment
 - Hosted on GitHub Pages at https://icyfeva.github.io/intime-design-guide/. `.github/workflows/deploy.yml` deploys on every push to `master`.
