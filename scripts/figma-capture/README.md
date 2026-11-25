@@ -4,6 +4,10 @@ Copies a live demo from the design guide into Figma as editable layers: text, ve
 
 It runs in two steps: `capture.mjs` reads the rendered page in a headless browser, and `build.mjs` turns that into scripts for the Figma MCP `use_figma` tool. An agent (Claude Code with the Figma connector) runs those scripts. The project skill `.claude/skills/figma-push` describes the whole workflow, so in Claude Code you can just ask for it.
 
+## How to use with Claude
+
+Example: "Push the workforce demo in Stacked density, Staffing collapsed, into this frame: >>Figma link to frame<<"
+
 ## 1. Capture
 
 Start the dev server (`npm run dev`), then:
