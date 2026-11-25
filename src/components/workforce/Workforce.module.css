@@ -786,22 +786,22 @@
     var(--mantine-color-body);
 }
 
-/* One outline around each selected range */
+/* One thick outline around each selected range, drawn over the grid lines (-1px) so it reads like a spreadsheet selection */
 .cell[aria-selected='true']::after {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -1px;
   z-index: 1;
   pointer-events: none;
   border: 0 solid var(--workforce-selected-border);
 }
 
-.cell[data-edges~='t']::after { border-top-width: 1px; }
-.cell[data-edges~='r']::after { border-right-width: 1px; }
-.cell[data-edges~='b']::after { border-bottom-width: 1px; }
-.cell[data-edges~='l']::after { border-left-width: 1px; }
+.cell[data-edges~='t']::after { border-top-width: 2px; }
+.cell[data-edges~='r']::after { border-right-width: 2px; }
+.cell[data-edges~='b']::after { border-bottom-width: 2px; }
+.cell[data-edges~='l']::after { border-left-width: 2px; }
 
-/* The active cell: the one the keyboard and the panel work on */
+/* The active cell inside a larger range: the one the keyboard and the panel work on */
 .cell[data-active]::before {
   content: '';
   position: absolute;
@@ -812,9 +812,9 @@
   border-radius: var(--mantine-radius-sm);
 }
 
-/* A single selected cell only needs the active outline */
-.cell[data-active][data-edges='t r b l']::after {
-  border-width: 0;
+/* A single selected cell is the range: its outline is enough */
+.cell[data-active][data-edges='t r b l']::before {
+  content: none;
 }
 
 .add {

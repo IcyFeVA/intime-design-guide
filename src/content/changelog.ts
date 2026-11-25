@@ -10,6 +10,11 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Selected cells stand out more: a thick primary outline over the grid lines, as in a spreadsheet.',
+  },
+  {
     date: '2026-11-24',
     page: '/patterns/approvals',
     summary: 'Only timesheets link to their source now. Activity and trade requests no longer show “View in Team View”, and leave no longer shows “View in Calendar”.',

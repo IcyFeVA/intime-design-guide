@@ -114,7 +114,7 @@ export default function WorkforceScheduling() {
         </div>
       </Section>
 
-      <Section id="selection" title="Selecting cells" description="People’s cells and open shifts can be selected, one by one or a whole row or day at a time from the names and dates. Coverage, staffing and group rows can’t. The active cell has a thick outline; its name and date are highlighted, and so are the headers of fully selected rows and days.">
+      <Section id="selection" title="Selecting cells" description="People’s cells and open shifts can be selected, one by one or a whole row or day at a time from the names and dates. Coverage, staffing and group rows can’t. A selection has a thick outline, and the active cell inside a larger selection has its own outline. Its name and date are highlighted, and so are the headers of fully selected rows and days.">
         <Text size="sm" fw={600} mb="xs">Mouse</Text>
         <Table.ScrollContainer minWidth={560} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
