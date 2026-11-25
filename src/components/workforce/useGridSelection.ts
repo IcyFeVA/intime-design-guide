@@ -15,6 +15,11 @@ export type CellKey = `${string}@${number}`
 export interface CellRef { row: string; day: number }
 /** `day: null` is the row-header column */
 export interface CellPos { row: string; day: number | null }
+/** What a right-click opened the context menu on: a row header, a column header or a selected cell */
+export type GridContextTarget =
+  | { kind: 'rows'; row: string }
+  | { kind: 'columns'; day: number }
+  | { kind: 'cells'; cell: CellRef }
 
 export const cellKey = (row: string, day: number): CellKey => `${row}@${day}`
 const parseKey = (key: CellKey): CellRef => {
@@ -50,6 +55,12 @@ export interface GridSelectionOptions {
   headerRow?: string
   /** Rows that make up one logical row, top to bottom, e.g. a person's extra lines. Selecting a row header selects them all. */
   rowGroup?: (row: string) => readonly string[]
+  /**
+   * Right-click (or the Menu key) on a row header, a column header or a selectable cell. Like a spreadsheet, the
+   * row, day or cell is selected first unless it already is. Open a menu here (e.g. Mantine `Menu.ContextMenu`
+   * around the grid). Elsewhere in the grid the browser menu is suppressed.
+   */
+  onContextMenu?: (target: GridContextTarget) => void
 }
 
 type Mode = 'replace' | 'add' | 'extend'
@@ -83,7 +94,7 @@ function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, row
 const samePos = (a: CellPos | null, b: CellPos | null) => a?.row === b?.row && a?.day === b?.day
 
 export function useGridSelection({
-  rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false, headerRow, rowGroup,
+  rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false, headerRow, rowGroup, onContextMenu: onContextMenuOpen,
 }: GridSelectionOptions) {
   const gridRef = useRef<HTMLDivElement>(null)
   /** What a drag started on: cells draw a rectangle, a row header whole rows, a column header whole days */
@@ -293,6 +304,33 @@ export function useGridSelection({
     }
   }
 
+  /* ---------- Context menu ---------- */
+
+  const isRowSelected = (row: string) => group(row).every((key) => full.rowsFull.has(key) || !days.some((day) => isSelectable(key, day))) && group(row).some((key) => full.rowsFull.has(key))
+
+  const onContextMenu = (event: MouseEvent<HTMLElement>) => {
+    if (!onContextMenuOpen) return
+    const pos = posFrom(event.target)
+    let target: GridContextTarget | null = null
+    if (pos && headerRow && pos.row === headerRow) {
+      if (pos.day !== null) {
+        if (!full.daysFull.has(pos.day)) selectColumns(pos.day, 'replace')
+        target = { kind: 'columns', day: pos.day }
+      }
+    } else if (pos && pos.day === null) {
+      if (rowHasCells(pos.row)) {
+        if (!isRowSelected(pos.row)) selectRows(pos.row, 'replace')
+        target = { kind: 'rows', row: pos.row }
+      }
+    } else if (canSelect(pos)) {
+      if (!selected.has(cellKey(pos.row, pos.day))) selectOnly(pos)
+      target = { kind: 'cells', cell: pos }
+    }
+    // Nothing to act on here: no menu at all, rather than the browser's
+    if (!target) { event.preventDefault(); return }
+    onContextMenuOpen(target)
+  }
+
   /* ---------- Keyboard ---------- */
 
   const move = (from: CellPos, key: string, jump: boolean): CellPos | null => {
@@ -410,7 +448,7 @@ export function useGridSelection({
     isRowTabStop: (row: string) => tabStop?.row === row,
     edges,
     /** Every selectable cell in this row (or day) is selected: highlight its header */
-    isRowSelected: (row: string) => group(row).every((key) => full.rowsFull.has(key) || !days.some((day) => isSelectable(key, day))) && group(row).some((key) => full.rowsFull.has(key)),
+    isRowSelected,
     isColumnSelected: (day: number) => full.daysFull.has(day),
     /**
      * Spread on every focusable element in the grid. Mantine modals close on Escape from a window listener that runs
@@ -423,7 +461,7 @@ export function useGridSelection({
     /** Puts focus back on the active cell, e.g. after closing the panel */
     focusActive: () => { if (state.active) focusAt(state.active) },
     /** Spread on the grid element */
-    gridProps: { ref: gridRef, onKeyDown, onPointerDown, onMouseDown, onPointerOver, onFocus },
+    gridProps: { ref: gridRef, onKeyDown, onPointerDown, onMouseDown, onPointerOver, onFocus, onContextMenu },
   }
 }
 

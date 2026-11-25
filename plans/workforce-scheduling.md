@@ -211,7 +211,7 @@ Requirement: schedulers see every day of every range without a horizontal scroll
 
 - [x] Day columns are `minmax(0, 1fr)` and the grid is `width: 100%`; no minimum column width. `workforceRanges` no longer carries `density`/`columnMin`.
 - [x] The grid measures its scroller (`useElementSize`) and picks the **cell layout from the column width**, not the range (`cellLayouts` / `cellLayoutFor` in `src/tokens/workforce.ts`): Full ≥ 96px, Compact 48–96px, Mini < 48px.
-- [x] Mini (`ShiftChip` density `mini`, shared): no codes; keeps the fill (incl. diagonal splits), out-of-unit hatching and OU arrow, and a bar for cancelled. Open shifts show the icon only. Coverage values drop to 11px; hours lose decimals (`HoursValue digits`); the group badge drops its arrow.
+- [x] Mini (`ShiftChip` density `mini`, shared): no codes; keeps the fill (incl. diagonal splits), out-of-unit hatching and OU arrow, and a bar for cancelled. Overtime shows a centered clock (`.miniOt`, 2026-11-25, user: color alone isn't enough); above the bar when cancelled. Open shifts show the icon only. Coverage values drop to 11px; hours lose decimals (`HoursValue digits`); the group badge drops its arrow.
 - [x] When columns would be < 48px with the 232px name column, the name column switches to `--workforce-label-width-narrow` (168px, set inline on the scroller). Rank badges and the supervisor shield hide via a container query when the name column is under 200px (user: OK to hide them).
 - [x] Mini date headers stack the weekday over the date.
 - [x] Mini cells are 32px high and rows 44px (`--workforce-mini-chip-height` / `--workforce-mini-row-height`, set as `--schedule-chip-height` / `--schedule-row-height` on the scroller), 2026-11-24.
@@ -271,6 +271,10 @@ Ideas not built yet: collapse the name column to initials; a per-user setting th
 
 The toolbar's Approvals button opens the Approvals screen on top of the schedule (`DesktopDemoFrame` `overlay` + `overlayOpen`, built with `FramePage`). It covers everything below the top bar, opens on the Activity tab and stays mounted while hidden, so the schedule and the approvals keep their state and switching is instant. A "← Back to Scheduling" link (`FramePage` `back`) sits before the title, only in this case. Focus moves to the back link on open and back to the Approvals button on close; the schedule is `inert` meanwhile. The button's count is the live number of open requests across all tabs. Reset demo closes it.
 
+## Context menu (2026-11-25, user)
+
+- [x] Right-click (or the Menu key / Shift+F10) on a row header, a date header or a selectable cell opens `workforce/GridContextMenu.tsx`, a Mantine `Menu` with `Menu.ContextMenu` around the grid (opens at the cursor). `useGridSelection`'s `onContextMenu` option first selects the row, day or cell unless it is already fully selected (spreadsheet behavior), then reports the target; elsewhere in the grid it suppresses the browser menu. Title = what it acts on ("Wed, Jun 3", "3 days", "M. Alvarez", "4 rows", "12 cells"). Items: Copy, Paste, Fill, Clear (with key hints), divider, Add new rule…. **No functionality**: each shows a "Preview only" hint.
+
 ## Later (out of scope now, keep room for them)
 
 - Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
@@ -287,6 +291,7 @@ The toolbar's Approvals button opens the Approvals screen on top of the schedule
 
 ## Open questions (ask the user when relevant)
 
+- Context menu: what should Fill and Add new rule do (fill down/right from the first cell? which kind of rule)? Are more items needed (e.g. Assign, Post as open shift)?
 - Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)

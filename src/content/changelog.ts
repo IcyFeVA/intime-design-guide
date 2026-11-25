@@ -12,6 +12,21 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
+    summary: 'Mini cells (narrow columns, e.g. a month) show a clock for overtime, so it no longer relies on color alone.',
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Right-click a name, a date or selected cells for a menu: Copy, Paste, Fill, Clear and Add new rule.',
+    changes: [
+      'A right-click selects the row, day or cell first unless it is already selected, so a larger selection stays as it is.',
+      'The menu’s title says what it acts on, e.g. “Wed, Jun 3” or “3 days”. The items are preview only.',
+      'The Understaffed button uses the error colors.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
     summary: 'Renamed Workforce Scheduling to Work Scheduling.',
   },
   {

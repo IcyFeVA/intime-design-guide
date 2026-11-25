@@ -11,11 +11,11 @@ import { approvalKinds } from '../../tokens/approvals'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
 import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
-import { MOCK_TODAY, rangeDays } from '../schedule/data'
+import { MOCK_TODAY, formatHeader, rangeDays } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { findUnit, watches, type Watch, type WatchId, type WorkforceSort } from './data'
+import { findUnit, shortName, watches, type Watch, type WatchId, type WorkforceSort } from './data'
 import { HEADER_ROW, buildGridModel, panelContent } from './model'
-import { useGridSelection } from './useGridSelection'
+import { useGridSelection, type GridContextTarget } from './useGridSelection'
 import WorkforceGrid from './WorkforceGrid'
 import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
@@ -59,6 +59,7 @@ export default function WorkforceDemo() {
   const [hint, setHint] = useState<string | null>(null)
   const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
   const [approvalsOpen, setApprovalsOpen] = useState(false)
+  const [menuTarget, setMenuTarget] = useState<GridContextTarget | null>(null)
   const approvals = useApprovals({ kind: 'activity' })
   const approvalsButton = useRef<HTMLButtonElement>(null)
   const pendingApprovals = approvalKinds.reduce((sum, item) => sum + openCount(approvals.requests, item.key), 0)
@@ -91,6 +92,7 @@ export default function WorkforceDemo() {
     isSelectable: model.isSelectable,
     preferredDay: MOCK_TODAY,
     onActivate,
+    onContextMenu: setMenuTarget,
     escapeHandled: panelOpen,
     onEscape: () => {
       if (!panelOpen) return false
@@ -101,6 +103,22 @@ export default function WorkforceDemo() {
   })
 
   const content = useMemo(() => panelContent(model, selection.ordered), [model, selection.ordered])
+
+  // The context menu's title: what it acts on, from the selection as it is now
+  const menuTitle = (() => {
+    if (menuTarget?.kind === 'columns') {
+      const count = model.days.filter(selection.isColumnSelected).length
+      return count > 1 ? `${count} days` : formatHeader(menuTarget.day)
+    }
+    if (menuTarget?.kind === 'rows') {
+      const heads = model.rows.filter((row) => (row.kind === 'member' || row.kind === 'open') && row.line === 0 && selection.isRowSelected(row.key))
+      if (heads.length > 1) return `${heads.length} rows`
+      const row = model.byKey.get(menuTarget.row)
+      return row?.kind === 'member' ? shortName(row.member) : 'Open shifts'
+    }
+    const count = selection.selected.size
+    return `${count} ${count === 1 ? 'cell' : 'cells'}`
+  })()
 
   const closePanel = () => {
     setPanelOpen(false)
@@ -118,7 +136,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); selection.reset(); setApprovalsOpen(false); approvals.reset()
+    setCoverage(null); setMenuTarget(null); selection.reset(); setApprovalsOpen(false); approvals.reset()
   }
 
   return (
@@ -188,6 +206,7 @@ export default function WorkforceDemo() {
               onToggleGroup={(id) => setCollapsed((set) => toggle(set, id))}
               onToggleStaffing={(id) => setStaffingCollapsed((set) => toggle(set, id))}
               onCoverageClick={(watch: Watch, day: number) => setCoverage({ title: `${watch.title} watch`, day, coverage: watch.coverage(day) })}
+              contextMenu={{ title: menuTitle, onPreview: preview }}
             />
           )}
         </div>

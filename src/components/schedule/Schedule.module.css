@@ -293,6 +293,20 @@
   right: 2px;
 }
 
+/* Overtime: a clock in the middle, as the cell has no code to carry an OT tag */
+.miniOt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+/* Cancelled overtime: the clock sits above the bar */
+.chip[data-density='mini'][data-cancelled] .miniOt {
+  top: 30%;
+}
+
 .chip[data-density='mini'][data-cancelled] {
   align-items: center;
   justify-content: center;

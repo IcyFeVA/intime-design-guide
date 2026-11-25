@@ -26,17 +26,26 @@ const fillStyle = (chip: Chip) => {
   return { '--chip-a': `var(--schedule-${a})`, '--chip-b': `var(--schedule-${b})` } as CSSProperties
 }
 
-/** `icons`: OU icon only (compact). `single`: one tag, OT first (mobile strip, hatching still shows OU). */
-function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons' | 'single' }) {
+/**
+ * `icons`: OU icon only (compact). `mini`: OU icon in the corner and the OT clock in the middle, since a mini cell has
+ * no code and color alone can't tell overtime apart. `single`: one tag, OT first (mobile strip, hatching still shows OU).
+ */
+function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons' | 'mini' | 'single' }) {
   const overtime = chipHasOvertime(chip)
+  const iconOnly = mode === 'icons' || mode === 'mini'
   const showOu = chip.outOfUnit && !(mode === 'single' && overtime)
   const showOt = overtime && mode !== 'icons'
   if (!showOu && !showOt) return null
   return (
-    <span className={classes.tags} aria-hidden="true">
-      {showOu && <span className={classes.tag}><ArrowUpRight size={mode === 'icons' ? 12 : 13} strokeWidth={2} />{mode !== 'icons' && 'OU'}</span>}
-      {showOt && <span className={classes.tag}><Clock3 size={13} strokeWidth={2} />OT</span>}
-    </span>
+    <>
+      {(showOu || (showOt && mode !== 'mini')) && (
+        <span className={classes.tags} aria-hidden="true">
+          {showOu && <span className={classes.tag}><ArrowUpRight size={iconOnly ? 12 : 13} strokeWidth={2} />{!iconOnly && 'OU'}</span>}
+          {showOt && mode !== 'mini' && <span className={classes.tag}><Clock3 size={13} strokeWidth={2} />OT</span>}
+        </span>
+      )}
+      {showOt && mode === 'mini' && <Clock3 className={classes.miniOt} size={14} strokeWidth={2.25} aria-hidden="true" />}
+    </>
   )
 }
 
@@ -61,7 +70,7 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
         </span>
       ))}
       {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}
-      <ChipTags chip={chip} mode={density === 'compact' || density === 'mini' ? 'icons' : density === 'strip' ? 'single' : 'full'} />
+      <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'mini' ? 'mini' : density === 'strip' ? 'single' : 'full'} />
     </>
   )
   return (

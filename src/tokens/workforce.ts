@@ -33,7 +33,7 @@ export type CellLayout = 'comfortable' | 'compact' | 'mini'
 export const cellLayouts: { key: CellLayout; label: string; minWidth: number; shows: string; status: TokenStatus }[] = [
   { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT and OU tags with labels. Usually one week.', status: 'confirmed' },
   { key: 'compact', label: 'Compact', minWidth: 48, shows: 'Up to two codes stacked, OU as an icon. Usually two or three weeks.', status: 'confirmed' },
-  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'confirmed' },
+  { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, a clock for overtime (color alone isn’t enough) and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'confirmed' },
 ]
 
 /** Day column width in px below which the name column switches to `--workforce-label-width-narrow` */

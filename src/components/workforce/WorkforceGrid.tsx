@@ -6,6 +6,7 @@ import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
 import { DAY_MAX_WIDTH, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
+import GridContextMenu from './GridContextMenu'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
@@ -25,6 +26,8 @@ export interface WorkforceGridProps {
   onToggleGroup: (watch: WatchId) => void
   onToggleStaffing: (watch: WatchId) => void
   onCoverageClick: (watch: Watch, day: number) => void
+  /** Adds the right-click menu (see `GridContextMenu`). Pass `onContextMenu` to `useGridSelection` too. */
+  contextMenu?: { title: string; onPreview: (action: string) => void }
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -205,7 +208,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu,
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
@@ -387,6 +390,63 @@ export default function WorkforceGrid({
     }
   }
 
+  const grid = (
+    <div
+      {...selection.gridProps}
+      className={classes.grid}
+      style={style}
+      role="grid"
+      aria-multiselectable="true"
+      aria-label="Workforce schedule"
+      aria-colcount={days.length + 1}
+      data-view={view}
+      data-dragging={selection.dragging || undefined}
+    >
+      <div role="row" className={classes.row}>
+        <div
+          role="columnheader"
+          className={classes.corner}
+          data-row={HEADER_ROW}
+          data-day="label"
+          {...esc}
+          tabIndex={selection.isTabStop(HEADER_ROW, null) ? 0 : -1}
+          aria-label="Employee"
+        >
+          <EmployeeSearch />
+        </div>
+        {days.map((day) => (
+          <div
+            role="columnheader"
+            key={day}
+            className={classes.dayHeader}
+            data-today={day === today || undefined}
+            data-active={day === activeDay || undefined}
+            data-selected={selection.isColumnSelected(day) || undefined}
+            data-row={HEADER_ROW}
+            data-day={day}
+            {...esc}
+            tabIndex={selection.isTabStop(HEADER_ROW, day) ? 0 : -1}
+            data-density={density}
+            aria-label={`${formatFullDate(day)}${day === today ? ', today' : ''}`}
+          >
+            <span aria-hidden="true" className="tabular">
+              {single ? (
+                <><span className={classes.weekday}>{formatFullDate(day).split(', ')[0]}</span>, {formatFullDate(day).split(', ').slice(1).join(', ')}</>
+              ) : mini ? (
+                <span className={classes.stackedDate}><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span>{dayNumber(day)}</span>
+              ) : compact ? (
+                <><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span> {dayNumber(day)}</>
+              ) : (
+                <><span className={classes.weekday}>{formatWeekday(day)}</span> {formatHeader(day).split(', ')[1]}</>
+              )}
+            </span>
+          </div>
+        ))}
+      </div>
+      {model.rows.map(renderRow)}
+    </div>
+  )
+
   return (
     <div
       ref={scrollerRef}
@@ -396,60 +456,7 @@ export default function WorkforceGrid({
       data-single-day={single || undefined}
       data-cells={cells === 'codes' ? undefined : cells}
     >
-      <div
-        {...selection.gridProps}
-        className={classes.grid}
-        style={style}
-        role="grid"
-        aria-multiselectable="true"
-        aria-label="Workforce schedule"
-        aria-colcount={days.length + 1}
-        data-view={view}
-        data-dragging={selection.dragging || undefined}
-      >
-        <div role="row" className={classes.row}>
-          <div
-            role="columnheader"
-            className={classes.corner}
-            data-row={HEADER_ROW}
-            data-day="label"
-            {...esc}
-            tabIndex={selection.isTabStop(HEADER_ROW, null) ? 0 : -1}
-            aria-label="Employee"
-          >
-            <EmployeeSearch />
-          </div>
-          {days.map((day) => (
-            <div
-              role="columnheader"
-              key={day}
-              className={classes.dayHeader}
-              data-today={day === today || undefined}
-              data-active={day === activeDay || undefined}
-              data-selected={selection.isColumnSelected(day) || undefined}
-              data-row={HEADER_ROW}
-              data-day={day}
-              {...esc}
-              tabIndex={selection.isTabStop(HEADER_ROW, day) ? 0 : -1}
-              data-density={density}
-              aria-label={`${formatFullDate(day)}${day === today ? ', today' : ''}`}
-            >
-              <span aria-hidden="true" className="tabular">
-                {single ? (
-                  <><span className={classes.weekday}>{formatFullDate(day).split(', ')[0]}</span>, {formatFullDate(day).split(', ').slice(1).join(', ')}</>
-                ) : mini ? (
-                  <span className={classes.stackedDate}><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span>{dayNumber(day)}</span>
-                ) : compact ? (
-                  <><span className={classes.weekday}>{formatWeekday(day).slice(0, 2)}</span> {dayNumber(day)}</>
-                ) : (
-                  <><span className={classes.weekday}>{formatWeekday(day)}</span> {formatHeader(day).split(', ')[1]}</>
-                )}
-              </span>
-            </div>
-          ))}
-        </div>
-        {model.rows.map(renderRow)}
-      </div>
+      {contextMenu ? <GridContextMenu title={contextMenu.title} onPreview={contextMenu.onPreview}>{grid}</GridContextMenu> : grid}
       <VisuallyHidden role="status">{selection.selected.size > 1 ? `${selection.selected.size} cells selected` : ''}</VisuallyHidden>
     </div>
   )
