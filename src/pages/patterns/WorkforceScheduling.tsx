@@ -108,7 +108,7 @@ export default function WorkforceScheduling() {
 
       <Section id="desktop" title="Desktop" description="Select a cell to see its details on the right. Drag or Shift-click to select several, like in a spreadsheet. Select a name or a date for a whole row or day. Select a time-of-day bar for that day’s coverage.">
         <div className="page-wide">
-          <Preview flush title="Workforce Scheduling, desktop">
+          <Preview flush title="Work Scheduling, desktop">
             <WorkforceDemo />
           </Preview>
         </div>
@@ -445,7 +445,7 @@ export default function WorkforceScheduling() {
 
       <Section id="figma" title="Figma reference" description="Screens this page was built from. The demo keeps Team View’s cells instead of the cells in this screen.">
         <Stack gap="md">
-          <img src={`${import.meta.env.BASE_URL}figma/workforce-scheduling-desktop.png`} alt="Workforce Scheduling on desktop, one week: a toolbar with date, range, team and employee filters, an open shifts row, Day, Swing and Night watches with staffing rows and officers’ shifts, and an editing panel for B. Haddad on the right." className={classes.figma} />
+          <img src={`${import.meta.env.BASE_URL}figma/workforce-scheduling-desktop.png`} alt="Work Scheduling on desktop, one week: a toolbar with date, range, team and employee filters, an open shifts row, Day, Swing and Night watches with staffing rows and officers’ shifts, and an editing panel for B. Haddad on the right." className={classes.figma} />
           <img src={`${import.meta.env.BASE_URL}figma/workforce-scheduling-panel.png`} alt="Details panel for an open Swing Patrol shift on Tue, Feb 17, 2026: employee picker, branch, a PatS 12:00–22:00 segment, scheduled times, activity, location, hours modifier, unit, acting rank, customer and an Assign button." className={classes.figmaPanel} />
         </Stack>
       </Section>

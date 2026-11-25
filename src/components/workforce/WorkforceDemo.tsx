@@ -123,7 +123,7 @@ export default function WorkforceDemo() {
 
   return (
     <DesktopDemoFrame
-      title="Workforce Scheduling"
+      title="Work Scheduling"
       status={approvalsOpen ? approvals.hint ?? APPROVALS_STATUS : hint ?? DEFAULT_STATUS}
       onReset={reset}
       targetWidth={TARGET_WIDTH}

@@ -129,9 +129,9 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/LocationView')),
   },
   {
-    path: '/patterns/workforce-scheduling', title: 'Workforce Scheduling', group: 'Patterns', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
+    path: '/patterns/workforce-scheduling', title: 'Work Scheduling', group: 'Patterns', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
     description: 'The scheduler’s grid: open shifts, watches with their staffing, and people’s shifts. Select cells like in a spreadsheet and edit them in a panel beside the grid.',
-    keywords: ['workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
+    keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
     sections: s(['desktop', 'Desktop'], ['selection', 'Selecting cells'], ['panel', 'Details panel'], ['rows', 'Groups and staffing'], ['views', 'Views and densities'], ['sizing', 'Sizing for screens'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/WorkforceScheduling')),
   },

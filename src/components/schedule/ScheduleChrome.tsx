@@ -73,7 +73,7 @@ export function ViewTabs({ active }: { active: ScheduleView }) {
  * App-shell mock for the desktop demos: collapsed nav, top bar, title with view tabs, a toolbar and the grid.
  * Includes the demo bar (status, Target resolution when `targetWidth` is set, Full screen, Reset demo).
  */
-/** A back link before a page title, e.g. "← Workforce Scheduling" on a screen opened on top of it. */
+/** A back link before a page title, e.g. "← Back to Scheduling" on a screen opened on top of it. */
 export type BackLink = { label: string; onClick: () => void }
 
 /** Title row, toolbar and body of a page inside the demo app frame. */
