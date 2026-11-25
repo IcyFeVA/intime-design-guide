@@ -1,48 +1,71 @@
-import { useMemo, type ReactElement } from 'react'
-import { Menu } from '@mantine/core'
-import { ClipboardPaste, Copy, Eraser, ListPlus, PaintBucket } from 'lucide-react'
-import ShortcutKeys from '../shortcuts/ShortcutKeys'
-import { detectPlatform } from '../shortcuts/keys'
+import { useMemo, useState, type ReactElement } from 'react'
+import { Menu, Text } from '@mantine/core'
+import { ClipboardPaste, Copy, Files, History, Megaphone, Plane, Ruler, SquarePlus, UserPlus, type LucideIcon } from 'lucide-react'
+import { detectPlatform, keyCaps, parseKeys } from '../shortcuts/keys'
 
-const items = [
-  { label: 'Copy', icon: Copy, keys: 'mod+C' },
-  { label: 'Paste', icon: ClipboardPaste, keys: 'mod+V' },
-  { label: 'Fill', icon: PaintBucket, keys: 'mod+D' },
-  { label: 'Clear', icon: Eraser, keys: 'Delete' },
+interface Item {
+  label: string
+  icon: LucideIcon
+  /** Shown on the right, e.g. "Ctrl C" or "⌘C" */
+  keys?: string
+}
+
+/** Groups, split by dividers */
+const groups: Item[][] = [
+  [
+    { label: 'Copy', icon: Copy, keys: 'mod+C' },
+    { label: 'Paste', icon: ClipboardPaste, keys: 'mod+V' },
+    { label: 'Load from template…', icon: Files },
+    { label: 'Pre-fill', icon: SquarePlus },
+  ],
+  [
+    { label: 'Leave', icon: Plane },
+    { label: 'Post', icon: Megaphone },
+    { label: 'Fill', icon: UserPlus },
+  ],
+  [
+    // A schedule ruler for the selected days
+    { label: 'Add new ruler', icon: Ruler },
+    { label: 'History', icon: History },
+  ],
 ]
 
 /**
  * Right-click menu for the grid. Wraps the grid element (`children`); `useGridSelection`'s `onContextMenu`
  * selects what was clicked and decides where the menu may open. Mantine's `Menu.ContextMenu` puts it at the cursor.
- * Preview only: every item calls `onPreview`.
+ * Paste stays disabled until something is copied. Preview only: every item calls `onPreview`.
  */
 export default function GridContextMenu({ title, onPreview, children }: {
-  /** What the menu acts on, e.g. "Fri, Jun 5" or "3 people" */
+  /** What the menu acts on, e.g. "Fri, Jun 5" or "3 days": the menu's accessible name */
   title: string
   onPreview: (action: string) => void
   /** The grid element. It must accept a ref and keep its own `onContextMenu`. */
   children: ReactElement
 }) {
   const platform = useMemo(() => detectPlatform(), [])
+  const [copied, setCopied] = useState(false)
+  const keyText = (keys: string) => keyCaps(parseKeys(keys), platform).join(platform === 'mac' ? '' : ' ')
   return (
     <Menu width={240} shadow="md" position="bottom-start" returnFocus>
       <Menu.ContextMenu>{children}</Menu.ContextMenu>
-      <Menu.Dropdown>
-        <Menu.Label>{title}</Menu.Label>
-        {items.map(({ label, icon: Icon, keys }) => (
-          <Menu.Item
-            key={label}
-            leftSection={<Icon size={16} strokeWidth={1.75} aria-hidden="true" />}
-            rightSection={<ShortcutKeys keys={keys} platform={platform} size="xs" />}
-            onClick={() => onPreview(label)}
-          >
-            {label}
-          </Menu.Item>
-        ))}
-        <Menu.Divider />
-        <Menu.Item leftSection={<ListPlus size={16} strokeWidth={1.75} aria-hidden="true" />} onClick={() => onPreview('Add new rule')}>
-          Add new rule…
-        </Menu.Item>
+      <Menu.Dropdown aria-label={title}>
+        {groups.map((items, index) => [
+          index > 0 && <Menu.Divider key={`divider-${index}`} />,
+          ...items.map(({ label, icon: Icon, keys }) => (
+            <Menu.Item
+              key={label}
+              disabled={label === 'Paste' && !copied}
+              leftSection={<Icon size={16} strokeWidth={1.75} aria-hidden="true" />}
+              rightSection={keys && <Text span size="xs" c="dimmed" aria-hidden="true">{keyText(keys)}</Text>}
+              onClick={() => {
+                if (label === 'Copy') setCopied(true)
+                onPreview(label.replace('…', ''))
+              }}
+            >
+              {label}
+            </Menu.Item>
+          )),
+        ])}
       </Menu.Dropdown>
     </Menu>
   )

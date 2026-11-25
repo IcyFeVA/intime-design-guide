@@ -273,7 +273,7 @@ The toolbar's Approvals button opens the Approvals screen on top of the schedule
 
 ## Context menu (2026-11-25, user)
 
-- [x] Right-click (or the Menu key / Shift+F10) on a row header, a date header or a selectable cell opens `workforce/GridContextMenu.tsx`, a Mantine `Menu` with `Menu.ContextMenu` around the grid (opens at the cursor). `useGridSelection`'s `onContextMenu` option first selects the row, day or cell unless it is already fully selected (spreadsheet behavior), then reports the target; elsewhere in the grid it suppresses the browser menu. Title = what it acts on ("Wed, Jun 3", "3 days", "M. Alvarez", "4 rows", "12 cells"). Items: Copy, Paste, Fill, Clear (with key hints), divider, Add new rule…. **No functionality**: each shows a "Preview only" hint.
+- [x] Right-click (or the Menu key / Shift+F10) on a row header, a date header or a selectable cell opens `workforce/GridContextMenu.tsx`, a Mantine `Menu` with `Menu.ContextMenu` around the grid (opens at the cursor). `useGridSelection`'s `onContextMenu` option first selects the row, day or cell unless it is already fully selected (spreadsheet behavior), then reports the target; elsewhere in the grid it suppresses the browser menu. No visible title; the dropdown's `aria-label` says what it acts on ("Wed, Jun 3", "3 days", "M. Alvarez", "4 rows", "12 cells"). Items (from the user's screenshot, 2026-11-25): Copy (Ctrl C), Paste (Ctrl V, disabled until Copy), Load from template…, Pre-fill | Leave, Post, Fill | Add new ruler (a schedule ruler for the selected days; user, menu entry only), History. **No functionality**: each shows a "Preview only" hint.
 
 ## Later (out of scope now, keep room for them)
 
@@ -291,7 +291,8 @@ The toolbar's Approvals button opens the Approvals screen on top of the schedule
 
 ## Open questions (ask the user when relevant)
 
-- Context menu: what should Fill and Add new rule do (fill down/right from the first cell? which kind of rule)? Are more items needed (e.g. Assign, Post as open shift)?
+- Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
+- Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
 - Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
 - Real values for Customer, Hours modifier and Rank (acting).
 - Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)

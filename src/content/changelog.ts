@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
+    summary: 'The right-click menu has “Add new ruler”, which will add a schedule ruler for the selected days.',
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The grid’s right-click menu has the real entries: Copy, Paste, Load from template, Pre-fill, Leave, Post, Fill and History.',
+    changes: ['Paste is disabled until something is copied.', 'The menu has no title; its accessible name says what it acts on.'],
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
     summary: 'Mini cells (narrow columns, e.g. a month) show a clock for overtime, so it no longer relies on color alone.',
   },
   {

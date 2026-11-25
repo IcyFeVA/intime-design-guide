@@ -26,7 +26,7 @@ const mouse: [string, string][] = [
   ['Shift-click', 'Selects everything between the active cell and the one you click.'],
   ['Click a name', 'Selects the person’s whole row, including their extra row. Shift-click another name for every row in between, Ctrl-click (⌘-click) to add a row, or drag down the names.'],
   ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
-  ['Right-click', 'Opens a menu for a name, a date or a selected cell: Copy, Paste, Fill, Clear and Add new rule. Anything not yet selected is selected first, so a selection of rows or days stays as it is. The Menu key or Shift+F10 opens it from the keyboard.'],
+  ['Right-click', 'Opens a menu for a name, a date or a selected cell: Copy, Paste, Load from template, Pre-fill, Leave, Post, Fill, Add new ruler and History. Paste is available after Copy. Anything not yet selected is selected first, so a selection of rows or days stays as it is. The Menu key or Shift+F10 opens it from the keyboard.'],
   ['Click Open shifts', 'Selects all open shifts.'],
   ['Click the search icon by “Employee”', 'Opens a search field in its place. Click X or press Escape to close it.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
