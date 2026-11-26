@@ -147,68 +147,19 @@
   color: var(--text-success-default);
 }
 
-/* One block = one grid cell: segments that touch */
-.block {
-  border: 1px solid var(--border-default);
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-body);
-}
-
-.blockHeader {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 6px 4px 4px;
-}
-
-.blockToggle {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  min-height: 32px;
-  padding: 2px 6px;
-  border-radius: var(--mantine-radius-sm);
-}
-
-.blockToggle:hover {
-  background: var(--background-default-hover);
-}
-
-.blockChevron {
-  flex: none;
-  color: var(--text-dimmed);
-  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
-}
-
-.block[data-open] .blockChevron {
-  transform: rotate(90deg);
-}
-
-.blockSpan {
-  flex: none;
-  font-family: var(--mantine-font-family-monospace);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-default);
-}
-
-.note {
-  margin: 0 8px 6px;
-  padding: 6px 10px;
-  border-radius: var(--mantine-radius-sm);
-  background: var(--background-info-light);
-  color: var(--text-default);
-}
-
-.segments {
+/* The day's segments: each assignment's first segment is the root, touching segments are indented */
+.segmentList {
   display: flex;
   flex-direction: column;
-  padding: 0 6px 6px;
+  gap: 10px;
 }
 
-/* Touching segments are joined: one continuous stack of rows */
+.blockGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -216,25 +167,15 @@
   min-width: 0;
   padding: 4px 4px 4px 6px;
   border: 1px solid var(--border-default);
-  border-radius: var(--mantine-radius-sm);
-  transition: border-color 220ms cubic-bezier(0.2, 0, 0, 1);
+  border-radius: var(--mantine-radius-md);
+  transition: border-color 220ms cubic-bezier(0.2, 0, 0, 1), box-shadow 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.row + .row {
-  margin-top: -1px;
-}
-
-.row[data-nested] {
+.row:not([data-root]) {
   margin-left: 20px;
 }
 
-.row[data-expanded] {
-  position: relative;
-  z-index: 1;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  padding: 8px;
+.row[data-selected] {
   border-color: var(--text-primary-default);
   box-shadow: 0 0 0 1px var(--text-primary-default);
 }
@@ -245,9 +186,30 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  min-height: 30px;
+  min-height: 34px;
   padding-inline: 2px;
-  border-radius: var(--mantine-radius-xs);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.indentMark {
+  flex: none;
+  margin-left: -2px;
+  margin-right: -4px;
+  color: var(--text-dimmed);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.total {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-dimmed);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .row[data-cancelled] .time,
@@ -282,6 +244,7 @@
 }
 
 .duration {
+  flex: none;
   margin-left: auto;
   padding-right: 4px;
   font-size: 13px;
@@ -289,52 +252,27 @@
   font-variant-numeric: tabular-nums;
 }
 
-.editLine {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.note {
+  margin-left: 20px;
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--background-info-light);
+  color: var(--text-default);
 }
 
-.codeSelect {
-  flex: 1;
-  min-width: 0;
+/* The selected segment's times */
+.times {
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
 }
 
-/* The code input carries the kind's color as a stripe, like the badge */
-.codeInput {
-  font-weight: 600;
-  box-shadow: inset 4px 0 0 var(--code-fill);
-}
-
-.timeInput {
-  flex: none;
-  width: 92px;
-}
-
-.timeInput input {
+.mono {
   font-family: var(--mantine-font-family-monospace);
 }
 
-.dash {
+.readOnly {
   color: var(--text-dimmed);
-}
-
-.metaLine {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 28px;
-}
-
-.actions {
-  display: flex;
-  gap: 2px;
-}
-
-.fields {
-  padding-top: 10px;
-  border-top: 1px solid var(--border-default);
 }
 
 .linkButton {
@@ -368,8 +306,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .row,
-  .blockChevron {
+  .row {
     transition: none;
   }
 }

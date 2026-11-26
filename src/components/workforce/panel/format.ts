@@ -32,3 +32,9 @@ export const longSpanWarning = (start: number, end: number): string | null =>
 
 /** The code badge's fill: the shift kind's schedule color */
 export const codeFill = (code: string) => ({ '--code-fill': `var(--schedule-${segmentKind({ code })})` }) as CSSProperties
+
+const DAY_MS = 86_400_000
+/** Day number → "2026-06-03" (Mantine Dates value) */
+export const toIso = (day: number) => new Date(day * DAY_MS).toISOString().slice(0, 10)
+/** "2026-06-03" → day number */
+export const fromIso = (value: string) => Math.round(Date.parse(`${value.slice(0, 10)}T00:00:00Z`) / DAY_MS)

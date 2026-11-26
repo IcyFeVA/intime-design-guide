@@ -50,7 +50,9 @@
 
 **Recommendation**: A. Typing times is the main task (it's how blocks get split), and doing it in the row makes the touching/non-touching result show up in place.
 
-**Outcome** (2026-11-25): **the Times card goes away.**
+**Reversed after trying it (2026-11-25, user):** one form below the segment list, with the Times card back (Scheduled, Start, End, Hours, Set actual). See "Step 1 as built" in the living plan.
+
+~~**Outcome** (2026-11-25): **the Times card goes away.**~~
 - **Times are edited in the row**: the expanded segment's row turns into inputs (code, start, end, hours).
 - **The date belongs to the block**: "Move to another day" (block header or ⋯) moves all its segments. Segments show "+1 day" past midnight.
 - **Set actual is per segment**: "+ Set actual" in the expanded segment reveals Actual start/end. The row then shows the actual times, with the scheduled ones dimmed.
@@ -85,7 +87,9 @@
 
 **Recommendation**: one card per block, with "+ Add segment" inside each card and "+ Add assignment" at the bottom of the day.
 
-**Outcome** (2026-11-25):
+**Replaced after trying it (2026-11-25, user):** no cards. One list, each block's first segment as the root with the touching segments indented; a non-touching assignment starts a new root. The root row shows the block total.
+
+~~**Outcome** (2026-11-25):~~
 - **A card per block**, the same as one grid cell. The header shows the times and the total ("08:00–17:00 · 9h"), and its touching segments are joined rows inside. A collapsed block shrinks to its header ("18:00–19:00 · 1h · Spe ▸").
 - **One "+ Add segment"** at the end of the day, not one per block. The new segment starts where the last one ends, so it touches. Typing other times decides which block it lands in, and a split-off shows the note with Undo.
 - **Partial leave is nested under the segment it overlaps**: an indented row with a leave fill. The block header splits the hours ("5h worked · 3h leave").

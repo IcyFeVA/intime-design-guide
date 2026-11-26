@@ -12,13 +12,13 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
-    summary: 'The details panel edits a person’s whole day, block by block, and changes now save and update the grid.',
+    summary: 'The details panel shows a person’s whole day, and changes now save and update the grid.',
     changes: [
-      'Touching segments form a block (one cell); a segment whose times no longer touch moves to its own line, with a note and Undo.',
-      'The selected segment is edited in place: code and times in its row, its own activity, location, hours modifier, time bank (Bank this time), unit, acting rank, customer and actual times below. The Times card is gone.',
+      'One list of the day’s segments: each assignment’s first segment is the root and the segments that touch it are indented. A segment whose times no longer touch moves to its own line, with a note and Undo.',
+      'One form below the list edits the selected segment: scheduled day, times and actual times, then its own shift code, activity, location, customer, hours modifier, time bank (Bank this time), unit and acting rank.',
       'Changes save as you go. Undo in the toolbar and Ctrl/⌘ Z revert them; Reset demo restores the schedule.',
       'Ends before the start run to the next day (“+1”); overlapping or zero-length times aren’t saved; spans over 16h ask “Is that right?”.',
-      'Blocks can move to another day or be deleted. Add segment works on empty days too.',
+      'An assignment can move to another day (its first segment’s menu, or Scheduled) or be deleted. Add segment works on empty days too.',
       'The title is the person (or “Open shift · Swing Patrol”) with the date below. Notes will join Attachments, so there are two tabs. Branch has its label on top.',
     ],
   },

@@ -295,13 +295,13 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - **Notes** move into the Attachments tab (one tab). Its name is decided in the review session.
 - **Field scope** (review item 3):
   - Employee and Branch are shared at the top.
-  - Every other field is **per segment**: times, Activity, Location, Hours modifier, Bank, Customer, Unit, Rank (acting). They live **inside the selected segment**, which expands like an accordion.
+  - Every other field is **per segment**: times, Activity, Location, Hours modifier, Bank, Customer, Unit, Rank (acting). ~~They live inside the selected segment, which expands like an accordion.~~ They're in **one form below the segment list** (changed 2026-11-25, see "Step 1 as built").
   - Checking **Bank this time** reveals a Time bank `Select` (Overtime, Comp Time, Holiday) and "Amount (h) · 16 avail.".
-- **Blocks UI** (review item 4):
+- **Blocks UI** (review item 4; **replaced 2026-11-25** by the indented list, see "Step 1 as built"):
   - One card per block, with a header showing the times and total; collapsed blocks shrink to the header.
   - One "+ Add segment" at the end of the day; the new segment touches the last one, and the times decide the block.
   - Partial leave is an indented row under the segment it overlaps, and the header reads "5h worked · 3h leave".
-- **No Times card** (review item 2):
+- **No Times card** (review item 2; **reversed 2026-11-25**: the Times card is back in the form):
   - Times are edited in the expanded segment's row.
   - The date belongs to the block: "Move to another day" moves all its segments, and "+1 day" marks times past midnight.
   - Set actual is per segment: Actual start/end, with the scheduled times dimmed.
@@ -385,6 +385,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] Toolbar Undo works (disabled when there's nothing to undo); Ctrl/⌘+Z outside inputs. Status line copy updated.
 - [x] `useGridSelection` got `fallbackRow` (`model.fallbackRow`): when an edit removes or empties a person's extra line, the selection moves to their first line, so the panel stays.
 - [x] `formatHour` prints real minutes; `formatDuration` ("7h 30m") in `schedule/data.ts`.
+- **Changed after trying it (2026-11-25, user):** the block cards with fields inside the segment were hard to read. Now: **one list** of the day's segments, each block's first segment as the **root** and touching segments **indented** (`CornerDownRight`); a non-touching assignment starts a new root. The root row shows the block total under its times ("12h total · 07:00–19:00") and its ⋯ has Move to another day… / Delete assignment. **One form below the list** for the selected segment: the **Times card is back** (Scheduled = moves the assignment, Start, End, Hours, Set actual), then Shift code, Activity, Location, Customer, Hours modifier + Bank, Unit, Rank. Icons (live, find, cancel) only on the selected row. Files: `panel/SegmentList.tsx`, `panel/TimesCard.tsx` (BlockCard removed). This overrides review items 2 and 4 and the "fields inside the segment" part of item 3.
 - Not yet: Branch isn't saved (local state, per day). The employee picker on a day says "Preview only" (reassigning is assign mode, step 3). A collapsed single block isn't reopened automatically after a move.
 
 ### Attachments tab (2026-11-25, user)

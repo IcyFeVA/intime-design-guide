@@ -1,19 +1,19 @@
 import { useState } from 'react'
-import { ActionIcon, Button, Checkbox, Group, NumberInput, Select, SimpleGrid, Stack, Tooltip } from '@mantine/core'
-import { TimeInput } from '@mantine/dates'
-import { Plus, X } from 'lucide-react'
+import { Checkbox, Group, NumberInput, Select, SimpleGrid, Stack } from '@mantine/core'
 import type { SegmentDetails, TimeBank } from '../data'
-import { actingRanks, activities, bankAvailable, customers, locations, modifiers, timeBanks, units } from './options'
-import { normalizeEnd, parseTime, timeValue } from './format'
+import { shiftCodeMap } from '../../../tokens/schedule'
+import { actingRanks, activities, bankAvailable, codeOptions, customers, locations, modifiers, timeBanks, units } from './options'
 import classes from '../WorkforcePanel.module.css'
 
 /**
- * The expanded segment's fields. Each one saves as soon as it changes (selects, checkbox) or when focus
- * leaves it (numbers, times).
+ * The selected segment's fields, below its times. Each one saves as soon as it changes (selects, checkbox)
+ * or when focus leaves it (numbers).
  */
-export function SegmentFields({ details, scheduled, onChange, readOnly = false }: {
+export function SegmentFields({ code, onCode, details, scheduled, onChange, readOnly = false }: {
+  code: string
+  onCode: (code: string) => void
   details: SegmentDetails
-  /** The segment's scheduled times: the starting point for "Set actual" and the bank amount */
+  /** The segment's scheduled times: the starting point for the bank amount */
   scheduled: { start: number; end: number }
   onChange: (patch: Partial<SegmentDetails>) => void
   readOnly?: boolean
@@ -22,10 +22,22 @@ export function SegmentFields({ details, scheduled, onChange, readOnly = false }
     if (key === 'location' || value) onChange({ [key]: value })
   }
   return (
-    <Stack gap="sm" className={classes.fields}>
+    <Stack gap="sm">
       <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
+        <Select
+          label="Shift code"
+          data={codeOptions}
+          value={code}
+          onChange={(value) => value && value !== code && onCode(value)}
+          searchable
+          allowDeselect={false}
+          comboboxProps={{ width: 260, position: 'bottom-start' }}
+          renderOption={({ option }) => `${option.value} · ${shiftCodeMap[option.value]?.label ?? ''}`}
+          readOnly={readOnly}
+        />
         <Select label="Activity" data={activities} value={details.activity} onChange={pick('activity')} allowDeselect={false} readOnly={readOnly} />
         <Select label="Location" data={locations} value={details.location} onChange={pick('location')} placeholder="None" clearable={!readOnly} readOnly={readOnly} />
+        <Select label="Customer" data={customers} value={details.customer} onChange={pick('customer')} allowDeselect={false} readOnly={readOnly} />
       </SimpleGrid>
       <Group gap="sm" align="flex-end" wrap="nowrap">
         <Select label="Hours modifier" data={modifiers} value={details.modifier} onChange={pick('modifier')} allowDeselect={false} className={classes.grow} readOnly={readOnly} />
@@ -42,14 +54,6 @@ export function SegmentFields({ details, scheduled, onChange, readOnly = false }
         <Select label="Unit" data={units} value={details.unit} onChange={pick('unit')} allowDeselect={false} readOnly={readOnly} />
         <Select label="Rank (acting)" data={actingRanks} value={details.acting} onChange={pick('acting')} allowDeselect={false} readOnly={readOnly} />
       </SimpleGrid>
-      <Select label="Customer" data={customers} value={details.customer} onChange={pick('customer')} allowDeselect={false} readOnly={readOnly} />
-      {details.actual
-        ? <ActualFields key={`${details.actual.start}:${details.actual.end}`} actual={details.actual} onChange={(actual) => onChange({ actual })} readOnly={readOnly} />
-        : !readOnly && (
-          <Button variant="subtle" color="gray" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => onChange({ actual: { ...scheduled } })}>
-            Set actual
-          </Button>
-        )}
     </Stack>
   )
 }
@@ -83,34 +87,5 @@ function BankFields({ bank, onChange, readOnly }: { bank: NonNullable<SegmentDet
         }}
       />
     </SimpleGrid>
-  )
-}
-
-function ActualFields({ actual, onChange, readOnly }: { actual: { start: number; end: number }; onChange: (actual: SegmentDetails['actual']) => void; readOnly: boolean }) {
-  const [start, setStart] = useState(timeValue(actual.start))
-  const [end, setEnd] = useState(timeValue(actual.end))
-  const commit = () => {
-    const from = parseTime(start)
-    const to = parseTime(end)
-    if (from === null || to === null || from === to) return
-    const next = { start: from, end: normalizeEnd(from, to) }
-    if (next.start !== actual.start || next.end !== actual.end) onChange(next)
-  }
-  return (
-    <Group
-      gap="sm"
-      align="flex-end"
-      wrap="nowrap"
-      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) commit() }}
-      onKeyDown={(event) => { if (event.key === 'Enter') commit() }}
-    >
-      <TimeInput label="Actual start" value={start} onChange={(event) => setStart(event.currentTarget.value)} className={classes.grow} readOnly={readOnly} />
-      <TimeInput label="Actual end" value={end} onChange={(event) => setEnd(event.currentTarget.value)} className={classes.grow} readOnly={readOnly} />
-      {!readOnly && (
-        <Tooltip label="Remove actual times">
-          <ActionIcon variant="subtle" color="gray" size={36} aria-label="Remove actual times" onClick={() => onChange(null)}><X size={16} /></ActionIcon>
-        </Tooltip>
-      )}
-    </Group>
   )
 }

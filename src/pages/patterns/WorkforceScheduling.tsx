@@ -48,7 +48,7 @@ const keyboard: { keys: string[]; action: string }[] = [
 ]
 
 const modes: { mode: string; when: string; shows: string; footer: string }[] = [
-  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, then every block of that day as a card: the clicked one open, its first segment ready to edit with its fields below. An empty day says so and offers Add segment.', footer: 'Assign, Leave, more (History, Delete block)' },
+  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment.', footer: 'Assign, Leave, more (History, Delete block)' },
   { mode: 'Open shift', when: 'An open or live shift in the top row', shows: '“Open shift · Swing Patrol” or “Live post · …”, no employee yet, and the shift as one block.', footer: 'Assign, more (History, Delete open shift)' },
   { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
@@ -168,10 +168,10 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
-          <Text size="sm"><strong>Blocks.</strong> Segments that touch (one ends when the next starts, like PatD 08:00–16:00 and overtime 16:00–17:00) form a block, which the grid shows as one cell. A segment that doesn’t touch is a block of its own, on an extra line in the grid. The panel shows every block of the person’s day, whichever line was clicked.</Text>
-          <Text size="sm"><strong>Editing.</strong> Click a segment to edit it: its code and times turn into fields, with its activity, location, hours modifier, time bank, unit, acting rank, customer and actual times below. Every segment has its own. Add segment adds one that starts where the day’s last one ends.</Text>
+          <Text size="sm"><strong>Blocks.</strong> Segments that touch (one ends when the next starts, like PatD 08:00–16:00 and overtime 16:00–17:00) form a block, which the grid shows as one cell. A segment that doesn’t touch is a block of its own, on an extra line in the grid. The panel lists every segment of the person’s day, whichever line was clicked: each assignment starts with its first segment, and the segments that touch it are indented below it.</Text>
+          <Text size="sm"><strong>Editing.</strong> Click a segment to select it. The form below the list edits it: scheduled day, start, end and hours (and actual times), then its shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own. Add segment adds one that starts where the day’s last one ends.</Text>
           <Text size="sm"><strong>Times decide the block.</strong> Change a segment’s times so it no longer touches and it moves to a block (and grid line) of its own, with a note and Undo. An end before the start means the next day (“20:00–04:00 +1”). Times that overlap another segment or start and end together aren’t saved; the field says why.</Text>
-          <Text size="sm"><strong>Changes save as you go.</strong> A field saves when you pick a value or leave it, the grid and staffing update at once, and the title says “Saved”. Undo in the toolbar (or Ctrl/⌘ Z outside a field) reverts the last change. A block’s menu moves it to another day or deletes it.</Text>
+          <Text size="sm"><strong>Changes save as you go.</strong> A field saves when you pick a value or leave it, the grid and staffing update at once, and the title says “Saved”. Undo in the toolbar (or Ctrl/⌘ Z outside a field) reverts the last change. The first segment’s menu moves the whole assignment to another day or deletes it; so does changing Scheduled.</Text>
           <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming. Assign, Leave, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
@@ -437,7 +437,7 @@ export default function WorkforceScheduling() {
             'Show the active cell’s name and date in their headers, so a busy grid stays readable.',
             'Keep dates and names pinned while the grid scrolls.',
             'Show what the panel is editing in its title: the person or unit, with the date below.',
-            'Show the person’s whole day in the panel, block by block, so a separate assignment on another line is never missed.',
+            'Show the person’s whole day in the panel, so a separate assignment on another line is never missed. Indent the segments that touch an assignment under its first one.',
             'Save as people type, say “Saved”, and keep Undo one click away.',
           ]}
           dontItems={[

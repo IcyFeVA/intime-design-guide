@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Select } from '@mantine/core'
-import { findWatch, type OpenShiftEdit } from '../data'
+import { findWatch, type OpenShiftEdit, type SegmentDetails } from '../data'
 import type { PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
-import { BlockCard, type PanelSegment, type SegmentHandlers } from './BlockCard'
+import { SegmentList, type PanelSegment, type SegmentHandlers } from './SegmentList'
+import { TimesCard } from './TimesCard'
 import { EmployeeRow } from './EmployeeRow'
 import { SegmentFields } from './SegmentFields'
 import { PanelFooter, PanelTabs } from './parts'
@@ -17,44 +18,40 @@ export function OpenShiftEditor({ item, onEdit, onPreview }: { item: OpenItem; o
   const { shift } = item
   const [employee, setEmployee] = useState<string | null>(null)
   const [branch, setBranch] = useState<string | null>(branches[0])
-  const [expanded, setExpanded] = useState<string | null>('open')
   const segment: PanelSegment = { id: 'open', code: shift.code, start: shift.start, end: shift.end, details: shift.details }
+  const details = segmentDetails(segment, findWatch(shift.watch).unit, shift.id, shift.location)
   const save = (edit: OpenShiftEdit) => onEdit({ open: [[shift.id, edit]] })
+  const setDetails = (change: Partial<SegmentDetails>) => save({ details: { ...details, ...change } })
 
   const handlers: SegmentHandlers = {
-    onTimes: (_, start, end) => { save({ start, end }); return null },
     onPatch: (_, patch) => {
       if (patch.cancelled !== undefined) return onPreview('Cancel open shift')
-      const edit: OpenShiftEdit = {}
-      if (patch.code) edit.code = patch.code
-      if (patch.details) edit.details = patch.details
-      save(edit)
+      if (patch.code) save({ code: patch.code })
     },
     onPreview,
   }
 
-  const details = (
+  const body = (
     <div className={classes.body}>
       <EmployeeRow value={employee} onChange={setEmployee} onPreview={onPreview} />
       <Select label="Branch" data={branches} value={branch} onChange={setBranch} allowDeselect={false} />
-      <BlockCard
-        segments={[segment]}
-        open={expanded !== null}
-        onToggle={() => setExpanded(expanded ? null : 'open')}
-        expandedId={expanded}
-        onExpand={setExpanded}
-        handlers={handlers}
-        renderFields={() => {
-          const value = segmentDetails(segment, findWatch(shift.watch).unit, shift.id, shift.location)
-          return <SegmentFields details={value} scheduled={{ start: shift.start, end: shift.end }} onChange={(patch) => save({ details: { ...value, ...patch } })} />
-        }}
+      <SegmentList blocks={[[segment]]} selectedId="open" onSelect={() => {}} handlers={handlers} />
+      <TimesCard
+        key={`${shift.start}:${shift.end}`}
+        start={shift.start}
+        end={shift.end}
+        day={shift.day}
+        onTimes={(start, end) => { save({ start, end }); return null }}
+        actual={details.actual}
+        onActual={(actual) => setDetails({ actual })}
       />
+      <SegmentFields code={shift.code} onCode={(code) => save({ code })} details={details} scheduled={{ start: shift.start, end: shift.end }} onChange={setDetails} />
     </div>
   )
 
   return (
     <>
-      <PanelTabs details={details} />
+      <PanelTabs details={body} />
       <PanelFooter onPreview={onPreview} canLeave={false} deleteLabel="Delete open shift" onDelete={() => save({ deleted: true })} />
     </>
   )
