@@ -2,7 +2,7 @@ import type { ComponentType, LazyExoticComponent } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { TokenStatus } from '../tokens/types'
 
-export type PageGroup = 'Getting started' | 'Foundations' | 'Components' | 'Patterns' | 'Resources'
+export type PageGroup = 'Getting started' | 'Foundations' | 'Components' | 'Patterns' | 'Resources' | 'Work in Progress'
 
 export interface PageSection {
   /** Must match the `id` passed to <Section> on the page */

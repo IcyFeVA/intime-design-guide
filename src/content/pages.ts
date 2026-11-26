@@ -6,7 +6,7 @@ import {
 import type { PageDef, PageGroup } from './types'
 import { isHiddenSection } from './flags'
 
-export const pageGroups: PageGroup[] = ['Getting started', 'Foundations', 'Components', 'Patterns', 'Resources']
+export const pageGroups: PageGroup[] = ['Getting started', 'Foundations', 'Components', 'Patterns', 'Resources', 'Work in Progress']
 
 /** Sections in page order. A third item `'group'` marks a group heading; the sections after it belong to it. */
 const s = (...items: ([string, string] | [string, string, 'group'])[]) =>
@@ -130,7 +130,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/LocationView')),
   },
   {
-    path: '/patterns/workforce-scheduling', title: 'Work Scheduling', group: 'Patterns', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
+    path: '/patterns/workforce-scheduling', title: 'Work Scheduling', group: 'Work in Progress', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
     description: 'The scheduler’s grid: open shifts, watches with their staffing, and people’s shifts. Select cells like in a spreadsheet and edit them in a panel beside the grid.',
     keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'segment', 'assignment', 'autosave', 'undo', 'typing times', 'time entry', '24-hour', 'time format', 'actual times', 'bank time', 'leave', 'partial leave', 'sick', 'all day', 'out of unit', 'out of branch', 'another precinct', 'read-only', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
     sections: s(

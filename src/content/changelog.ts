@@ -10,6 +10,11 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Work Scheduling moved to a new Work in Progress group at the bottom of the navigation.',
+  },
+  {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
     summary: 'The panel adds leave, and shows work for another unit or precinct.',
