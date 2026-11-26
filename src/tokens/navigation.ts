@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import {
-  BookOpen, CalendarDays, DollarSign, FileText, KeyRound, LayoutDashboard, ListCheck, ListTodo,
+  BookOpen, CalendarClock, CalendarDays, DollarSign, FileText, KeyRound, LayoutDashboard, ListCheck, ListTodo,
   MessageSquare, Plug, ShieldCheck, Users,
 } from 'lucide-react'
 import type { TokenStatus } from './types'
@@ -46,7 +46,7 @@ export const navItemsByRole: Record<NavRole, NavItemDef[]> = {
   scheduler: [
     { key: 'home', label: 'Home', icon: LayoutDashboard },
     { key: 'approvals', label: 'Approvals', icon: ListCheck, count: 3, dividerAfter: true },
-    { key: 'team-view', label: 'Team View', icon: Users },
+    { key: 'team-view', label: 'Schedule Unit view', icon: CalendarClock },
     { key: 'payroll', label: 'Payroll', icon: DollarSign },
   ],
   administrator: [
