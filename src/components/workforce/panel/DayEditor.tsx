@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button, Select, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
-import { segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
-import { dayKey, type SegmentDetails, type WorkforceSegment } from '../data'
-import { flattenDay, regroupDay, type DaySegment, type PanelItem } from '../model'
+import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
+import { dayKey, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
+import { flattenDay, regroupDay, type AssignSource, type DaySegment, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { SegmentList, type BlockInfo, type PanelSegment, type SegmentHandlers } from './SegmentList'
 import { TimesCard } from './TimesCard'
@@ -47,7 +47,14 @@ function moveNote(before: DaySegment[], after: Chip[], next: DaySegment[], id: s
  * the segments that touch it indented), and one form below for the selected segment. Every change saves at once
  * and the grid follows; times that stop touching move the segment to a line of its own.
  */
-export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; onEdit: (commit: EditCommit) => void; onUndo: () => void; onPreview: Preview }) {
+export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign }: {
+  item: DayItem
+  onEdit: (commit: EditCommit) => void
+  onUndo: () => void
+  onPreview: Preview
+  assigning: boolean
+  onAssign: (source: AssignSource | null) => void
+}) {
   const { member, watch, day } = item
   const items = flattenDay(item.blocks)
   const blocks = item.blocks.map((_, index) => items.filter((entry) => entry.from === index).map((entry) => entry.segment))
@@ -159,6 +166,15 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
     return null
   }
 
+  /** Assign: copy the selected assignment into assign mode. An empty day first gets the watch's regular shift. */
+  const startAssign = () => {
+    const from = `${shortName(member)}, ${formatHeader(day)}`
+    if (selectedChip) return onAssign({ chip: selectedChip, from })
+    const chip: Chip = { segments: [{ code: watch.code, start: watch.start, end: watch.end }] }
+    onEdit({ days: [[key, [chip]]] })
+    onAssign({ chip, from })
+  }
+
   const form = selected && (() => {
     const unit = selectedChip?.outOfUnit ? selectedChip.unit ?? watch.unit : watch.unit
     const details = segmentDetails(selected, unit, `${key}:${selected.id}`)
@@ -220,6 +236,9 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
       <PanelTabs details={details} />
       <PanelFooter
         onPreview={onPreview}
+        onAssign={assigning ? () => onAssign(null) : startAssign}
+        canAssign={!readOnly}
+        assigning={assigning}
         onLeave={() => setLeaveOpen(true)}
         canLeave={!leaveOpen}
         deleteLabel={selectedChip?.segments.every(isLeave) ? 'Delete leave' : 'Delete assignment'}

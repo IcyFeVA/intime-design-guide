@@ -516,6 +516,17 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
+      <Section id="assigning" title="Assigning a shift" description="Assign copies the selected assignment, then each cell you click or drag across gets it. It’s the fastest way to give the same shift to several people or days.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Assign in the footer</strong> starts assign mode with the selected assignment, all its segments included. A bar over the grid says what you’re assigning and where it came from. On an empty day, Assign first gives that day the watch’s regular shift.</Text>
+          <Text size="sm"><strong>Click, drag or Enter.</strong> A click gives one cell the shift; a drag or Shift-click gives it to a range in one step, so one Undo reverts it. People’s cells show a copy cursor and a dashed outline on hover.</Text>
+          <Text size="sm"><strong>It replaces</strong> the clicked cell and anything else that day it would overlap. Days that already hold the shift are left as they are. Work at another precinct is never replaced: that day is skipped and the status line says why.</Text>
+          <Text size="sm"><strong>Open shifts and live posts</strong> fill one place per person, on the shift’s own day. When nobody else is needed, the shift leaves the grid and assign mode stops.</Text>
+          <Text size="sm"><strong>Stopping.</strong> Escape, Done in the bar or Done assigning in the footer. Selecting other cells while assigning gives them the shift, so stop first to just look around.</Text>
+          <Text size="sm" c="dimmed">Try it: select B. Haddad on Fri, Jun 5, select Assign, then drag across empty days. Or select the night open shift on Tue, Jun 2 (2 needed) and give it to two people that day.</Text>
+        </Stack>
+      </Section>
+
       <Section id="elsewhere" title="Out of unit and branch" description="People sometimes work for another unit in the precinct, or at another precinct. The grid and the panel show both, so nobody is counted twice or changed by the wrong scheduler.">
         <Table.ScrollContainer minWidth={640} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">

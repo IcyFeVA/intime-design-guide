@@ -28,6 +28,8 @@ export interface WorkforceGridProps {
   onCoverageClick: (watch: Watch, day: number) => void
   /** Adds the right-click menu (see `GridContextMenu`). Pass `onContextMenu` to `useGridSelection` too. */
   contextMenu?: { title: string; onPreview: (action: string) => void }
+  /** Assign mode is on: people's cells show a copy cursor and a dashed outline on hover */
+  assigning?: boolean
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -208,7 +210,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false,
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
@@ -455,6 +457,7 @@ export default function WorkforceGrid({
       data-layout={density}
       data-single-day={single || undefined}
       data-cells={cells === 'codes' ? undefined : cells}
+      data-assigning={assigning || undefined}
     >
       {contextMenu ? <GridContextMenu title={contextMenu.title} onPreview={contextMenu.onPreview}>{grid}</GridContextMenu> : grid}
       <VisuallyHidden role="status">{selection.selected.size > 1 ? `${selection.selected.size} cells selected` : ''}</VisuallyHidden>

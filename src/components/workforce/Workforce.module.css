@@ -791,6 +791,21 @@
   padding-inline: 2px;
 }
 
+/* Assign mode: a person's cell takes the shift on click; a dashed outline shows where it will go */
+.scroller[data-assigning] .cell[data-selectable]:not(.openCell) {
+  cursor: copy;
+}
+
+.scroller[data-assigning] .cell[data-selectable]:not(.openCell):hover::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: 1;
+  pointer-events: none;
+  border: 2px dashed var(--workforce-selected-border);
+  border-radius: var(--mantine-radius-sm);
+}
+
 /* Layered on the body color so the tint never shows what's behind */
 .cell[aria-selected='true'] {
   background:

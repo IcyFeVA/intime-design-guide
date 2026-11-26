@@ -59,6 +59,8 @@ export interface OpenShift {
   end: number
   status: 'open' | 'live'
   needed: number
+  /** People already given the shift (assign mode). It leaves the schedule when nobody is needed any more. */
+  filled?: number
   location: string
   /** Fields set in the details panel (activity, customer…); defaults apply when missing */
   details?: SegmentDetails
@@ -88,7 +90,7 @@ export interface SegmentDetails {
 export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
 
 /** Changes to an open shift. `deleted` takes it off the schedule. */
-export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details'>> & { deleted?: boolean }
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled'>> & { deleted?: boolean }
 
 /** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
 export interface ScheduleEdits {
@@ -341,7 +343,8 @@ export function openShifts(day: number, edits?: ReadonlyMap<string, OpenShiftEdi
     const edit = edits.get(shift.id)
     if (!edit) return [shift]
     const { deleted, ...patch } = edit
-    return deleted ? [] : [{ ...shift, ...patch }]
+    const next = { ...shift, ...patch }
+    return deleted || stillNeeded(next) <= 0 ? [] : [next]
   })
 }
 
@@ -383,9 +386,12 @@ export const openStatus = {
   live: { label: 'Live', icon: Radio, meaning: 'Posted to employees, who can sign up.' },
 } as const
 
+/** How many more people the shift needs */
+export const stillNeeded = (shift: OpenShift) => shift.needed - (shift.filled ?? 0)
+
 /** "Open shift, Swing patrol 12:00–22:00, 1 still needed" */
 export const describeOpenShift = (shift: OpenShift) =>
-  `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${shift.needed} still needed`
+  `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${stillNeeded(shift)} still needed`
 
 /** Saved employee filters, as set up in Employee Settings. Counts are for the whole unit. */
 export const savedFilters: { key: string; label: string; description?: string; count: number }[] = [

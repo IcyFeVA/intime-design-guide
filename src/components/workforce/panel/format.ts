@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { formatHour, segmentKind } from '../../schedule/data'
+import { formatHour, segmentHours, segmentKind, type Chip } from '../../schedule/data'
 
 /**
  * A typed time → hours, or null when it isn't one. Schedulers type fast, so all of these work:
@@ -51,3 +51,9 @@ const DAY_MS = 86_400_000
 export const toIso = (day: number) => new Date(day * DAY_MS).toISOString().slice(0, 10)
 /** "2026-06-03" → day number */
 export const fromIso = (value: string) => Math.round(Date.parse(`${value.slice(0, 10)}T00:00:00Z`) / DAY_MS)
+
+/** "08:00–17:00": a cell from its first start to its last end */
+export const chipSpanLabel = (chip: Chip) => {
+  const hours = chip.segments.map(segmentHours)
+  return formatSpan(Math.min(...hours.map((h) => h.start)), Math.max(...hours.map((h) => h.end)))
+}

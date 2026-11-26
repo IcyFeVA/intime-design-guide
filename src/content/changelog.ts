@@ -12,6 +12,18 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'Assign in the details panel now works: it copies the selected assignment, and every cell you click or drag across gets it.',
+    changes: [
+      'A bar over the grid shows what you’re assigning, where it came from, and Done. Escape stops too.',
+      'A click assigns one cell; a drag or Shift-click assigns a range in one step, which one Undo reverts.',
+      'It replaces the clicked cell and anything it overlaps that day. Work at another precinct is skipped, and the status line says why.',
+      'Open shifts and live posts fill one place per person on their day, and leave the grid when filled.',
+      'New section: Assigning a shift.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'Work Scheduling moved to a new Work in Progress group at the bottom of the navigation.',
   },
   {

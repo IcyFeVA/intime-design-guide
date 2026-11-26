@@ -1,14 +1,21 @@
 import { ActionIcon, Alert, Anchor, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
-import { ArrowUpRight, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
+import { ArrowUpRight, Check, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Chip } from '../../schedule/data'
 import classes from '../WorkforcePanel.module.css'
 
 type Preview = (action: string) => void
 
-/** The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled. */
-export function PanelFooter({ onPreview, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true }: {
+/**
+ * The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled.
+ * Assign starts assign mode (click cells to give them the shift); while it's on, the button ends it.
+ */
+export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning = false, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true }: {
   onPreview: Preview
+  /** Starts assign mode, or ends it while `assigning`. Missing: Assign is preview only. */
+  onAssign?: () => void
+  canAssign?: boolean
+  assigning?: boolean
   /** Opens the leave entry. Missing: Leave is preview only. */
   onLeave?: () => void
   /** Missing: Delete is disabled */
@@ -18,7 +25,13 @@ export function PanelFooter({ onPreview, onLeave, onDelete, deleteLabel = 'Delet
 }) {
   return (
     <div className={classes.footer}>
-      <Button color="intime" className={classes.grow} leftSection={<Plus size={16} aria-hidden="true" />} onClick={() => onPreview('Assign')}>Assign</Button>
+      {assigning ? (
+        <Button variant="light" color="intime" className={classes.grow} leftSection={<Check size={16} aria-hidden="true" />} onClick={onAssign}>Done assigning</Button>
+      ) : (
+        <Button color="intime" className={classes.grow} leftSection={<Plus size={16} aria-hidden="true" />} onClick={onAssign ?? (() => onPreview('Assign'))} disabled={!canAssign}>
+          Assign
+        </Button>
+      )}
       <Button variant="default" leftSection={<PlaneTakeoff size={16} aria-hidden="true" />} onClick={onLeave ?? (() => onPreview('Leave'))} disabled={!canLeave}>Leave</Button>
       <Menu position="top-end" offset={6}>
         <Menu.Target>

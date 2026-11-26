@@ -403,6 +403,19 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - Decided without the user (check): All day **replaces** the day's assignments (Undo restores) rather than nesting a 24h leave in each block. Out of unit is a cell flag, so changing a segment's Unit field doesn't make it out of unit, and Branch still isn't saved (changing it to another precinct would lock the day).
 - Not yet: leave approval states (open question); the freed shift after all-day leave doesn't become an open shift.
 
+### Step 3 as built (2026-11-26): assign mode
+
+- [x] Footer **Assign** copies the selected block (all its segments and its out-of-unit flag; never another branch's, Assign is disabled there) into assign mode. On an empty day it first gives that day the watch's regular shift (`watch.code`, `start`–`end`), then starts. While on, the footer button reads **Done assigning** (every panel state, bulk included).
+- [x] `workforce/AssignBar.tsx`: a bar floating over the bottom of the grid (`.assignBar` in `WorkforceDemo.module.css`): "Assigning [codes] 07:00–17:00", "From B. Haddad, Fri, Jun 5. Click or drag cells to assign it. Esc stops.", Done. The scroller gets `data-assigning`: people's cells show `cursor: copy` and a dashed outline on hover.
+- [x] Cells get the shift through the normal selection: a click, a drag, Shift-click or Enter ends with `onActivate(via, target)`; `useGridSelection` now passes `GridActivation` (`kind` cells/rows/columns and the cells selected then, kept in a layout-effect ref for the end of a drag). Only `cells` activations assign; name and date headers select as usual. One commit per click or drag = one Undo step.
+- [x] `assignDay(chips, lines, source)` (`model.ts`): replaces the clicked lines and any of this branch's cells the copy overlaps; another branch's cells stay, and overlapping one skips that day ("works at 84th Precinct then"). Days that already hold exactly this are skipped (`changed: false`), so Ctrl-clicking more cells doesn't re-save earlier ones.
+- [x] Open shifts and live posts: `AssignSource.openShift` (`{ id, day }`). Only person-days on the shift's day take it; each fills one place (`OpenShift.filled`, `stillNeeded()` in `data.ts`; `openShifts` drops it at 0, the heading reads "1 of 2 still needed"). When it's filled, assign mode stops.
+- [x] Escape ends assign mode first (a window capture listener while it's on), unless a field, dropdown, menu or dialog has focus. Reset demo ends it.
+- [x] The status line reports each assign ("Assigned PatD 07:00–17:00 to B. Haddad, Sat, Jun 6. Undo reverts it.", or "to 4 cells") and why cells were skipped.
+- [x] Page: new section `assigning` "Assigning a shift" (The details panel group); changelog.
+- Decided without the user (check): clicking any person's cell while assigning gives it the shift, so you stop to look around; name/date headers don't assign a whole row or day; an empty day's Assign uses the watch's regular shift rather than asking for a code.
+- Not yet: the employee picker in the panel (reassigning a day, or picking who gets an open shift) is still preview only; the context menu's Fill/Paste don't use assign mode; bulk Assign (code picker + "Assign to N") is the bulk step.
+
 ### Attachments tab (2026-11-25, user)
 
 Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalski). It has three sections, Tags, Assets and Tasks, each with a count and an empty state ("None yet."). **The prototype's free-text inputs are wrong** (user). The correct behavior:
@@ -420,7 +433,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
-- Details panel scenarios (see that section): **next up; the review is done (2026-11-25)**. Build the editable mock data, `groupBlocks`, the block cards, the leave entry, assign mode, warnings, the out-of-unit/branch banners and grid mark, the validation states, bulk and the Attachments tab.
+- Details panel scenarios (see that section): steps 1–3 built (core, scenarios, assign mode). **Still to build:** warnings (review item 7), bulk (item 12), the Attachments tab (items 1 and 13), the employee row's Hours popover, Find in schedule and person menu (item 8).
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
@@ -430,6 +443,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 
 ## Open questions (ask the user when relevant)
 
+- Assign mode (step 3): should a name or date header assign the whole row or day while assigning? Should picking another employee in the panel move the assignment to them?
 - All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?
 - Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?
 

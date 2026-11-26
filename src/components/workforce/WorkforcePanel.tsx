@@ -3,8 +3,8 @@ import { ActionIcon, Avatar, Group, Select, SimpleGrid, Text, Tooltip } from '@m
 import { Check, Megaphone, MousePointerClick, Pin, X } from 'lucide-react'
 import type { PanelPlacement } from '../../tokens/workforce'
 import { formatMonthDay } from '../schedule/data'
-import { findWatch, formatLongDay, openStatus, shortName } from './data'
-import type { PanelContent, PanelItem } from './model'
+import { findWatch, formatLongDay, openStatus, shortName, stillNeeded } from './data'
+import type { AssignSource, PanelContent, PanelItem } from './model'
 import type { EditCommit } from './useScheduleEdits'
 import { DayEditor } from './panel/DayEditor'
 import { OpenShiftEditor } from './panel/OpenShiftEditor'
@@ -23,13 +23,17 @@ type Preview = (action: string) => void
  * Docked panel beside the grid. One cell: tabs with the activity's details. Several cells: a summary
  * with fields that apply to all. Nothing: a hint. Edits stay in the panel; the grid does not change yet.
  */
-export default function WorkforcePanel({ content, onEdit, onUndo, saves, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
+export default function WorkforcePanel({ content, onEdit, onUndo, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
   content: PanelContent
   /** Save a change (autosave). The grid updates from the edited schedule. */
   onEdit: (commit: EditCommit) => void
   onUndo: () => void
   /** Counts saves and undos: the panel says "Saved" after one */
   saves: number
+  /** Assign mode is on: the footer's Assign button ends it */
+  assigning?: boolean
+  /** Starts assign mode with a copy of an assignment, or ends it (null) */
+  onAssign: (source: AssignSource | null) => void
   /** `docked`: beside the grid, which gets narrower. `drawer`: over the grid's right edge, which keeps its width. */
   placement?: PanelPlacement
   onPlacementChange?: (placement: PanelPlacement) => void
@@ -100,10 +104,10 @@ export default function WorkforcePanel({ content, onEdit, onUndo, saves, placeme
         </div>
       )}
 
-      {content.mode === 'single' && content.kind === 'day' && <DayEditor item={content} onEdit={onEdit} onUndo={onUndo} onPreview={onPreview} key={contentKey} />}
-      {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} key={contentKey} />}
+      {content.mode === 'single' && content.kind === 'day' && <DayEditor item={content} onEdit={onEdit} onUndo={onUndo} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
+      {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
 
-      {content.mode === 'bulk' && <BulkItems items={content.items} onPreview={onPreview} key={content.items.map((item) => item.key).join()} />}
+      {content.mode === 'bulk' && <BulkItems items={content.items} onPreview={onPreview} onStopAssign={assigning ? () => onAssign(null) : undefined} key={content.items.map((item) => item.key).join()} />}
     </aside>
   )
 }
@@ -132,7 +136,7 @@ function heading(content: PanelContent): { title: string; subtitle?: string } {
   if (content.kind === 'open-shift') {
     const { shift } = content
     const label = shift.status === 'live' ? 'Live post' : 'Open shift'
-    return { title: `${label} · ${findWatch(shift.watch).unit}`, subtitle: `${date} · ${shift.needed} of ${shift.needed} still needed` }
+    return { title: `${label} · ${findWatch(shift.watch).unit}`, subtitle: `${date} · ${stillNeeded(shift)} of ${shift.needed} still needed` }
   }
   return { title: shortName(content.member), subtitle: `${date} · ${content.watch.title} watch` }
 }
@@ -144,7 +148,7 @@ function heading(content: PanelContent): { title: string; subtitle?: string } {
 /** The shared value of a field, or null when the cells differ */
 const common = <T,>(values: T[]) => (values.every((value) => value === values[0]) ? values[0] : null)
 
-function BulkItems({ items, onPreview }: { items: PanelItem[]; onPreview: Preview }) {
+function BulkItems({ items, onPreview, onStopAssign }: { items: PanelItem[]; onPreview: Preview; onStopAssign?: () => void }) {
   const codes = items.map((item) => (item.kind === 'open-shift' ? item.shift.code : item.chip?.segments[0].code ?? null))
   const activityValues = codes.map((code) => (code ? activityOf(code) : null))
   const [activity, setActivity] = useState<string | null>(common(activityValues))
@@ -184,7 +188,7 @@ function BulkItems({ items, onPreview }: { items: PanelItem[]; onPreview: Previe
           </SimpleGrid>
         </div>
       </div>
-      <PanelFooter onPreview={onPreview} />
+      <PanelFooter onPreview={onPreview} assigning={!!onStopAssign} onAssign={onStopAssign} />
     </>
   )
 }

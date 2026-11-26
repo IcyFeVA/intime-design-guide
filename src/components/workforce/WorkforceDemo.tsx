@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Button, Text, Transition } from '@mantine/core'
 import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
@@ -11,15 +11,19 @@ import { approvalKinds } from '../../tokens/approvals'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
 import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
-import { MOCK_TODAY, formatHeader, rangeDays } from '../schedule/data'
+import { MOCK_TODAY, formatHeader, rangeDays, type Chip } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { applyEdits, findUnit, shortName, watches, type Watch, type WatchId, type WorkforceSort } from './data'
-import { HEADER_ROW, buildGridModel, panelContent } from './model'
-import { useGridSelection, type GridContextTarget } from './useGridSelection'
+import {
+  applyEdits, dayKey, findUnit, openShifts, shortName, stillNeeded, watches, type Watch, type WatchId, type WorkforceMember, type WorkforceSort,
+} from './data'
+import { HEADER_ROW, assignDay, buildGridModel, panelContent, type AssignSource } from './model'
+import { useGridSelection, type CellRef, type GridActivation, type GridContextTarget } from './useGridSelection'
 import { useScheduleEdits } from './useScheduleEdits'
 import WorkforceGrid from './WorkforceGrid'
 import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
+import { AssignBar } from './AssignBar'
+import { chipSpanLabel } from './panel/format'
 import classes from './WorkforceDemo.module.css'
 
 const sortFields: SortField<WorkforceSort>[] = [
@@ -61,6 +65,7 @@ export default function WorkforceDemo() {
   const [coverage, setCoverage] = useState<CoverageSelection | null>(null)
   const [approvalsOpen, setApprovalsOpen] = useState(false)
   const [menuTarget, setMenuTarget] = useState<GridContextTarget | null>(null)
+  const [assign, setAssign] = useState<AssignSource | null>(null)
   const approvals = useApprovals({ kind: 'activity' })
   const schedule = useScheduleEdits()
   const edited = useMemo(() => applyEdits(schedule.edits), [schedule.edits])
@@ -82,10 +87,76 @@ export default function WorkforceDemo() {
     [edited, days, collapsed, staffingCollapsed, sort, direction, schedule.edits.open],
   )
 
-  const onActivate = useCallback((via: 'pointer' | 'keyboard') => {
+  /** Assign mode: give every clicked person-day a copy of the source. One save, so one Undo reverts a whole drag. */
+  const assignCells = (source: AssignSource, cells: CellRef[]) => {
+    const byDay = new Map<string, { member: WorkforceMember; day: number; lines: number[] }>()
+    for (const cell of cells) {
+      const row = model.byKey.get(cell.row)
+      if (row?.kind !== 'member') continue
+      const key = dayKey(row.member.id, cell.day)
+      const entry = byDay.get(key) ?? { member: row.member, day: cell.day, lines: [] }
+      entry.lines.push(row.line)
+      byDay.set(key, entry)
+    }
+    if (!byDay.size) return
+
+    const shift = source.openShift ? openShifts(source.openShift.day, schedule.edits.open).find((item) => item.id === source.openShift!.id) : undefined
+    let places = shift ? stillNeeded(shift) : Infinity
+    const saved: [string, Chip[]][] = []
+    const names: string[] = []
+    const skipped: string[] = []
+    for (const [key, { member, day, lines }] of byDay) {
+      const who = `${shortName(member)}, ${formatHeader(day)}`
+      if (shift && day !== shift.day) { skipped.push(`${who} (the shift is on ${formatHeader(shift.day)})`); continue }
+      if (places <= 0) { skipped.push(`${who} (nobody else is needed)`); continue }
+      const result = assignDay(member.chips(day), lines, source.chip)
+      if (result.error) { skipped.push(`${who} (${result.error})`); continue }
+      if (!result.changed) continue
+      saved.push([key, result.chips])
+      names.push(who)
+      places -= 1
+    }
+
+    const what = `${[...new Set(source.chip.segments.map((segment) => segment.code))].join(' + ')} ${chipSpanLabel(source.chip)}`
+    const parts: string[] = []
+    if (saved.length) {
+      parts.push(`Assigned ${what} to ${names.length <= 3 ? names.join("; ") : `${names.length} cells`}. Undo reverts it.`)
+      schedule.commit({ days: saved, open: shift ? [[shift.id, { filled: (shift.filled ?? 0) + saved.length }]] : undefined })
+    }
+    if (skipped.length) parts.push(`Skipped ${skipped.join('; ')}.`)
+    if (shift && places <= 0 && saved.length) {
+      parts.push('The open shift is filled, so assigning stopped.')
+      setAssign(null)
+    }
+    if (parts.length) setHint(parts.join(' '))
+  }
+
+  const onActivate = (via: 'pointer' | 'keyboard', target: GridActivation) => {
+    if (assign && target.kind === 'cells') assignCells(assign, target.cells)
     setPanelOpen(true)
     if (via === 'keyboard') setFocusTick((tick) => tick + 1)
-  }, [])
+  }
+
+  const startAssign = (source: AssignSource | null) => {
+    setAssign(source)
+    setHint(null)
+  }
+
+  // Escape ends assign mode wherever focus is, before the grid or panel use it, unless it is closing a field, dropdown, menu or dialog
+  const assigning = !!assign
+  useEffect(() => {
+    if (!assigning) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return
+      const target = event.target as HTMLElement
+      if (target.closest?.('input, textarea, [aria-expanded="true"], [role="menu"], [role="dialog"], [role="listbox"]')) return
+      event.preventDefault()
+      event.stopPropagation()
+      setAssign(null)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [assigning])
 
   const selection = useGridSelection({
     rows: model.navRows,
@@ -97,7 +168,7 @@ export default function WorkforceDemo() {
     preferredDay: MOCK_TODAY,
     onActivate,
     onContextMenu: setMenuTarget,
-    escapeHandled: panelOpen,
+    escapeHandled: panelOpen || !!assign,
     onEscape: () => {
       if (!panelOpen) return false
       setPanelOpen(false)
@@ -140,7 +211,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); setMenuTarget(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
+    setCoverage(null); setMenuTarget(null); setAssign(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
   }
 
   return (
@@ -220,11 +291,26 @@ export default function WorkforceDemo() {
               onToggleStaffing={(id) => setStaffingCollapsed((set) => toggle(set, id))}
               onCoverageClick={(watch: Watch, day: number) => setCoverage({ title: `${watch.title} watch`, day, coverage: watch.coverage(day) })}
               contextMenu={{ title: menuTitle, onPreview: preview }}
+              assigning={!!assign}
             />
           )}
+          {assign && !placeholder && <AssignBar source={assign} onDone={() => startAssign(null)} />}
         </div>
         <Transition mounted={panelOpen} transition={panelSlide} duration={reduceMotion ? 0 : 220} timingFunction="cubic-bezier(0.2, 0, 0, 1)">
-          {(style) => <WorkforcePanel style={style} content={content} onEdit={schedule.commit} onUndo={schedule.undo} saves={schedule.saves} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
+          {(style) => (
+            <WorkforcePanel
+              style={style}
+              content={content}
+              onEdit={schedule.commit}
+              onUndo={schedule.undo}
+              saves={schedule.saves}
+              assigning={!!assign}
+              onAssign={startAssign}
+              onClose={closePanel}
+              onPreview={preview}
+              focusTick={focusTick}
+            />
+          )}
         </Transition>
         <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} contained />
         <SortModal

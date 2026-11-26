@@ -230,6 +230,57 @@ export function regroupDay(chips: Chip[], items: DaySegment[], focusId?: string)
 }
 
 /* ------------------------------------------------------------------ */
+/* Assign mode: give cells a copy of an assignment                     */
+/* ------------------------------------------------------------------ */
+
+/** What assign mode gives each clicked cell: a copy of a block, or one place on an open shift */
+export interface AssignSource {
+  chip: Chip
+  /** "B. Haddad, Fri, Jun 5" or "Open shift, Tue, Jun 2" */
+  from: string
+  /** Set when the source is an open shift: each person given it (on its day) fills one place */
+  openShift?: { id: string; day: number }
+}
+
+let assignIds = 0
+/** A comparable form of a day's cells, to skip days that already hold exactly this */
+const daySignature = (chips: Chip[]) => JSON.stringify(chips.map((chip) => [
+  chip.outOfUnit ? chip.unit ?? true : null,
+  chip.branch ?? null,
+  chip.segments.map((segment) => {
+    const { start, end } = segmentHours(segment)
+    return [segment.code, start, end, segment.overtime ?? null, segment.cancelled ?? null]
+  }),
+]))
+
+const chipSpan = (chip: Chip) => {
+  const hours = chip.segments.map(segmentHours)
+  return { start: Math.min(...hours.map((h) => h.start)), end: Math.max(...hours.map((h) => h.end)) }
+}
+
+/**
+ * Gives a person's day a copy of `source`. It replaces the cells on `lines` (what was clicked) and any other cell of
+ * this branch it would overlap. Another branch's cells stay; overlapping one is an error and nothing changes.
+ * `changed` is false when the day already held exactly this.
+ */
+export function assignDay(chips: Chip[], lines: number[], source: Chip): { chips: Chip[]; changed: boolean; error?: string } {
+  const copy: Chip = { ...source, segments: source.segments.map((segment: WorkforceSegment) => ({ ...segment, id: `a${(assignIds += 1)}` })) }
+  delete copy.branch
+  const range = chipSpan(copy)
+  const overlaps = (chip: Chip) => {
+    const other = chipSpan(chip)
+    return other.start < range.end && other.end > range.start
+  }
+  const kept = chips.filter((chip, index) => chip.branch || (!lines.includes(index) && !overlaps(chip)))
+  const clash = kept.find((chip) => chip.branch && overlaps(chip))
+  if (clash) return { chips, changed: false, error: `works at ${clash.branch!.split(' - ')[0]} then` }
+  const next = [...kept, copy]
+  const result = regroupDay(next, flattenDay(next))
+  if (result.error) return { chips, changed: false, error: result.error.toLowerCase() }
+  return { chips: result.chips, changed: daySignature(result.chips) !== daySignature(chips) }
+}
+
+/* ------------------------------------------------------------------ */
 /* What the details panel shows for a selection                        */
 /* ------------------------------------------------------------------ */
 
