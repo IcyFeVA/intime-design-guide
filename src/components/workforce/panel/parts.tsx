@@ -1,4 +1,4 @@
-import { ActionIcon, Alert, Anchor, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
+import { ActionIcon, Alert, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
 import { ArrowUpRight, Check, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Chip } from '../../schedule/data'
@@ -69,22 +69,23 @@ export function PanelTabs({ details }: { details: ReactNode }) {
   )
 }
 
-/** "84th Precinct - Brooklyn" → "84th Precinct" */
-const branchName = (branch: string) => branch.split(' - ')[0]
 
 /**
- * Where the selected assignment is worked, when it isn't this unit. Out of unit (same precinct) stays editable;
- * out of branch (another precinct) is read-only, with a way to open it there.
+ * About the selected assignment. Locked (set outside scheduling, e.g. a court date): read-only. Out of branch (another
+ * precinct) and out of unit (another unit here): where it's worked; both stay editable.
  */
-export function AssignmentBanner({ chip, onPreview }: { chip: Chip | null; onPreview: Preview }) {
-  if (chip?.branch) {
-    const name = branchName(chip.branch)
+export function AssignmentBanner({ chip }: { chip: Chip | null }) {
+  if (chip?.locked) {
     return (
       <Alert variant="light" color="gray" icon={<Lock size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
-        Working at {name}. Only {name} can change this.
-        <Anchor component="button" type="button" size="sm" fw={600} className={classes.bannerLink} onClick={() => onPreview(`Open in ${name}`)}>
-          Open in {name} <ArrowUpRight size={14} aria-hidden="true" />
-        </Anchor>
+        Set by {chip.locked}. You can’t change it here.
+      </Alert>
+    )
+  }
+  if (chip?.branch) {
+    return (
+      <Alert variant="light" color="gray" icon={<ArrowUpRight size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
+        Working out of branch
       </Alert>
     )
   }

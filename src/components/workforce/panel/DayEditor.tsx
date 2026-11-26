@@ -98,10 +98,10 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     .filter((entry) => !isLeave(entry.segment))
     .reduce<DaySegment | null>((last, entry) => (!last || segmentHours(entry.segment).end > segmentHours(last.segment).end ? entry : last), null)
 
-  /** A new segment touches the day's last one, unless that belongs to another branch: then it starts an hour later. */
+  /** A new segment touches the day's last one, unless that is locked: then it starts an hour later. */
   const addSegment = () => {
     const id = newId('n')
-    const last = latest(items.filter((entry) => !item.blocks[entry.from].branch))
+    const last = latest(items.filter((entry) => !item.blocks[entry.from].locked))
     const other = last ? null : latest(items)
     const segment: PanelSegment = last
       ? { id, code: last.segment.code, start: segmentHours(last.segment).end, end: segmentHours(last.segment).end + 1 }
@@ -134,21 +134,21 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
   const blockOf = (id: string | undefined) => blocks.findIndex((segments) => segments.some((segment) => segment.id === id))
   const selectedBlock = blockOf(selected?.id)
   const selectedChip = item.blocks[selectedBlock] ?? null
-  /** Another branch's assignment: shown, not edited */
-  const readOnly = !!selectedChip?.branch
+  /** Set outside scheduling (e.g. a court date): shown, not edited */
+  const readOnly = !!selectedChip?.locked
   const noteBlock = note ? blockOf(note.id) : -1
   const warnings = dayWarnings(member, day)
   const blockInfo: BlockInfo[] = item.blocks.map((chip, index) => {
     const titles = warnings.filter((warning) => warning.blocks.includes(index)).map((warning) => warning.title)
     return {
-      tag: chip.branch ? chip.branch.split(' - ')[0] : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
-      readOnly: !!chip.branch,
+      tag: chip.locked ? `Set by ${chip.locked}` : chip.branch ? 'Out of branch' : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
+      readOnly: !!chip.locked,
       warning: titles.length ? titles.join('; ') : undefined,
     }
   })
 
-  /* Leave: part of the day starts on the selected assignment (or the day's first one this branch can change) */
-  const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].branch)
+  /* Leave: part of the day starts on the selected assignment (or the day's first one that isn't locked) */
+  const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].locked)
   const leaveBlock = !readOnly && selectedBlock >= 0 ? selectedBlock : ownBlocks[0] ?? -1
   const leaveSpan = leaveBlock >= 0
     ? (() => {
@@ -163,7 +163,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     if (leave.allDay) {
       const segment: PanelSegment = { id, code: leave.code, start: 0, end: 24 }
       setNote(null)
-      onEdit({ days: [[key, [{ segments: [segment] }, ...item.blocks.filter((chip) => chip.branch)]]] })
+      onEdit({ days: [[key, [{ segments: [segment] }, ...item.blocks.filter((chip) => chip.locked)]]] })
     } else {
       const error = save([...items, { segment: { id, code: leave.code, start: leave.start, end: leave.end }, from: item.blocks.length }])
       if (error) return error
@@ -211,7 +211,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
 
   const details = (
     <div className={classes.body}>
-      <AssignmentBanner chip={selectedChip} onPreview={onPreview} />
+      <AssignmentBanner chip={selectedChip} />
       <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
       <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
       <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />

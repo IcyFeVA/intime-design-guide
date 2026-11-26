@@ -1,7 +1,7 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import { ActionIcon, Anchor, Menu, Popover, Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
-import { ArrowUpRight, Ban, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, TriangleAlert, UserSearch } from 'lucide-react'
+import { ArrowUpRight, Ban, Lock, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, TriangleAlert, UserSearch } from 'lucide-react'
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { formatDuration, segmentHours, segmentKind } from '../../schedule/data'
 import type { WorkforceSegment } from '../data'
@@ -19,9 +19,9 @@ export interface SegmentHandlers {
 
 /** What the list shows about an assignment besides its segments */
 export interface BlockInfo {
-  /** Where it's worked, under the root row's times: "Special Ops" (out of unit), "84th Precinct" */
+  /** Where it's worked, under the root row's times: "Special Ops" (out of unit), "Out of branch", or who locked it */
   tag?: string
-  /** Another branch's assignment: rows can be selected, but have no actions */
+  /** Locked (set outside scheduling): rows can be selected, but have no actions, and the tag gets a lock */
   readOnly?: boolean
   /** Warnings about the assignment, joined: its root row gets a ⚠ */
   warning?: string
@@ -172,7 +172,7 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
         <span className={classes.rowText}>
           <Times segment={segment} />
           {total && <span className={classes.total}>{total}</span>}
-          {tag && <span className={classes.rowTag}><ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />{tag}</span>}
+          {tag && <span className={classes.rowTag}>{readOnly ? <Lock size={12} strokeWidth={2} aria-hidden="true" /> : <ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />}{tag}</span>}
         </span>
         {warning && <TriangleAlert size={14} strokeWidth={2} className={classes.rowWarn} aria-hidden="true" />}
         <span className={classes.duration}>{formatDuration(end - start)}</span>

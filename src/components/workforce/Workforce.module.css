@@ -50,7 +50,7 @@
   gap: 4px;
 }
 
-/* The search input replaces the label and fills the cell */
+/* The employee search fills the name column's header */
 .cornerSearch {
   flex: 1;
   min-width: 0;

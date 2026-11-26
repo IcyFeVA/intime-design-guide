@@ -27,7 +27,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Ranges**: 5 views: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month (numerals since 2026-11-24, user). ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
 - **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
 - **Toolbar**: mostly visual. Working: range menu, date stepper, Sort (`SortModal`), density menu, panel toggle. Under staffed (5), Posts (2), Mandate and Undo render and show a "Preview only" hint.
-- **Employee search** (2026-11-24): a search button after "Employee" in the corner header swaps the label for an input ("Search employees…"); X or Escape swaps it back. The input doesn't filter yet.
+- **Employee search** (2026-11-24; changed 2026-11-26, user): the corner header is always the "Search employees…" input (no "Employee" label or search button, one click less). X (shown once there's text) or Escape clears it. The input doesn't filter yet.
 - ~~Clicking a name opens `EmployeeDetailsModal`~~ (replaced 2026-11-24: a name selects its row). Clicking a time-of-day cell opens `CoverageDrawer` (`contained`, as in Team View).
 
 ## Panel spec (from the panel screenshot)
@@ -426,6 +426,14 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] Page: section `warnings` (table of the five, how they show, try-it); changelog.
 - Decided without the user (check): the cap is 60h (50h flagged almost every weekend overtime); the hours cap marks only days from the crossing on, not the whole week (the prototype shows it on a Wednesday); a split shift within one day (J. Anderson 17:00 → 18:00) doesn't count as rest; double booked and leave are one warning kind (`conflict`).
 - Note: a mock day that is already double booked can't save other edits until the overlap is fixed (`regroupDay` refuses overlaps: "Overlaps … Not saved."). Deleting or moving either assignment works.
+
+### Locked assignments; out of branch editable (2026-11-26, user)
+
+- **Out of branch is editable** (user: the scheduler can change another precinct's assignment). It keeps its grid look (muted, "↗ 84th") and still doesn't count towards staffing. Banner: "Working at 84th Precinct (out of branch)" + "Open in 84th Precinct" (preview). This overrides "Out of branch: read-only" in the 2026-11-25 decisions and step 2.
+- **Locked** replaces it as the read-only case: `Chip.locked` = who set it (e.g. "Kings County Court"), for assignments set outside scheduling such as court dates. Grid: the same muted cell as out of branch with a `Lock` icon instead of the arrow (ShiftChip, DetailedChip, StackedChip via `data-branch`). Panel: gray banner "Set by Kings County Court. You can’t change it here.", `ReadOnlyFields`, no row actions, Assign and Delete off; the root row's tag reads "🔒 Set by Kings County Court". `regroupDay` refuses joining a locked block ("Touches an assignment set by …"); `assignDay` skips a day whose locked cell it would overlap; all-day leave keeps locked cells. Counts towards staffing like any assignment. Legend row Locked (draft).
+- Mock: Court 08–12 T. Nguyen Wed, Court 13–17 S. Kowalski Tue and L. Garcia Fri (`court()` in `data.ts`), near the top of the Day watch.
+- Page: `elsewhere` is now "Out of unit, out of branch and locked" (three columns).
+- **Out of branch simplified** (2026-11-26, user): cells show only the ↗ arrow (no "84th"; `branchShort` removed); the banner is just "Working out of branch" (no "Open in 84th Precinct" link); the root row's tag reads "Out of branch". Screen-reader labels still name the precinct (`describeChip`). Earlier mentions of "↗ 84th" in this plan are outdated.
 
 ### Attachments tab (2026-11-25, user)
 

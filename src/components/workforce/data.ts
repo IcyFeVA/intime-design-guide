@@ -114,6 +114,9 @@ const c = (code: string, extra: Partial<Segment> = {}): Segment => ({ code, ...e
 const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}): Chip => ({ segments, ...extra })
 /** Working for another unit in the same precinct */
 const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
+/** A court date: the court sets it, so the scheduler can't change it */
+const court = (start: number, end: number): Chip => cell([c('Court', { start, end })], { locked: COURT })
+const COURT = 'Kings County Court'
 
 /** The precinct the demo's unit belongs to, and another one people are sometimes lent to */
 export const HOME_BRANCH = '99th Precinct - Brooklyn'
@@ -174,13 +177,13 @@ type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offse
 
 const specs: Record<WatchId, Spec[]> = {
   day: [
-    // Scenario 3, leave: on vacation all day Tue
-    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])] }],
-    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1],
+    // Scenario 3, leave: on vacation all day Tue. Locked court dates (set by the court): Nguyen Wed, Kowalski Tue, Garcia Fri
+    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12)] }],
+    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17)] }],
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
     // Scenario 7, out of unit: lent to Special Ops on Tue
-    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')] }],
+    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17)] }],
     ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
     // Scenario 6, two assignments on Wed: PatD + Spe OT that touch (one cell), then Spe after a gap (a second line)
     // Also a warning: not certified for special details
@@ -190,7 +193,7 @@ const specs: Record<WatchId, Spec[]> = {
     }, ['Special detail']],
     // Scenario 5, partial leave: sick for the last 3 hours of Wed's shift
     ['rodriguez', 'Elena', 'Rodriguez', 'PO', 0, { 2: [cell([c('PatD', { start: 8, end: 16 }), c('Sick', { start: 13, end: 16 })])] }],
-    // Scenario 8, out of branch: working at the 84th Precinct on Thu
+    // Scenario 8, out of branch: working at the 84th Precinct on Thu (muted, but the scheduler can change it)
     ['patel', 'Dev', 'Patel', 'PO', 1, { 3: [cell([c('PatD')], { branch: OTHER_BRANCH })] }],
     // Warning, on leave: scheduled on Fri, but on vacation for all of it
     ['lee', 'Christine', 'Lee', 'PO', 2, { 4: [cell([c('PatD'), c('Vac', { start: 7, end: 17 })])] }],

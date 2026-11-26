@@ -31,7 +31,7 @@ const mouse: [string, string][] = [
   ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
   ['Right-click', 'Opens a menu for a name, a date or a selected cell: Copy, Paste, Load from template, Pre-fill, Leave, Post, Fill, Add new ruler and History. Paste is available after Copy. Anything not yet selected is selected first, so a selection of rows or days stays as it is. The Menu key or Shift+F10 opens it from the keyboard.'],
   ['Click Open shifts', 'Selects all open shifts.'],
-  ['Click the search icon by “Employee”', 'Opens a search field in its place. Click X or press Escape to close it.'],
+  ['Type in “Search employees”', 'The search sits above the names, always ready. X or Escape clears it. Filtering the rows isn’t built yet.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
   ['Hover an empty cell', 'Shows a plus. Click to add an activity for that person and day.'],
 ]
@@ -51,7 +51,7 @@ const keyboard: { keys: string[]; action: string }[] = [
 ]
 
 const modes: { mode: string; when: string; shows: string; footer: string }[] = [
-  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment. Another unit’s or precinct’s assignment adds a banner; another precinct’s is read-only.', footer: 'Assign, Leave, more (History, Delete assignment or leave)' },
+  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment. Another unit’s or precinct’s assignment adds a banner; a locked one (e.g. a court date) is read-only.', footer: 'Assign, Leave, more (History, Delete assignment or leave)' },
   { mode: 'Open shift', when: 'An open or live shift in the top row', shows: '“Open shift · Swing Patrol” or “Live post · …”, no employee yet, and the shift as one block.', footer: 'Assign, more (History, Delete open shift)' },
   { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
@@ -64,7 +64,8 @@ const assignmentCases: [string, string, string, string][] = [
   ['Overnight', 'PatN 20:00–04:00', 'One cell, on the day it starts', '20:00–04:00 +1, 8h.'],
   ['All-day leave', 'Sick, all day', 'One leave cell', 'Sick, All day, 24h. The form shows only its times and leave type.'],
   ['Out of unit', 'PatD for Special Ops', 'Striped, with an OU tag', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
-  ['Out of branch', 'PatD at 84th Precinct', 'Muted, with “↗ 84th”', 'A banner with “Open in 84th Precinct”, and its values as plain text. Nothing can be changed.'],
+  ['Out of branch', 'PatD at 84th Precinct', 'Muted, with “↗”', 'A banner, “Working out of branch”. Still editable.'],
+  ['Locked', 'Court 13:00–17:00, set by Kings County Court', 'Muted, with a lock', 'A banner, “Set by Kings County Court. You can’t change it here.”, and its values as plain text. Nothing can be changed.'],
 ]
 
 /** Days in the demo that show each case (week of Jun 1–7) */
@@ -73,15 +74,16 @@ const scenarioDays: [string, string][] = [
   ['Two assignments in a day', 'J. Anderson, Wed, Jun 3'],
   ['Out of unit', 'L. Garcia, Tue, Jun 2'],
   ['Out of branch', 'D. Patel, Thu, Jun 4'],
+  ['Locked court date', 'T. Nguyen, Wed, Jun 3; S. Kowalski, Tue, Jun 2; L. Garcia, Fri, Jun 5'],
   ['All-day leave', 'T. Nguyen, Tue, Jun 2'],
 ]
 
-const elsewhereRows: [string, string, string][] = [
-  ['Example', 'L. Garcia works PatD for Special Ops.', 'D. Patel works PatD at the 84th Precinct.'],
-  ['In the grid', 'Striped, with an OU tag where there is room.', 'Muted, with the precinct’s short name (“↗ 84th”).'],
-  ['Banner', '“Working for Special Ops (out of unit)”', '“Working at 84th Precinct. Only 84th Precinct can change this.” and “Open in 84th Precinct”.'],
-  ['In the panel', 'Editable as usual. Unit shows Special Ops.', 'Read-only: the values as plain text, no form, and Delete is off. Branch shows 84th Precinct.'],
-  ['Staffing', 'Not counted: they are on the other unit’s street.', 'Not counted, and that precinct’s schedulers own it.'],
+const elsewhereRows: [string, string, string, string][] = [
+  ['Example', 'L. Garcia works PatD for Special Ops.', 'D. Patel works PatD at the 84th Precinct.', 'S. Kowalski is due in court, set by Kings County Court.'],
+  ['In the grid', 'Striped, with an OU tag where there is room.', 'Muted, with an arrow (“↗”).', 'Muted, with a lock.'],
+  ['Banner', '“Working for Special Ops (out of unit)”', '“Working out of branch”', '“Set by Kings County Court. You can’t change it here.”'],
+  ['In the panel', 'Editable as usual. Unit shows Special Ops.', 'Editable as usual. Branch shows 84th Precinct.', 'Read-only: the values as plain text, no form. Assign and Delete are off, and assign mode skips it.'],
+  ['Staffing', 'Not counted: they are on the other unit’s street.', 'Not counted: they are at the other precinct.', 'Counted, like any assignment.'],
 ]
 
 const typedTimes: [string, string][] = [
@@ -513,7 +515,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Part of the day</strong> starts on the selected assignment’s times. Leave that overlaps an assignment stays in its cell, as a partial leave: indented under the segment and counted as “5h worked · 3h leave”. The grid splits the cell diagonally, and staffing hours drop by the leave.</Text>
           <Text size="sm"><strong>All day</strong> replaces the day’s assignments with one leave cell. The form says what it replaces (“Replaces PatD 07:00–17:00. Undo brings it back.”).</Text>
           <Text size="sm"><strong>A leave segment</strong> shows only its times and leave type: no activity, location or customer, and no post or cancel actions. Delete in the footer reads “Delete leave”.</Text>
-          <Text size="sm"><strong>Cancel or Escape</strong> closes the form without saving. Leave in another precinct’s assignment is refused, as only that precinct can change it.</Text>
+          <Text size="sm"><strong>Cancel or Escape</strong> closes the form without saving. Leave over a locked assignment (e.g. a court date) leaves it as it is.</Text>
         </Stack>
       </Section>
 
@@ -521,7 +523,7 @@ export default function WorkforceScheduling() {
         <Stack gap="xs">
           <Text size="sm"><strong>Assign in the footer</strong> starts assign mode with the selected assignment, all its segments included. A bar over the grid says what you’re assigning and where it came from. On an empty day, Assign first gives that day the watch’s regular shift.</Text>
           <Text size="sm"><strong>Click, drag or Enter.</strong> A click gives one cell the shift; a drag or Shift-click gives it to a range in one step, so one Undo reverts it. People’s cells show a copy cursor and a dashed outline on hover.</Text>
-          <Text size="sm"><strong>It replaces</strong> the clicked cell and anything else that day it would overlap. Days that already hold the shift are left as they are. Work at another precinct is never replaced: that day is skipped and the status line says why.</Text>
+          <Text size="sm"><strong>It replaces</strong> the clicked cell and anything else that day it would overlap. Days that already hold the shift are left as they are. A locked assignment (e.g. a court date) is never replaced: that day is skipped and the status line says why (L. Garcia, Fri).</Text>
           <Text size="sm"><strong>Open shifts and live posts</strong> fill one place per person, on the shift’s own day. When nobody else is needed, the shift leaves the grid and assign mode stops.</Text>
           <Text size="sm"><strong>Stopping.</strong> Escape, Done in the bar or Done assigning in the footer. Selecting other cells while assigning gives them the shift, so stop first to just look around.</Text>
           <Text size="sm" c="dimmed">Try it: select B. Haddad on Fri, Jun 5, select Assign, then drag across empty days. Or select the night open shift on Tue, Jun 2 (2 needed) and give it to two people that day.</Text>
@@ -550,16 +552,17 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
-      <Section id="elsewhere" title="Out of unit and branch" description="People sometimes work for another unit in the precinct, or at another precinct. The grid and the panel show both, so nobody is counted twice or changed by the wrong scheduler.">
-        <Table.ScrollContainer minWidth={640} className="doc-table">
+      <Section id="elsewhere" title="Out of unit, out of branch and locked" description="People sometimes work for another unit in the precinct or at another precinct, and some assignments, like court dates, are set outside scheduling. The grid and the panel show all three, so nobody is counted twice and nothing is changed by the wrong person.">
+        <Table.ScrollContainer minWidth={760} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
-            <Table.Thead><Table.Tr><Table.Th w={130}></Table.Th><Table.Th>Out of unit</Table.Th><Table.Th>Out of branch</Table.Th></Table.Tr></Table.Thead>
+            <Table.Thead><Table.Tr><Table.Th w={120}></Table.Th><Table.Th>Out of unit</Table.Th><Table.Th>Out of branch</Table.Th><Table.Th>Locked</Table.Th></Table.Tr></Table.Thead>
             <Table.Tbody>
-              {elsewhereRows.map(([label, unit, branch]) => (
+              {elsewhereRows.map(([label, unit, branch, locked]) => (
                 <Table.Tr key={label}>
                   <Table.Td><Text size="sm" fw={600}>{label}</Text></Table.Td>
                   <Table.Td><Text size="sm">{unit}</Text></Table.Td>
                   <Table.Td><Text size="sm">{branch}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{locked}</Text></Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>
@@ -638,7 +641,7 @@ export default function WorkforceScheduling() {
             'Show the person’s whole day in the panel, so a separate assignment on another line is never missed. Indent the segments that touch an assignment under its first one.',
             'Save as people type, say “Saved”, and keep Undo one click away.',
             'Let schedulers type times (0830, 1730) in 24-hour format. They are faster than any time picker.',
-            'Say where an assignment is worked when it isn’t this unit, and who can change it.',
+            'Say where an assignment is worked when it isn’t this unit, and who set it when it’s locked.',
           ]}
           dontItems={[
             'Open the panel while the user is still dragging or moving with the arrow keys.',
@@ -649,7 +652,7 @@ export default function WorkforceScheduling() {
             'Clear the selection when a range gets longer. Keep the cells that are still in view.',
             'Block a save because of a warning. Only times that can’t work (overlapping, zero length) are refused, and the field says why.',
             'Make schedulers scroll sideways to see the rest of a week or month.',
-            'Let a scheduler change another precinct’s assignment. Show it, and link to it there.',
+            'Let a scheduler change a locked assignment, like a court date. Show it, muted with a lock, and say who set it.',
           ]}
         />
       </Section>

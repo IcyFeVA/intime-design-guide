@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react'
 import { UnstyledButton } from '@mantine/core'
-import { ArrowUpRight, Clock3, UserX } from 'lucide-react'
-import { branchShort, chipFills, chipHasOvertime, describeChip, type Chip } from './data'
+import { ArrowUpRight, Clock3, Lock, UserX } from 'lucide-react'
+import { chipFills, chipHasOvertime, describeChip, type Chip } from './data'
 import classes from './Schedule.module.css'
 
 export type ChipDensity = 'comfortable' | 'compact' | 'mini' | 'strip'
@@ -27,17 +27,24 @@ const fillStyle = (chip: Chip) => {
 }
 
 /**
- * Out of branch: "↗ 84th" (the arrow only in `icons` and `mini`), and no OU or OT tag, as the muted cell belongs to
- * that branch. `icons`: OU icon only (compact). `mini`: OU icon in the corner and the OT clock in the middle, since a mini cell has
+ * Out of branch: an arrow ("↗"), and no OU or OT tag, as the muted cell belongs to
+ * that branch. Locked (e.g. a court date): the same muted cell with a lock. `icons`: OU icon only (compact). `mini`: OU icon in the corner and the OT clock in the middle, since a mini cell has
  * no code and color alone can't tell overtime apart. `single`: one tag, OT first (mobile strip, hatching still shows OU).
  */
 function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons' | 'mini' | 'single' }) {
   const overtime = chipHasOvertime(chip)
   const iconOnly = mode === 'icons' || mode === 'mini'
+  if (chip.locked) {
+    return (
+      <span className={classes.tags} aria-hidden="true">
+        <span className={classes.tag}><Lock size={iconOnly ? 12 : 13} strokeWidth={2} /></span>
+      </span>
+    )
+  }
   if (chip.branch) {
     return (
       <span className={classes.tags} aria-hidden="true">
-        <span className={classes.tag}><ArrowUpRight size={iconOnly ? 12 : 13} strokeWidth={2} />{!iconOnly && branchShort(chip.branch)}</span>
+        <span className={classes.tag}><ArrowUpRight size={iconOnly ? 12 : 13} strokeWidth={2} /></span>
       </span>
     )
   }
@@ -65,9 +72,9 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
   const shared = {
     className: classes.chip,
     'data-density': density,
-    'data-out-of-unit': (chip.outOfUnit && !chip.branch) || undefined,
-    'data-branch': chip.branch ? '' : undefined,
-    'data-tagged': (chip.outOfUnit || overtime || chip.branch) || undefined,
+    'data-out-of-unit': (chip.outOfUnit && !chip.branch && !chip.locked) || undefined,
+    'data-branch': chip.branch || chip.locked ? '' : undefined,
+    'data-tagged': (chip.outOfUnit || overtime || chip.branch || chip.locked) || undefined,
     'data-cancelled': ((density === 'strip' || density === 'mini') && cancelled) || undefined,
     style: fillStyle(chip),
   }

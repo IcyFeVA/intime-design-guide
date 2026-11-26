@@ -12,6 +12,26 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'Out of branch is simpler: the cell shows only the arrow, and the panel says “Working out of branch”.',
+    changes: [
+      'Cells drop the precinct’s short name (“84th”) and keep the ↗ arrow, in every view density.',
+      'The panel banner reads “Working out of branch”, without the “Open in 84th Precinct” link. The assignment’s first row says “Out of branch”.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Employee search is always visible, out of branch is now editable, and court dates can be locked.',
+    changes: [
+      'The “Employee” heading and its search button are gone: “Search employees…” sits above the names, one click less. X or Escape clears it.',
+      'Out of branch (another precinct) stays muted with “↗ 84th”, but the scheduler can change it. Its banner reads “Working at 84th Precinct (out of branch)”.',
+      'New: locked assignments, set outside scheduling, such as court dates. Muted with a lock, read-only in the panel (“Set by Kings County Court. You can’t change it here.”), and skipped by assign mode.',
+      'Locked court dates in the demo: T. Nguyen on Wed, S. Kowalski on Tue and L. Garcia on Fri. The legend adds Locked.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'The details panel and the grid now warn about scheduling rules: double booked, already on leave, minimum rest, missing certification and the weekly hours cap.',
     changes: [
       'Warnings sit under the employee row; several collapse to “2 warnings”. Selecting one selects its assignment, which also gets a ⚠ in the list.',

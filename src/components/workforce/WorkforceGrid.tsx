@@ -1,6 +1,6 @@
 import { memo, useState, type CSSProperties, type SyntheticEvent } from 'react'
 import { useElementSize } from '@mantine/hooks'
-import { ActionIcon, Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
@@ -39,36 +39,23 @@ const isolate = {
   onFocus: (event: SyntheticEvent) => event.stopPropagation(),
 }
 
-/** "Employee" with a search button. The button swaps the label for a filter input; X (or Escape) swaps it back. Filtering isn't built yet. */
+/** The name column's header: an always-visible employee search. X (or Escape) clears it. Filtering isn't built yet. */
 function EmployeeSearch() {
-  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const close = () => { setOpen(false); setQuery('') }
-  if (!open) {
-    return (
-      <>
-        <span>Employee</span>
-        <ActionIcon {...isolate} variant="subtle" color="gray" size={28} aria-label="Search employees" onClick={() => setOpen(true)}>
-          <Search size={16} strokeWidth={1.75} aria-hidden="true" />
-        </ActionIcon>
-      </>
-    )
-  }
   return (
     <TextInput
       {...isolate}
-      onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape') close() }}
-      data-mantine-stop-propagation="true"
+      onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape' && query) setQuery('') }}
+      data-mantine-stop-propagation={query ? 'true' : undefined}
       className={classes.cornerSearch}
       classNames={{ input: classes.cornerSearchInput }}
       size="sm"
-      autoFocus
       aria-label="Search employees"
       placeholder="Search employees…"
       value={query}
       onChange={(event) => setQuery(event.currentTarget.value)}
       leftSection={<Search size={16} strokeWidth={1.75} aria-hidden="true" />}
-      rightSection={<CloseButton size="sm" aria-label="Close search" onClick={close} />}
+      rightSection={query ? <CloseButton size="sm" aria-label="Clear search" onClick={() => setQuery('')} /> : null}
     />
   )
 }

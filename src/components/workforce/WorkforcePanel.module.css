@@ -300,15 +300,7 @@
   color: var(--text-default);
 }
 
-.bannerLink {
-  display: flex;
-  width: fit-content;
-  align-items: center;
-  gap: 2px;
-  margin-top: 4px;
-}
-
-/* Another branch's assignment: label and value pairs */
+/* A locked assignment (e.g. a court date): label and value pairs */
 .pairs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

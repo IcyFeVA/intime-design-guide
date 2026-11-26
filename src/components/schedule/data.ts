@@ -24,8 +24,10 @@ export interface Chip {
   outOfUnit?: boolean
   /** The other unit's name, when out of unit (e.g. "Special Ops") */
   unit?: string
-  /** Working at another branch (precinct). Only that branch can change the cell, and it doesn't count towards this unit's coverage. */
+  /** Working at another branch (precinct). Muted, and it doesn't count towards this unit's coverage. The scheduler can still change it. */
   branch?: string
+  /** Set by someone outside scheduling (e.g. "Kings County Court" for a court date): muted with a lock, and the scheduler can't change it */
+  locked?: string
   /** Part of the day is this kind without its own code (e.g. leave), shown as a diagonal split */
   partialKind?: ShiftKind
 }
@@ -239,14 +241,9 @@ export function describeChip(chip: Chip): string {
     return `${segment.label ? `${segment.label}, ` : ''}${code?.label ?? segment.code} ${formatHours(start, end)}${extras.length ? ` (${extras.join(', ')})` : ''}`
   })
   const unit = chip.outOfUnit ? `. Out of unit${chip.unit ? `, for ${chip.unit}` : ''}` : ''
-  return `${parts.join(', ')}${chip.partialKind ? `. Partly ${chip.partialKind}` : ''}${unit}${chip.branch ? `. At ${chip.branch}` : ''}`
+  return `${parts.join(', ')}${chip.partialKind ? `. Partly ${chip.partialKind}` : ''}${unit}${chip.branch ? `. At ${chip.branch}` : ''}${chip.locked ? `. Locked, set by ${chip.locked}` : ''}`
 }
 
-/** "84th Precinct - Brooklyn" → "84th", "Engine 12 - Queens" → "Engine 12": the short name on an out-of-branch cell */
-export const branchShort = (branch: string) => {
-  const name = branch.split(' - ')[0]
-  return /^\S+ Precinct$/.test(name) ? name.split(' ')[0] : name
-}
 
 /* ------------------------------------------------------------------ */
 /* Mock data                                                           */
