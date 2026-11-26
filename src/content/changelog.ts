@@ -12,6 +12,15 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
+    summary: 'The page is grouped into The grid, The details panel and Reference, and the panel has its own sections, including Typing times.',
+    changes: [
+      'New sections: What it shows, Assignments and segments, Editing and saving, and Typing times (with fields to try the formats).',
+      'Long pages can now group their sections; the table of contents indents the sections under each group.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
     summary: 'The details panel shows a person’s whole day, and changes now save and update the grid.',
     changes: [
       'One list of the day’s segments: each assignment’s first segment is the root and the segments that touch it are indented. A segment whose times no longer touch moves to its own line, with a note and Undo.',

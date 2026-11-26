@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Badge, Group, Stack, Table, Text } from '@mantine/core'
+import { Badge, Button, Group, Stack, Table, Text } from '@mantine/core'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
@@ -13,7 +13,9 @@ import OpenShiftChip from '../../components/workforce/OpenShiftChip'
 import DetailedChip from '../../components/workforce/DetailedChip'
 import StackedChip from '../../components/workforce/StackedChip'
 import { openStatus, type OpenShift } from '../../components/workforce/data'
-import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, type Chip } from '../../components/schedule/data'
+import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, formatDuration, type Chip } from '../../components/schedule/data'
+import { TimeField } from '../../components/workforce/panel/TimeField'
+import { formatSpan, normalizeEnd, parseTime } from '../../components/workforce/panel/format'
 import {
   DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
@@ -53,6 +55,49 @@ const modes: { mode: string; when: string; shows: string; footer: string }[] = [
   { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
 ]
+
+const assignmentCases: [string, string, string, string][] = [
+  ['Touching', 'PatD 07:00–17:00, then PatD 17:00–18:00', 'One cell', 'The first segment, with the second indented below it. The first shows the total: 11h total · 07:00–18:00.'],
+  ['With a gap', 'PatD 07:00–17:00, then Spe 19:00–20:00', 'A second line for that day', 'Two assignments, each starting a new row.'],
+  ['Partial leave', 'PatD 08:00–16:00, with Sick 13:00–16:00', 'One cell, split diagonally', 'The leave indented under PatD: 5h worked · 3h leave.'],
+  ['Overnight', 'PatN 20:00–04:00', 'One cell, on the day it starts', '20:00–04:00 +1, 8h.'],
+]
+
+const typedTimes: [string, string][] = [
+  ['8 or 08', '08:00'],
+  ['0800', '08:00'],
+  ['830 or 0830', '08:30'],
+  ['1730', '17:30'],
+  ['8:30, 8.30 or 8h30', '08:30'],
+  ['2400', '00:00, the end of the day (as an end time)'],
+  ['2500, 8:75 or abc', 'Not a time. It isn’t saved.'],
+]
+
+/** Two time fields to try the typed formats on */
+function TimeEntryDemo() {
+  const [start, setStart] = useState('0700')
+  const [end, setEnd] = useState('1730')
+  const from = parseTime(start)
+  const to = parseTime(end)
+  const result = (() => {
+    if (from === null || to === null) return 'Not saved: type times like 0800, 830 or 17:30.'
+    if (from === to) return 'Not saved: it starts and ends at the same time.'
+    const until = normalizeEnd(from, to)
+    return `Saves as ${formatSpan(from, until)}, ${formatDuration(until - from)}.`
+  })()
+  return (
+    <Preview title="Try it" align="start">
+      <Stack gap="sm">
+        <Group gap="sm" align="flex-end">
+          <TimeField label="Start" value={start} onChange={setStart} w={110} />
+          <TimeField label="End" value={end} onChange={setEnd} w={110} />
+          <Button variant="default" size="sm" onClick={() => { setStart('0700'); setEnd('1730') }}>Reset demo</Button>
+        </Group>
+        <Text size="sm" role="status">{result}</Text>
+      </Stack>
+    </Preview>
+  )
+}
 
 const layoutSpecimens: Chip[] = [
   { segments: [{ code: 'PatD' }] },
@@ -114,6 +159,8 @@ export default function WorkforceScheduling() {
         </div>
       </Section>
 
+      <Section id="the-grid" title="The grid" size="display" description="Selecting cells, the rows of each watch, view densities and how the grid fits the screen." />
+
       <Section id="selection" title="Selecting cells" description="People’s cells and open shifts can be selected, one by one or a whole row or day at a time from the names and dates. Coverage, staffing and group rows can’t. A selection has a thick outline, and the active cell inside a larger selection has its own outline. Its name and date are highlighted, and so are the headers of fully selected rows and days.">
         <Text size="sm" fw={600} mb="xs">Mouse</Text>
         <Table.ScrollContainer minWidth={560} className="doc-table">
@@ -146,33 +193,6 @@ export default function WorkforceScheduling() {
           <Text size="sm">The grid is one stop in the tab order. Arrow keys move inside it, through every row, including names and coverage.</Text>
           <Text size="sm">Changing the range keeps the cells that are still in view. Moving to another week or month clears the selection, and so does collapsing the watch the cells are in.</Text>
           <Text size="sm">Screen readers announce each cell’s person, date and activity, whether it is selected, and how many cells are selected.</Text>
-        </Stack>
-      </Section>
-
-      <Section id="panel" title="Details panel" description="The panel sits beside the grid, which gets narrower, so the schedule stays in view while you edit. It follows the selection.">
-        <Table.ScrollContainer minWidth={640} className="doc-table">
-          <Table verticalSpacing="sm" horizontalSpacing="md">
-            <Table.Thead><Table.Tr><Table.Th w={130}>Shows</Table.Th><Table.Th>When you select</Table.Th><Table.Th>Content</Table.Th><Table.Th w={150}>Buttons</Table.Th></Table.Tr></Table.Thead>
-            <Table.Tbody>
-              {modes.map((item) => (
-                <Table.Tr key={item.mode}>
-                  <Table.Td><Text size="sm" fw={600}>{item.mode}</Text></Table.Td>
-                  <Table.Td><Text size="sm">{item.when}</Text></Table.Td>
-                  <Table.Td><Text size="sm">{item.shows}</Text></Table.Td>
-                  <Table.Td><Text size="sm">{item.footer}</Text></Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
-        <Stack gap="xs" mt="md">
-          <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
-          <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
-          <Text size="sm"><strong>Blocks.</strong> Segments that touch (one ends when the next starts, like PatD 08:00–16:00 and overtime 16:00–17:00) form a block, which the grid shows as one cell. A segment that doesn’t touch is a block of its own, on an extra line in the grid. The panel lists every segment of the person’s day, whichever line was clicked: each assignment starts with its first segment, and the segments that touch it are indented below it.</Text>
-          <Text size="sm"><strong>Editing.</strong> Click a segment to select it. The form below the list edits it: scheduled day, start, end and hours (and actual times), then its shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own. Times are typed, in 24-hour time: 0830, 830, 8:30 and 17 all work, and leaving the field tidies them to 08:30. Add segment adds one that starts where the day’s last one ends.</Text>
-          <Text size="sm"><strong>Times decide the block.</strong> Change a segment’s times so it no longer touches and it moves to a block (and grid line) of its own, with a note and Undo. An end before the start means the next day (“20:00–04:00 +1”). Times that overlap another segment or start and end together aren’t saved; the field says why.</Text>
-          <Text size="sm"><strong>Changes save as you go.</strong> A field saves when you pick a value or leave it, the grid and staffing update at once, and the title says “Saved”. Undo in the toolbar (or Ctrl/⌘ Z outside a field) reverts the last change. The first segment’s menu moves the whole assignment to another day or deletes it; so does changing Scheduled.</Text>
-          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming. Assign, Leave, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
 
@@ -371,6 +391,99 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Thresholds live in one place:</strong> cellLayouts and NARROW_LABEL_BELOW in src/tokens/workforce.ts, with fitColumns doing the sums. View densities don’t change this rule: cellViewFor picks the cells from the view and the layout. Detailed only applies in the Full layout and sets --workforce-detailed-chip-height and --workforce-detailed-row-height; Stacked applies at any width and sets --workforce-stacked-chip-height and --workforce-stacked-row-height.</Text>
         </Stack>
       </Section>
+
+      <Section
+        id="the-panel"
+        title="The details panel"
+        size="display"
+        description="Everything about the panel beside the grid: what it shows, how a person’s day is made of segments, how editing and saving work, and how to type times."
+      />
+
+      <Section id="panel" title="What it shows" description="The panel sits beside the grid, which gets narrower, so the schedule stays in view while you edit. It follows the selection.">
+        <Table.ScrollContainer minWidth={640} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th w={130}>Shows</Table.Th><Table.Th>When you select</Table.Th><Table.Th>Content</Table.Th><Table.Th w={150}>Buttons</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {modes.map((item) => (
+                <Table.Tr key={item.mode}>
+                  <Table.Td><Text size="sm" fw={600}>{item.mode}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{item.when}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{item.shows}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{item.footer}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
+          <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
+          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming.</Text>
+          <Text size="sm"><strong>Not built yet:</strong> Assign, Leave, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="assignments" title="Assignments and segments" description="A person’s day is made of segments. Segments that touch, where one ends when the next starts, form one assignment, which the grid shows as one cell.">
+        <Table.ScrollContainer minWidth={640} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th w={130}>Case</Table.Th><Table.Th>Example</Table.Th><Table.Th>In the grid</Table.Th><Table.Th>In the panel</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {assignmentCases.map(([name, example, grid, panel]) => (
+                <Table.Tr key={name}>
+                  <Table.Td><Text size="sm" fw={600}>{name}</Text></Table.Td>
+                  <Table.Td><Text size="sm" className="tabular">{example}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{grid}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{panel}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Every line of the day.</strong> Whichever of a person’s lines you click, the panel lists every segment of their day, so a separate assignment is never missed. Each assignment starts with its first segment; the segments that touch it are indented below it.</Text>
+          <Text size="sm"><strong>Times decide the assignment.</strong> Change a segment’s times so it no longer touches and it moves to an assignment, and a grid line, of its own. A note says “Doesn’t touch 08:00–17:00. It shows on its own line.” with Undo. Make it touch another assignment and it joins that one.</Text>
+          <Text size="sm"><strong>Add segment</strong> adds one that starts where the day’s last one ends, so it touches. On an empty day it adds the watch’s shift.</Text>
+          <Text size="sm"><strong>Moving and deleting.</strong> The first segment’s menu moves the whole assignment to another day or deletes it. Changing Scheduled in the form moves it too. A move that would overlap on the new day is refused.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="editing" title="Editing and saving" description="Click a segment to select it, then edit it in the form below the list. Changes save as you go.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>One form for the selected segment.</strong> Its times come first (Scheduled, Start, End, Hours and actual times), then shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own values.</Text>
+          <Text size="sm"><strong>Bank this time</strong> adds a time bank (Overtime, Comp Time or Holiday) and the hours to bank, with how many that bank can still take.</Text>
+          <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live, Find an employee and Cancel segment. The other rows show only their menu.</Text>
+          <Text size="sm"><strong>Saving.</strong> A field saves when you pick a value or leave it. The grid and staffing update at once, and the title says “Saved”. There is no Save button.</Text>
+          <Text size="sm"><strong>Undo.</strong> Undo in the toolbar, or Ctrl/⌘ Z outside a field, reverts the last change. Reset demo restores the whole schedule.</Text>
+          <Text size="sm"><strong>What isn’t saved.</strong> Times that overlap another segment, or that start and end together. The card says why, and the last saved times stay. Spans over 16h are saved but ask: “Longer than 16h. Is that right?”</Text>
+        </Stack>
+      </Section>
+
+      <Section id="times" title="Typing times" description="Times are typed, never picked, in 24-hour format with no AM or PM. Schedulers know the times by heart, and typing them is faster than any time picker.">
+        <TimeEntryDemo />
+        <Table.ScrollContainer minWidth={480} className="doc-table" mt="md">
+          <Table verticalSpacing="xs" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th>You type</Table.Th><Table.Th>It becomes</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {typedTimes.map(([typed, becomes]) => (
+                <Table.Tr key={typed}>
+                  <Table.Td><Text size="sm" ff="monospace">{typed}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{becomes}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>Type over it.</strong> Clicking or tabbing into a time selects it, so you just type. Enter saves.</Text>
+          <Text size="sm"><strong>Leaving the field tidies it</strong> to HH:MM: 830 becomes 08:30.</Text>
+          <Text size="sm"><strong>Start and end save together</strong> when focus leaves the pair, so changing both doesn’t save a half-finished time.</Text>
+          <Text size="sm"><strong>An end before the start is the next day:</strong> 20:00 to 0400 is 8h and shows “+1”.</Text>
+          <Text size="sm"><strong>Mistakes aren’t saved.</strong> Anything that isn’t a time stays as typed, and the card says “Type times like 0800, 830 or 17:30. Not saved.”</Text>
+          <Text size="sm" c="dimmed">For developers: TimeField (src/components/workforce/panel/TimeField.tsx) is a plain text input with a numeric keyboard on touch screens. parseTime in panel/format.ts reads the formats above. Times are stored as hours; an end past 24 is the next day.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="reference" title="Reference" size="display" description="The components behind the demo, its CSS variables and guidelines." />
 
       <Section id="component" title="Using the components" description="The demo is built from the components in src/components/workforce, on top of the schedule components.">
         <Text size="sm" fw={600} mb="xs">WorkforceGrid</Text>

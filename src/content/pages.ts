@@ -8,8 +8,9 @@ import { isHiddenSection } from './flags'
 
 export const pageGroups: PageGroup[] = ['Getting started', 'Foundations', 'Components', 'Patterns', 'Resources']
 
-const s = (...items: [string, string][]) =>
-  items.filter(([id]) => !isHiddenSection(id)).map(([id, title]) => ({ id, title }))
+/** Sections in page order. A third item `'group'` marks a group heading; the sections after it belong to it. */
+const s = (...items: ([string, string] | [string, string, 'group'])[]) =>
+  items.filter(([id]) => !isHiddenSection(id)).map(([id, title, group]) => (group ? { id, title, group: true } : { id, title }))
 
 /** Single registry that drives the sidebar, search, TOC, overview cards and prev/next links. */
 export const pages: PageDef[] = [
@@ -131,8 +132,13 @@ export const pages: PageDef[] = [
   {
     path: '/patterns/workforce-scheduling', title: 'Work Scheduling', group: 'Patterns', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
     description: 'The scheduler’s grid: open shifts, watches with their staffing, and people’s shifts. Select cells like in a spreadsheet and edit them in a panel beside the grid.',
-    keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
-    sections: s(['desktop', 'Desktop'], ['selection', 'Selecting cells'], ['panel', 'Details panel'], ['rows', 'Groups and staffing'], ['views', 'Views and densities'], ['sizing', 'Sizing for screens'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'segment', 'assignment', 'autosave', 'undo', 'typing times', 'time entry', '24-hour', 'time format', 'actual times', 'bank time', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
+    sections: s(
+      ['desktop', 'Desktop'],
+      ['the-grid', 'The grid', 'group'], ['selection', 'Selecting cells'], ['rows', 'Groups and staffing'], ['views', 'Views and densities'], ['sizing', 'Sizing for screens'],
+      ['the-panel', 'The details panel', 'group'], ['panel', 'What it shows'], ['assignments', 'Assignments and segments'], ['editing', 'Editing and saving'], ['times', 'Typing times'],
+      ['reference', 'Reference', 'group'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference'],
+    ),
     component: lazy(() => import('../pages/patterns/WorkforceScheduling')),
   },
   {

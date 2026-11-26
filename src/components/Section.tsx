@@ -10,8 +10,9 @@ interface SectionProps {
   id: string
   title: string
   description?: ReactNode
-  children: ReactNode
-  /** `display` renders a large group heading (44px), used for top-level color groups */
+  /** Optional for a group heading that only introduces the sections after it */
+  children?: ReactNode
+  /** `display` renders a large group heading (44px), used for top-level color groups and page groups */
   size?: 'default' | 'display'
 }
 
