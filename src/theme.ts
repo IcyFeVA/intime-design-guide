@@ -6,6 +6,7 @@ import { radius, shadows, spacing } from './tokens/scales'
 import { navCssVariables } from './tokens/navigation'
 import { scheduleCssVariables, scheduleDarkVariables, scheduleLightVariables } from './tokens/schedule'
 import { workforceCssVariables } from './tokens/workforce'
+import { biddingCssVariables } from './tokens/bidding'
 import { calendarCssVariables, calendarDarkVariables, calendarLightVariables } from './tokens/calendar'
 import { colorVisionCssVariables, colorVisionDarkVariables, colorVisionLightVariables } from './tokens/colorVision'
 
@@ -70,7 +71,7 @@ function schemeVariables(theme: ThemeDef): Record<string, string> {
 }
 
 export const cssVariablesResolver: CSSVariablesResolver = () => ({
-  variables: { ...navCssVariables, ...scheduleCssVariables, ...workforceCssVariables, ...calendarCssVariables, ...colorVisionCssVariables },
+  variables: { ...navCssVariables, ...scheduleCssVariables, ...workforceCssVariables, ...biddingCssVariables, ...calendarCssVariables, ...colorVisionCssVariables },
   light: { ...schemeVariables(findTheme('light')), ...scheduleLightVariables, ...calendarLightVariables, ...colorVisionLightVariables },
   dark: { ...schemeVariables(findTheme('dark')), ...scheduleDarkVariables, ...calendarDarkVariables, ...colorVisionDarkVariables },
 })

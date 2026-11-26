@@ -116,7 +116,7 @@ export function FramePage({ title, back, tabs, actions, toolbar, children }: {
   )
 }
 
-export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, overlay, overlayOpen = false, children }: {
+export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, controls, onReset, toolbar, targetWidth, overlay, overlayOpen = false, children }: {
   /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
   view?: ScheduleView
   title?: string
@@ -127,6 +127,8 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   /** Navigation setup. Defaults to a scheduler on Team View. */
   nav?: Partial<Pick<AppNavProps, 'roles' | 'defaultRole' | 'defaultActive' | 'withTooltips'>>
   status: ReactNode
+  /** Extra demo buttons in the demo bar, before Full screen, e.g. to move a queue along */
+  controls?: ReactNode
   onReset: () => void
   toolbar: ReactNode
   /** Adds a Target resolution button: full screen, but no wider than this (px). For screenshots at the product's target size. */
@@ -182,6 +184,7 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
       <Group justify="space-between" px="md" py="xs" className={classes.demoBar} wrap="nowrap">
         <Text size="xs" c="dimmed" role="status">{status}</Text>
         <Group gap={4} wrap="nowrap">
+          {controls}
           {targetWidth && (
             <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Laptop size={14} />} onClick={() => setScreen('target')}>Target resolution</Button>
           )}

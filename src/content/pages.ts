@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import {
   Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Keyboard, Layers,
-  LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, Type, Users, MapPin, Grid3x3,
+  LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, TreePalm, Type, Users, MapPin, Grid3x3,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
 import { isHiddenSection } from './flags'
@@ -155,6 +155,13 @@ export const pages: PageDef[] = [
     keywords: ['approvals', 'approve', 'reject', 'clear status', 'timesheet', 'unsubmitted', 'submit', 'leave', 'trade', 'activity', 'hold over', 'overtime', 'multi-select', 'bulk', 'select all', 'required approvals', 'approval level', 'scheduler note', 'alerts', 'prevent', 'warnings', 'payout', 'comp time', 'visibility', 'sort', 'splitter', 'resize', 'panel', 'bottom sheet', 'mobile'],
     sections: s(['desktop', 'Desktop'], ['types', 'Request types'], ['statuses', 'Statuses and actions'], ['required-approvals', 'Required approvals'], ['visibility', 'Visibility and sort'], ['mobile', 'Mobile'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/Approvals')),
+  },
+  {
+    path: '/patterns/vacation-bidding', title: 'Vacation Bidding', group: 'Patterns', icon: TreePalm, status: 'review', updated: '2026-11-26',
+    description: 'How employees bid for time off: wait for their turn, add leave requests, rank them and submit.',
+    keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once'],
+    sections: s(['desktop', 'Turn-based bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/VacationBidding')),
   },
   {
     path: '/patterns/keyboard-shortcuts', title: 'Keyboard Shortcuts', group: 'Patterns', icon: Keyboard, status: 'confirmed', updated: '2026-11-23',

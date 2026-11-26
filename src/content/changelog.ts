@@ -10,6 +10,17 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
+    summary: 'New page: Vacation Bidding. Employees wait for their turn, add leave requests, rank them and submit. Turn-based bids first.',
+    changes: [
+      'Three states with their badges: Queued, Your Turn and Pending.',
+      'Rank requests by dragging or with the arrows; open a row to see its note and the requested days on a calendar.',
+      'Add or edit a request: leave type, days inside the bid period and an optional note.',
+      'New --bidding-* CSS variables.',
+    ],
+  },
+  {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
     summary: 'The right-click menu has “Add new ruler”, which will add a schedule ruler for the selected days.',
