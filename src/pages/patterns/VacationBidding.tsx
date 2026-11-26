@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Button, Group, SegmentedControl, Stack, Table, Text } from '@mantine/core'
-import { RotateCcw, UserRoundCheck } from 'lucide-react'
+import { Button, Stack, Table, Text } from '@mantine/core'
+import { UserRoundCheck } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
 import Preview from '../../components/Preview'
@@ -10,17 +9,12 @@ import CopyValue from '../../components/CopyValue'
 import StatusBadge from '../../components/StatusBadge'
 import RequestStatusBadge from '../components/RequestStatusBadge'
 import { DesktopDemoFrame } from '../../components/schedule/ScheduleChrome'
-import VacationBiddingWorkspace, { BidDetail, BidFilters, SignUpTabs } from '../../components/vacation-bidding/VacationBidding'
-import { useVacationBidding, type VacationBiddingOptions } from '../../components/vacation-bidding/useVacationBidding'
-import { SUBMITTED_ON, sampleRequests, type Bid } from '../../components/vacation-bidding/data'
+import VacationBiddingWorkspace, { BidFilters, SignUpTabs } from '../../components/vacation-bidding/VacationBidding'
+import { useVacationBidding } from '../../components/vacation-bidding/useVacationBidding'
 import { bidModes, bidStates, biddingTokens, leaveTypes } from '../../tokens/bidding'
 import classes from './VacationBidding.module.css'
 
 const STATUS = 'Preview only. You are John B. McLane, an employee. It is your turn in the Summer Vacation Bid.'
-
-/** Summer bid with the three ranked requests from the Figma frames. */
-const withRequests = (state: Bid['state']) => (bids: Bid[]) =>
-  bids.map((bid) => (bid.id === 'summer' ? { ...bid, state, requests: sampleRequests(), submittedOn: state === 'pending' ? SUBMITTED_ON : undefined } : bid))
 
 /* ------------------------------------------------------------------ */
 /* Desktop                                                             */
@@ -53,43 +47,6 @@ function DesktopDemo() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Single bid specimens                                                */
-/* ------------------------------------------------------------------ */
-
-/** Just the open bid, without the app frame. */
-function BidSpecimen({ options, hint }: { options: VacationBiddingOptions; hint: string }) {
-  const state = useVacationBidding(options)
-  return (
-    <Stack gap="sm" w="100%">
-      <div className={classes.specimen}><BidDetail state={state} /></div>
-      <Group justify="space-between" gap="sm" wrap="nowrap">
-        <Text size="xs" c="dimmed" role="status">{state.hint ?? hint}</Text>
-        <Button variant="subtle" color="gray" size="compact-xs" leftSection={<RotateCcw size={14} />} onClick={state.reset}>Reset demo</Button>
-      </Group>
-    </Stack>
-  )
-}
-
-const stateExamples: { value: string; label: string; options: VacationBiddingOptions; hint: string }[] = [
-  { value: 'queued', label: 'Queued', options: { activeId: 'spring' }, hint: 'Waiting for three employees ahead of you.' },
-  { value: 'your-turn', label: 'Your turn', options: {}, hint: 'Add a request, then Submit.' },
-  { value: 'pending', label: 'Pending', options: { setup: withRequests('pending') }, hint: 'Try Edit to change the ranking, or remove a request.' },
-]
-
-function StatesDemo() {
-  const [example, setExample] = useState(stateExamples[1].value)
-  const current = stateExamples.find((item) => item.value === example)!
-  return (
-    <Preview title="Your place in the bid" align="start">
-      <Stack gap="md" w="100%">
-        <SegmentedControl value={example} onChange={setExample} data={stateExamples.map(({ value, label }) => ({ value, label }))} aria-label="State" w="fit-content" />
-        <BidSpecimen key={example} options={current.options} hint={current.hint} />
-      </Stack>
-    </Preview>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -103,6 +60,7 @@ export default function VacationBidding() {
         <Stack gap="xs" mt="md">
           <Text size="sm">Vacation Bids is a tab of Sign-Ups. The live bids are on the left; the open bid is on the right with its period and the time left.</Text>
           <Text size="sm">Click <strong>Add Request</strong>, pick a leave type and the days, and add an optional note. Add as many as you like, rank them, then <strong>Submit</strong>.</Text>
+          <Text size="sm">Rank your requests, open a row to see its days, then Submit to see the Pending state. Edit there changes the ranking.</Text>
           <Text size="sm">Open the Spring Vacation Bid to see the queue. “Next employee done” in the demo bar moves it along until it is your turn.</Text>
         </Stack>
       </Section>
@@ -125,8 +83,7 @@ export default function VacationBidding() {
       </Section>
 
       <Section id="states" title="Your place in the bid" description="The status badge and the card change as you wait, bid and submit.">
-        <StatesDemo />
-        <Table.ScrollContainer minWidth={640} className="doc-table" mt="md">
+        <Table.ScrollContainer minWidth={640} className="doc-table">
           <Table verticalSpacing="sm" horizontalSpacing="md">
             <Table.Thead><Table.Tr><Table.Th w={130}>Status</Table.Th><Table.Th>When</Table.Th><Table.Th>The bid shows</Table.Th><Table.Th>In the list</Table.Th></Table.Tr></Table.Thead>
             <Table.Tbody>
@@ -149,10 +106,7 @@ export default function VacationBidding() {
       </Section>
 
       <Section id="ranking" title="Ranking requests" description="Your first choice is rank 1. Schedulers grant requests in this order, as far as staffing allows.">
-        <Preview title="Ranked requests" align="start">
-          <BidSpecimen options={{ setup: withRequests('your-turn') }} hint="Drag a row by its handle, or use the arrows. Open a row to see its days." />
-        </Preview>
-        <Stack gap="xs" mt="md">
+        <Stack gap="xs">
           <Text size="sm"><strong>Drag</strong> a row by its handle, or use the up and down arrows. The arrows are disabled at the top and bottom. With the handle focused, the arrow keys move the row too.</Text>
           <Text size="sm"><strong>The chevron</strong> opens a row: its note, with Edit, and the weeks around the request with the requested days marked “Leave”. They are dashed because nothing is approved yet.</Text>
           <Text size="sm"><strong>The pencil</strong> edits the leave type, days and note. Delete removes the request straight away while it is your turn.</Text>

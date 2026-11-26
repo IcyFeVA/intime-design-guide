@@ -53,13 +53,6 @@ export const calendarDayLabel = (day: number, first: boolean) => (first || dayNu
 
 export const SUBMITTED_ON = MOCK_TODAY
 
-/** Requests used for the “ranked” examples, as in the Figma frames. */
-export const sampleRequests = (): BidRequest[] => [
-  { id: 'r1', type: 'vacation', start: dayOf(2027, 6, 15), end: dayOf(2027, 6, 24), note: 'Family trip to the lake. Back for the Jun 25 day watch.' },
-  { id: 'r2', type: 'banked-ot', start: dayOf(2027, 7, 1), end: dayOf(2027, 7, 3) },
-  { id: 'r3', type: 'comp-time', start: dayOf(2027, 6, 12), end: dayOf(2027, 6, 12) },
-]
-
 export const initialBids = (): Bid[] => [
   {
     id: 'summer', title: 'Summer Vacation Bid', mode: 'turn-based', period: [dayOf(2027, 6, 1), dayOf(2027, 8, 30)],
