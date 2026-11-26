@@ -22,6 +22,9 @@ export const leaveOptions = shiftCodes.filter((code) => code.kind === 'leave').m
 /** Shift codes for the code picker: the field shows the code, the list adds its name */
 export const codeOptions = shiftCodes.map((code) => ({ value: code.code, label: code.code }))
 
+/** Working shift codes (no leave, which has its own entry): the bulk panel's shift picker */
+export const workingCodeOptions = codeOptions.filter((option) => shiftCodeMap[option.value].kind !== 'leave')
+
 export const employeeOptions = watches.map((watch) => ({
   group: `${watch.title} watch`,
   items: watch.members.map((member) => ({ value: member.id, label: shortName(member) })),

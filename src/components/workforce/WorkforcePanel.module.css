@@ -322,28 +322,29 @@
 
 /* ---------- Bulk ---------- */
 
-.bulkList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.bulkSection {
   border: 1px solid var(--border-default);
   border-radius: var(--mantine-radius-md);
 }
 
-.bulkItem {
+.bulkToggle {
   display: flex;
   align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--mantine-radius-md);
+}
+
+.bulkToggle:hover {
+  background: var(--background-default-hover);
+}
+
+.bulkFields {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  padding: 8px 10px;
-}
-
-.bulkItem + .bulkItem {
-  border-top: 1px solid var(--border-default);
-}
-
-.bulkWho {
-  flex: 1;
-  min-width: 0;
+  padding: 2px 12px 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {

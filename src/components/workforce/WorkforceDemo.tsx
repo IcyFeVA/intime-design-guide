@@ -303,6 +303,7 @@ export default function WorkforceDemo() {
               content={content}
               onEdit={schedule.commit}
               onUndo={schedule.undo}
+              onStatus={setHint}
               saves={schedule.saves}
               assigning={!!assign}
               onAssign={startAssign}

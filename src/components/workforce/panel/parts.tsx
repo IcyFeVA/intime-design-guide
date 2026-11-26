@@ -10,7 +10,7 @@ type Preview = (action: string) => void
  * The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled.
  * Assign starts assign mode (click cells to give them the shift); while it's on, the button ends it.
  */
-export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning = false, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true }: {
+export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning = false, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true, moreItems }: {
   onPreview: Preview
   /** Starts assign mode, or ends it while `assigning`. Missing: Assign is preview only. */
   onAssign?: () => void
@@ -22,6 +22,8 @@ export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning =
   onDelete?: () => void
   deleteLabel?: string
   canLeave?: boolean
+  /** Extra ⋯ items, above History (e.g. the bulk panel's Load from template and Paste) */
+  moreItems?: ReactNode
 }) {
   return (
     <div className={classes.footer}>
@@ -40,6 +42,7 @@ export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning =
           </Tooltip>
         </Menu.Target>
         <Menu.Dropdown>
+          {moreItems}
           <Menu.Item leftSection={<History size={16} aria-hidden="true" />} onClick={() => onPreview('History')}>History</Menu.Item>
           <Menu.Divider />
           <Menu.Item color="red" leftSection={<Trash2 size={16} aria-hidden="true" />} onClick={onDelete} disabled={!onDelete}>{deleteLabel}</Menu.Item>

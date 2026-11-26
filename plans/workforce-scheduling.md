@@ -9,14 +9,14 @@
 The decisions there are final unless the user changes them; ask only about the open questions a step lists.
 
 Done: 1. panel core · 2. scenarios (leave, out of unit/branch) · 3. assign mode · 4. warnings, plus locked
-court dates, out of branch editable and the always-visible employee search. Details in the "Step N as built"
+court dates, out of branch editable and the always-visible employee search · 5. bulk panel. Details in the "Step N as built"
 sections and the 2026-11-26 sections below.
 
-- [ ] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
-  - [ ] No list of the selected cells. The selection help line ("Shift-click or drag to select several cells") moves to the Blank (`none`) empty state.
-  - [ ] A shift code picker + "Assign to N": gives every selected person-day the shift in one save (reuse `assignDay`; locked cells and open shifts are skipped, the status line says why).
-  - [ ] A collapsed "Change fields" section (Activity, Location, Hours modifier, Unit…) that autosaves to every selected cell's segments.
-  - [ ] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
+- [x] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
+  - [x] No list of the selected cells. The selection help line ("Shift-click or drag to select several cells") moves to the Blank (`none`) empty state.
+  - [x] A shift code picker + "Assign to N": gives every selected person-day the shift in one save (reuse `assignDay`; locked cells and open shifts are skipped, the status line says why).
+  - [x] A collapsed "Change fields" section (Activity, Location, Hours modifier, Unit…) that autosaves to every selected cell's segments.
+  - [x] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
 - [ ] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
   - [ ] Tabs "Details · Attachments (n)", n = all four sections.
   - [ ] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
@@ -393,7 +393,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 | 7 | Out of unit | **new**: L. Garcia, Tue Jun 2, PatD for Special Ops | Banner, editable, Unit = Special Ops | |
 | 8 | Out of branch | **new**: D. Patel, Thu Jun 4, at 84th Precinct - Brooklyn | Banner, read-only, "Open in 84th Precinct" | |
 | + | New (empty cell) | Any empty member cell | As today | |
-| + | Bulk | Several cells | Ours: list of cells + "Apply to all" fields. Prototype: a hint line, a Shift `Select` + "Assign to 2", then Load from template, Paste, Delete all. Which one wins is review item 12 | `-panel-bulk.png` |
+| + | Bulk | Several cells | **Built in step 5** (see "Step 5 as built"). Before: list of cells + "Apply to all" fields. Prototype: a hint line, a Shift `Select` + "Assign to 2", then Load from template, Paste, Delete all. Which one wins is review item 12 | `-panel-bulk.png` |
 
 **Block rules**
 - Touching = the end time equals the next start time. Sort the segments by start, then chain them.
@@ -467,6 +467,18 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - Decided without the user (check): the cap is 60h (50h flagged almost every weekend overtime); the hours cap marks only days from the crossing on, not the whole week (the prototype shows it on a Wednesday); a split shift within one day (J. Anderson 17:00 → 18:00) doesn't count as rest; double booked and leave are one warning kind (`conflict`).
 - Note: a mock day that is already double booked can't save other edits until the overlap is fixed (`regroupDay` refuses overlaps: "Overlaps … Not saved."). Deleting or moving either assignment works.
 
+### Step 5 as built (2026-11-26): bulk panel
+
+- [x] `panel/BulkEditor.tsx` replaces `BulkItems` in `WorkforcePanel.tsx`; the pure logic is in `panel/bulk.ts`. `bulkSelection(items)` groups the selected cells by person-day (two lines of one day are one day) plus open shifts. Every action is **one commit** (one Undo step) and reports through the new `WorkforcePanel` prop `onStatus` (the demo's status line): "Assigned PatS 12:00–22:00 to 7 cells. Undo reverts it. Skipped 2 locked days."
+- [x] Header: "9 cells selected", subtitle "3 people · 7 filled, 2 empty". No list of cells.
+- [x] **Shift** `Select` (working codes only, `workingCodeOptions` in `options.ts`; searchable, "PatD · Day patrol" in the list) + **Assign to N**. N = person-days that can take it (`assignableDays`: not the days where only locked cells are selected). It gives each day a copy with the code's default hours (`shiftCodeMap`) via `assignDay` on the day's selected, unlocked lines. A help line under it: "Day patrol · 07:00–17:00. Replaces what the selected cells hold. Locked cells are skipped." The picker starts on the selected cells' shared working code, else the first person's watch code.
+- [x] **Change fields** (collapsed card, `.bulkSection`/`.bulkToggle`): Activity (no Leave), Location, Hours modifier, Unit. Each shows the shared value or "Mixed" (`fieldValues` + `commonValue`) and saves on pick (`changeField`) to every working segment of the selected unlocked cells, and to selected open shifts' `details`. Leave segments and locked cells stay; empty cells are skipped (said in the status line). Segment ids are filled in as `s{block}.{index}`, as `flattenDay` does, so the single-cell form keeps the same mock defaults.
+- [x] **Footer** = `PanelFooter` with a new `moreItems` prop: Assign starts assign mode with the picked shift ("From the shift picker"); Leave opens `LeaveEntry` ("Add leave to 9 days", new props `title`, `defaultCode` Vac, `defaultAllDay`) and `addLeave` applies it to every person-day (All day replaces the day's unlocked cells; part of the day nests or skips days where it clashes); ⋯ = Load from template (preview), Paste (disabled), History (preview), **Delete all…** (red) → an inline confirm card in the panel ("Delete 9 cells? … Locked cells stay. Undo brings them back.", Cancel focused, Escape cancels) → `deleteAll` (open shifts get `deleted`).
+- [x] Blank empty state: "Shift-click or drag selects a range, Ctrl/⌘-click adds or removes cells. Right-click for more."
+- [x] Page: new section `bulk` "Editing several cells" (The details panel group); the panel modes table updated; changelog.
+- Decided without the user (check): the shift picker lists working codes only (leave has the Leave button); Assign to N uses the code's default hours, not the person's watch hours; Delete all also deletes selected open shifts, while Assign to N skips them; Change fields applies to open shifts too; the footer's Assign starts assign mode with the picked shift (so it differs from Assign to N); the delete confirm is inline in the panel, not a modal; "Change fields" closes again when the selection changes.
+- Not yet: Load from template and History are preview only; Paste is disabled until copy/paste exists (step 8).
+
 ### Locked assignments; out of branch editable (2026-11-26, user)
 
 - **Out of branch is editable** (user: the scheduler can change another precinct's assignment). It keeps its grid look (muted, "↗ 84th") and still doesn't count towards staffing. Banner: "Working at 84th Precinct (out of branch)" + "Open in 84th Precinct" (preview). This overrides "Out of branch: read-only" in the 2026-11-25 decisions and step 2.
@@ -492,7 +504,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
-- Details panel scenarios: steps 1–4 built. What's left is tracked in **"Start here: remaining steps"** at the top.
+- Details panel scenarios: steps 1–5 built. What's left is tracked in **"Start here: remaining steps"** at the top.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
@@ -511,6 +523,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
 
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
+- Bulk panel: should Assign to N use each person's watch hours instead of the code's default hours? Should Delete all skip open shifts, as Assign to N does?
 - Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
 - ~~Meaning of the employee-row icons~~ Answered 2026-11-25 (review item 8): Hours = hours summary popover, Crosshair = Find in schedule, Chevron = person actions menu.
 - Real values for Customer, Hours modifier and Rank (acting).

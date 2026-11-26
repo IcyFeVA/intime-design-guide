@@ -1,16 +1,13 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
-import { ActionIcon, Avatar, Group, Select, SimpleGrid, Text, Tooltip } from '@mantine/core'
-import { Check, Megaphone, MousePointerClick, Pin, X } from 'lucide-react'
+import { ActionIcon, Group, Text, Tooltip } from '@mantine/core'
+import { Check, MousePointerClick, Pin, X } from 'lucide-react'
 import type { PanelPlacement } from '../../tokens/workforce'
-import { formatMonthDay } from '../schedule/data'
-import { findWatch, formatLongDay, openStatus, shortName, stillNeeded } from './data'
+import { findWatch, formatLongDay, shortName, stillNeeded } from './data'
 import type { AssignSource, PanelContent, PanelItem } from './model'
 import type { EditCommit } from './useScheduleEdits'
 import { DayEditor } from './panel/DayEditor'
 import { OpenShiftEditor } from './panel/OpenShiftEditor'
-import { PanelFooter } from './panel/parts'
-import { activities, activityOf, locations, modifiers, units } from './panel/options'
-import { codeFill } from './panel/format'
+import { BulkEditor } from './panel/BulkEditor'
 import classes from './WorkforcePanel.module.css'
 
 /* ------------------------------------------------------------------ */
@@ -20,14 +17,16 @@ import classes from './WorkforcePanel.module.css'
 type Preview = (action: string) => void
 
 /**
- * Docked panel beside the grid. One cell: tabs with the activity's details. Several cells: a summary
- * with fields that apply to all. Nothing: a hint. Edits stay in the panel; the grid does not change yet.
+ * Docked panel beside the grid. One cell: tabs with the day's details. Several cells: one shift or field for all of
+ * them. Nothing: a hint. Every change saves at once and the grid follows.
  */
-export default function WorkforcePanel({ content, onEdit, onUndo, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
+export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
   content: PanelContent
   /** Save a change (autosave). The grid updates from the edited schedule. */
   onEdit: (commit: EditCommit) => void
   onUndo: () => void
+  /** Says what a bulk action did, in the demo's status line */
+  onStatus: (text: string) => void
   /** Counts saves and undos: the panel says "Saved" after one */
   saves: number
   /** Assign mode is on: the footer's Assign button ends it */
@@ -100,14 +99,16 @@ export default function WorkforcePanel({ content, onEdit, onUndo, saves, assigni
         <div className={classes.empty}>
           <MousePointerClick size={28} strokeWidth={1.5} aria-hidden="true" />
           <Text size="sm" fw={600} c="var(--text-default)">Select a cell to see its details.</Text>
-          <Text size="sm">Shift-click or drag to select several cells.</Text>
+          <Text size="sm" maw={300}>Shift-click or drag selects a range, Ctrl/⌘-click adds or removes cells. Right-click for more.</Text>
         </div>
       )}
 
       {content.mode === 'single' && content.kind === 'day' && <DayEditor item={content} onEdit={onEdit} onUndo={onUndo} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
       {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
 
-      {content.mode === 'bulk' && <BulkItems items={content.items} onPreview={onPreview} onStopAssign={assigning ? () => onAssign(null) : undefined} key={content.items.map((item) => item.key).join()} />}
+      {content.mode === 'bulk' && (
+        <BulkEditor items={content.items} onEdit={onEdit} onPreview={onPreview} onStatus={onStatus} assigning={assigning} onAssign={onAssign} key={content.items.map((item) => item.key).join()} />
+      )}
     </aside>
   )
 }
@@ -130,7 +131,9 @@ function heading(content: PanelContent): { title: string; subtitle?: string } {
   if (content.mode === 'bulk') {
     const filled = content.items.filter((item) => item.kind === 'open-shift' || item.chip).length
     const empty = content.items.length - filled
-    return { title: `${content.items.length} cells selected`, subtitle: `${filled} ${filled === 1 ? 'activity' : 'activities'}, ${empty} empty` }
+    const people = new Set(content.items.flatMap((item) => (item.kind === 'day' ? [item.member.id] : []))).size
+    const who = people ? `${people} ${people === 1 ? 'person' : 'people'} · ` : ''
+    return { title: `${content.items.length} cells selected`, subtitle: `${who}${filled} filled, ${empty} empty` }
   }
   const date = formatLongDay(content.day)
   if (content.kind === 'open-shift') {
@@ -139,56 +142,4 @@ function heading(content: PanelContent): { title: string; subtitle?: string } {
     return { title: `${label} · ${findWatch(shift.watch).unit}`, subtitle: `${date} · ${stillNeeded(shift)} of ${shift.needed} still needed` }
   }
   return { title: shortName(content.member), subtitle: `${date} · ${content.watch.title} watch` }
-}
-
-/* ------------------------------------------------------------------ */
-/* Several cells                                                       */
-/* ------------------------------------------------------------------ */
-
-/** The shared value of a field, or null when the cells differ */
-const common = <T,>(values: T[]) => (values.every((value) => value === values[0]) ? values[0] : null)
-
-function BulkItems({ items, onPreview, onStopAssign }: { items: PanelItem[]; onPreview: Preview; onStopAssign?: () => void }) {
-  const codes = items.map((item) => (item.kind === 'open-shift' ? item.shift.code : item.chip?.segments[0].code ?? null))
-  const activityValues = codes.map((code) => (code ? activityOf(code) : null))
-  const [activity, setActivity] = useState<string | null>(common(activityValues))
-  const [location, setLocation] = useState<string | null>(common(items.map((item) => (item.kind === 'open-shift' ? item.shift.location : null))))
-  const [modifier, setModifier] = useState<string | null>(null)
-  const [unit, setUnit] = useState<string | null>(common(items.map((item) => findWatch(item.kind === 'open-shift' ? item.shift.watch : item.watch.id).unit)))
-
-  return (
-    <>
-      <div className={classes.scroll}>
-        <div className={classes.body}>
-          <ul className={classes.bulkList} aria-label="Selected cells">
-            {items.map((item, index) => {
-              const code = codes[index]
-              return (
-                <li className={classes.bulkItem} key={item.key}>
-                  {item.kind === 'open-shift'
-                    ? <span className={classes.noEmployee} aria-hidden="true"><Megaphone size={14} strokeWidth={1.75} /></span>
-                    : <Avatar size={28} radius="xl" color="intime" variant="light" alt="">{item.member.initials}</Avatar>}
-                  <div className={classes.bulkWho}>
-                    <Text size="sm" fw={600} truncate>{item.kind === 'open-shift' ? `${openStatus[item.shift.status].label} shift` : shortName(item.member)}</Text>
-                    <Text size="xs" c="dimmed">{formatMonthDay(item.day)}</Text>
-                  </div>
-                  {code
-                    ? <span className={classes.code} style={codeFill(code)}>{code}</span>
-                    : <Text size="xs" c="dimmed">Empty</Text>}
-                </li>
-              )
-            })}
-          </ul>
-          <Text size="sm" fw={600} c="var(--text-default)">Apply to all</Text>
-          <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
-            <Select label="Activity" data={activities} value={activity} onChange={setActivity} placeholder="Mixed" />
-            <Select label="Location" data={locations} value={location} onChange={setLocation} placeholder="Mixed" />
-            <Select label="Hours modifier" data={modifiers} value={modifier} onChange={setModifier} placeholder="Mixed" />
-            <Select label="Unit" data={units} value={unit} onChange={setUnit} placeholder="Mixed" />
-          </SimpleGrid>
-        </div>
-      </div>
-      <PanelFooter onPreview={onPreview} assigning={!!onStopAssign} onAssign={onStopAssign} />
-    </>
-  )
 }

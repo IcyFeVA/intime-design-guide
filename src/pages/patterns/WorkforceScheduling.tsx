@@ -53,8 +53,8 @@ const keyboard: { keys: string[]; action: string }[] = [
 const modes: { mode: string; when: string; shows: string; footer: string }[] = [
   { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment. Another unit’s or precinct’s assignment adds a banner; a locked one (e.g. a court date) is read-only.', footer: 'Assign, Leave, more (History, Delete assignment or leave)' },
   { mode: 'Open shift', when: 'An open or live shift in the top row', shows: '“Open shift · Swing Patrol” or “Live post · …”, no employee yet, and the shift as one block.', footer: 'Assign, more (History, Delete open shift)' },
-  { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
-  { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
+  { mode: 'Several cells', when: 'Two or more cells', shows: '“9 cells selected”, how many people and empty cells, a shift picker with “Assign to N”, and a collapsed “Change fields” section. The grid shows which cells are selected, so the panel doesn’t list them.', footer: 'Assign, Leave, more (Load from template, Paste, History, Delete all)' },
+  { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell, and how to select several.', footer: 'None' },
 ]
 
 const assignmentCases: [string, string, string, string][] = [
@@ -527,6 +527,18 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Open shifts and live posts</strong> fill one place per person, on the shift’s own day. When nobody else is needed, the shift leaves the grid and assign mode stops.</Text>
           <Text size="sm"><strong>Stopping.</strong> Escape, Done in the bar or Done assigning in the footer. Selecting other cells while assigning gives them the shift, so stop first to just look around.</Text>
           <Text size="sm" c="dimmed">Try it: select B. Haddad on Fri, Jun 5, select Assign, then drag across empty days. Or select the night open shift on Tue, Jun 2 (2 needed) and give it to two people that day.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="bulk" title="Editing several cells" description="With several cells selected, the panel changes all of them at once. Each action is one save, so one Undo reverts all of it.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Assign to N</strong> gives every selected person-day the shift from the picker, with that code’s usual hours (PatD 07:00–17:00). It replaces what the selected cells hold, like assign mode. N counts the days that can take it: locked cells (e.g. a court date) and open shifts are skipped.</Text>
+          <Text size="sm"><strong>Change fields</strong> (collapsed) sets Activity, Location, Hours modifier or Unit on every selected assignment as soon as you pick a value. A field shows the shared value, or “Mixed” when the cells differ. Leave and locked cells stay as they are; open shifts take the value too.</Text>
+          <Text size="sm"><strong>Leave</strong> adds leave to every selected day, All day by default (it replaces the day’s assignments, as for one cell). Part of the day nests inside an assignment it overlaps; a day where it would clash is skipped.</Text>
+          <Text size="sm"><strong>More</strong> holds Load from template, Paste, History and Delete all. Delete all asks first, then removes every selected assignment, leave and open shift. Locked cells stay.</Text>
+          <Text size="sm"><strong>Assign in the footer</strong> starts assign mode with the picked shift, to give it to more cells by clicking them.</Text>
+          <Text size="sm">After each action, the status line says how many cells changed and which were skipped, and why.</Text>
+          <Text size="sm" c="dimmed">Try it: drag from T. Nguyen on Mon, Jun 1 to R. Okafor on Wed, Jun 3. Two of those days hold a locked court date, so Assign to 7.</Text>
         </Stack>
       </Section>
 

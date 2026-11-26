@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'Several selected cells can now be changed at once: assign one shift to all of them, change a field, add leave or delete them.',
+    changes: [
+      'A shift picker with “Assign to N” gives every selected person-day the shift in one save. Locked cells and open shifts are skipped, and the status line says why.',
+      'A collapsed “Change fields” section sets Activity, Location, Hours modifier or Unit on every selected cell as you pick it. Differing values show “Mixed”.',
+      'The footer matches one cell’s: Assign (assign mode with the picked shift), Leave (to every selected day) and more: Load from template, Paste, History and Delete all, which asks first.',
+      'The list of selected cells is gone; the grid shows them. The selection hint moved to the empty panel.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'Out of branch is simpler: the cell shows only the arrow, and the panel says “Working out of branch”.',
     changes: [
       'Cells drop the precinct’s short name (“84th”) and keep the ↗ arrow, in every view density.',
