@@ -27,6 +27,8 @@ export interface WorkforceMember {
   precedence: number
   /** Sergeants and lieutenants count towards the watch's supervisors */
   supervisor: boolean
+  /** Activities this person isn't certified for (mock: everyone else is certified for everything) */
+  lacks?: string[]
   watch: WatchId
   /** Cells per day. A second cell on the same day goes to an extra row. */
   chips: (day: number) => Chip[]
@@ -59,6 +61,8 @@ export interface OpenShift {
   end: number
   status: 'open' | 'live'
   needed: number
+  /** People already given the shift (assign mode). It leaves the schedule when nobody is needed any more. */
+  filled?: number
   location: string
   /** Fields set in the details panel (activity, customer…); defaults apply when missing */
   details?: SegmentDetails
@@ -88,7 +92,7 @@ export interface SegmentDetails {
 export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
 
 /** Changes to an open shift. `deleted` takes it off the schedule. */
-export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details'>> & { deleted?: boolean }
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled'>> & { deleted?: boolean }
 
 /** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
 export interface ScheduleEdits {
@@ -110,6 +114,9 @@ const c = (code: string, extra: Partial<Segment> = {}): Segment => ({ code, ...e
 const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}): Chip => ({ segments, ...extra })
 /** Working for another unit in the same precinct */
 const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
+/** A court date: the court sets it, so the scheduler can't change it */
+const court = (start: number, end: number): Chip => cell([c('Court', { start, end })], { locked: COURT })
+const COURT = 'Kings County Court'
 
 /** The precinct the demo's unit belongs to, and another one people are sometimes lent to */
 export const HOME_BRANCH = '99th Precinct - Brooklyn'
@@ -141,7 +148,10 @@ function rotation(seed: number, watch: WatchId, offset: number) {
     else if (r < 0.27) main = cell(split)
     else if (r < 0.29) main = cell([c('Spe')])
     else main = cell([c(base)])
-    return r2 > 0.965 ? [main, cell([extra])] : [main]
+    // The odd extra assignment, on a working day only and never at the same time as the main one
+    const clash = main.segments.some((segment) => segmentKind(segment) === 'leave'
+      || (segmentHours(segment).start < segmentHours(extra).end && segmentHours(extra).start < segmentHours(segment).end))
+    return r2 > 0.965 && !clash ? [main, cell([extra])] : [main]
   }
 }
 
@@ -155,36 +165,51 @@ function curated(seed: number, watch: WatchId, offset: number, week: Record<numb
   }
 }
 
-type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offset: number, week?: Record<number, Chip[]>]
+/** A special event segment with its fields set, as if typed in the panel */
+const barclaysEvent: WorkforceSegment = {
+  code: 'Spe',
+  start: 6,
+  end: 10,
+  details: { activity: 'Special event', location: 'Barclays Center', modifier: 'None', bank: null, customer: 'Barclays Center', unit: 'Swing Patrol', acting: 'None', actual: null },
+}
+
+type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offset: number, week?: Record<number, Chip[]>, lacks?: string[]]
 
 const specs: Record<WatchId, Spec[]> = {
   day: [
-    // Scenario 3, leave: on vacation all day Tue
-    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])] }],
-    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1],
+    // Scenario 3, leave: on vacation all day Tue. Locked court dates (set by the court): Nguyen Wed, Kowalski Tue, Garcia Fri
+    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12)] }],
+    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17)] }],
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
     // Scenario 7, out of unit: lent to Special Ops on Tue
-    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')] }],
+    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17)] }],
     ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
     // Scenario 6, two assignments on Wed: PatD + Spe OT that touch (one cell), then Spe after a gap (a second line)
+    // Also a warning: not certified for special details
     ['anderson', 'Jamal', 'Anderson', 'PO', 6, {
       2: [cell([c('PatD', { start: 8, end: 16 }), c('Spe', { start: 16, end: 17, overtime: 'full' })]), cell([c('Spe', { start: 18, end: 19 })])],
       3: [cell([c('Train')])],
-    }],
+    }, ['Special detail']],
     // Scenario 5, partial leave: sick for the last 3 hours of Wed's shift
     ['rodriguez', 'Elena', 'Rodriguez', 'PO', 0, { 2: [cell([c('PatD', { start: 8, end: 16 }), c('Sick', { start: 13, end: 16 })])] }],
-    // Scenario 8, out of branch: working at the 84th Precinct on Thu
+    // Scenario 8, out of branch: working at the 84th Precinct on Thu (muted, but the scheduler can change it)
     ['patel', 'Dev', 'Patel', 'PO', 1, { 3: [cell([c('PatD')], { branch: OTHER_BRANCH })] }],
-    ['lee', 'Christine', 'Lee', 'PO', 2],
+    // Warning, on leave: scheduled on Fri, but on vacation for all of it
+    ['lee', 'Christine', 'Lee', 'PO', 2, { 4: [cell([c('PatD'), c('Vac', { start: 7, end: 17 })])] }],
     ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [cell([c('PatD')])], 5: [], 6: [] }],
-    ['johnson', 'Aaron', 'Johnson', 'PO', 4],
+    // Warning, double booked: the 84th Precinct has him on a detail during Wed's patrol
+    ['johnson', 'Aaron', 'Johnson', 'PO', 4, { 2: [cell([c('PatD')]), cell([c('Spe', { start: 15, end: 19 })], { branch: OTHER_BRANCH })] }],
   ],
   swing: [
     ['russo', 'Vincent', 'Russo', 'PO', 5],
     ['thompson', 'Sarah', 'Thompson', 'Cpl', 6],
     ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), c('PatS', { start: 16, overtime: 'partial' })])] }],
-    ['petrov', 'Oksana', 'Petrov', 'PO', 1],
+    // Two warnings on Tue: a 06:00 event at Barclays Center 7h after Monday's late swing, and not certified for special events
+    ['petrov', 'Oksana', 'Petrov', 'PO', 1, {
+      0: [cell([c('PatS', { end: 23, overtime: 'partial' })])],
+      1: [cell([barclaysEvent]), cell([c('PatS')])],
+    }, ['Special event']],
     ['abara', 'Nnamdi', 'Abara', 'PO', 2],
     ['williams', 'Monique', 'Williams', 'Sgt', 3],
     ['davis', 'Keith', 'Davis', 'PO', 4],
@@ -193,7 +218,8 @@ const specs: Record<WatchId, Spec[]> = {
     ['silva', 'Gabriel', 'Silva', 'PO', 0],
   ],
   night: [
-    ['cohen', 'Yael', 'Cohen', 'PO', 1],
+    // Warning, minimum rest: training at 06:00 after Monday's night shift
+    ['cohen', 'Yael', 'Cohen', 'PO', 1, { 0: [cell([c('PatN')])], 1: [cell([c('Train', { start: 6, end: 10 })]), cell([c('PatN')])] }],
     ['murphy', 'Declan', 'Murphy', 'Sgt', 2],
     ['rossi', 'Angela', 'Rossi', 'PO', 3],
     ['kim', 'Joon', 'Kim', 'PO', 4],
@@ -208,7 +234,7 @@ const specs: Record<WatchId, Spec[]> = {
 
 const watchSeeds: Record<WatchId, number> = { day: 100, swing: 200, night: 300 }
 
-const buildMembers = (watch: WatchId): WorkforceMember[] => specs[watch].map(([id, first, last, rank, offset, week], index) => ({
+const buildMembers = (watch: WatchId): WorkforceMember[] => specs[watch].map(([id, first, last, rank, offset, week, lacks], index) => ({
   id,
   first,
   last,
@@ -217,6 +243,7 @@ const buildMembers = (watch: WatchId): WorkforceMember[] => specs[watch].map(([i
   rankEffective: dayOf(2025 - ((watchSeeds[watch] / 100 + index * 3) % 9), ((index * 5 + offset) % 12) + 1, ((index * 11) % 27) + 1),
   precedence: 1 + ((watchSeeds[watch] / 100 + index * 7) % 5),
   supervisor: rank === 'Sgt' || rank === 'Lt',
+  lacks,
   watch,
   chips: week ? curated(watchSeeds[watch] + index, watch, offset, week) : rotation(watchSeeds[watch] + index, watch, offset),
 }))
@@ -232,10 +259,10 @@ const needs: Record<WatchId, number[]> = {
   night: [6, 6, 6, 6, 6, 6, 6],
 }
 
-type Span = { start: number; end: number }
+export type Span = { start: number; end: number }
 const isLeave = (segment: Segment) => segmentKind(segment) === 'leave'
 /** `span` without the hours of `off` */
-const subtract = (span: Span, off: Span): Span[] => (off.end <= span.start || off.start >= span.end
+export const subtract = (span: Span, off: Span): Span[] => (off.end <= span.start || off.start >= span.end
   ? [span]
   : [{ start: span.start, end: off.start }, { start: off.end, end: span.end }].filter((part) => part.end > part.start))
 
@@ -341,7 +368,8 @@ export function openShifts(day: number, edits?: ReadonlyMap<string, OpenShiftEdi
     const edit = edits.get(shift.id)
     if (!edit) return [shift]
     const { deleted, ...patch } = edit
-    return deleted ? [] : [{ ...shift, ...patch }]
+    const next = { ...shift, ...patch }
+    return deleted || stillNeeded(next) <= 0 ? [] : [next]
   })
 }
 
@@ -383,9 +411,12 @@ export const openStatus = {
   live: { label: 'Live', icon: Radio, meaning: 'Posted to employees, who can sign up.' },
 } as const
 
+/** How many more people the shift needs */
+export const stillNeeded = (shift: OpenShift) => shift.needed - (shift.filled ?? 0)
+
 /** "Open shift, Swing patrol 12:00–22:00, 1 still needed" */
 export const describeOpenShift = (shift: OpenShift) =>
-  `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${shift.needed} still needed`
+  `${openStatus[shift.status].label} shift, ${shiftCodeMap[shift.code]?.label ?? shift.code} ${formatHour(shift.start)}–${formatHour(shift.end)}, ${shift.location}, ${stillNeeded(shift)} still needed`
 
 /** Saved employee filters, as set up in Employee Settings. Counts are for the whole unit. */
 export const savedFilters: { key: string; label: string; description?: string; count: number }[] = [

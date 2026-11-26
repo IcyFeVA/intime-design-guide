@@ -3,6 +3,7 @@ import {
   daysUnder, openShifts, sortWorkforce, type OpenShift, type OpenShiftEdit, type Watch, type WatchId, type WorkforceMember, type WorkforceSegment,
   type WorkforceSort,
 } from './data'
+import { dayWarnings } from './warnings'
 
 /* ------------------------------------------------------------------ */
 /* Grid model: the rendered rows, worked out once per structure change */
@@ -32,7 +33,11 @@ export type GridRow =
   | { kind: 'group'; key: string; watch: Watch; expanded: boolean; count: number }
   | { kind: 'staffing-toggle'; key: string; watch: Watch; expanded: boolean; daysUnder: number }
   | { kind: 'staffing'; key: string; watch: Watch; metric: StaffingMetric }
-  | { kind: 'member'; key: string; watch: Watch; member: WorkforceMember; line: number; overflow: boolean; cells: (Chip | null)[] }
+  | {
+    kind: 'member'; key: string; watch: Watch; member: WorkforceMember; line: number; overflow: boolean; cells: (Chip | null)[]
+    /** Per day: the warnings about this line's cell (see `dayWarnings`), joined for its label, or null */
+    warnings: (string | null)[]
+  }
 
 /** Key of the date row in the selection hook: its cells select a day, the corner selects everything */
 export const HEADER_ROW = 'head'
@@ -97,9 +102,14 @@ export function buildGridModel({ watches, days, collapsed, staffingCollapsed, so
 
     for (const member of members) {
       const chipsByDay = days.map((day) => member.chips(day))
+      const warningsByDay = days.map((day) => dayWarnings(member, day))
       const lines = Math.max(1, ...chipsByDay.map((chips) => chips.length))
       for (let line = 0; line < lines; line += 1) {
-        rows.push({ kind: 'member', key: memberRowKey(member.id, line), watch, member, line, overflow: line > 0, cells: chipsByDay.map((chips) => chips[line] ?? null) })
+        const warnings = warningsByDay.map((list) => {
+          const titles = list.filter((warning) => warning.blocks.includes(line)).map((warning) => warning.title)
+          return titles.length ? titles.join('; ') : null
+        })
+        rows.push({ kind: 'member', key: memberRowKey(member.id, line), watch, member, line, overflow: line > 0, cells: chipsByDay.map((chips) => chips[line] ?? null), warnings })
       }
     }
   }
@@ -203,18 +213,18 @@ export function flattenDay(chips: Chip[]): DaySegment[] {
 }
 
 /**
- * Rebuilds a day's cells from its segments. Each new block keeps the cell flags (out of unit, branch…) of its first
- * segment's old block. Another branch's assignment can't take in segments, or lose them to this branch's.
+ * Rebuilds a day's cells from its segments. Each new block keeps the cell flags (out of unit, branch, locked…) of its
+ * first segment's old block. A locked assignment (e.g. a court date) can't take in segments, or lose them to another block.
  */
 export function regroupDay(chips: Chip[], items: DaySegment[], focusId?: string): { chips: Chip[]; error?: string } {
   const focus = focusId === undefined ? undefined : items.findIndex((item) => item.segment.id === focusId)
   const { blocks, error } = groupBlocks(items.map((item) => item.segment), focus)
   if (error) return { chips, error }
-  const branchOf = (index: number) => chips[items[index].from]?.branch
+  const lockedBy = (index: number) => chips[items[index].from]?.locked
   for (const block of blocks) {
-    const branch = block.map(branchOf).find(Boolean)
-    if (branch && block.some((index) => branchOf(index) !== branch)) {
-      return { chips, error: `Touches the assignment at ${branch.split(' - ')[0]}, which only they can change` }
+    const locked = block.map(lockedBy).find(Boolean)
+    if (locked && block.some((index) => lockedBy(index) !== locked)) {
+      return { chips, error: `Touches an assignment set by ${locked}, which you can’t change` }
     }
   }
   return {
@@ -223,10 +233,63 @@ export function regroupDay(chips: Chip[], items: DaySegment[], focusId?: string)
       const chip: Chip = { segments: block.map((index) => items[index].segment) }
       if (old.outOfUnit) Object.assign(chip, { outOfUnit: true, unit: old.unit })
       if (old.branch) chip.branch = old.branch
+      if (old.locked) chip.locked = old.locked
       if (old.partialKind) chip.partialKind = old.partialKind
       return chip
     }),
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Assign mode: give cells a copy of an assignment                     */
+/* ------------------------------------------------------------------ */
+
+/** What assign mode gives each clicked cell: a copy of a block, or one place on an open shift */
+export interface AssignSource {
+  chip: Chip
+  /** "B. Haddad, Fri, Jun 5" or "Open shift, Tue, Jun 2" */
+  from: string
+  /** Set when the source is an open shift: each person given it (on its day) fills one place */
+  openShift?: { id: string; day: number }
+}
+
+let assignIds = 0
+/** A comparable form of a day's cells, to skip days that already hold exactly this */
+const daySignature = (chips: Chip[]) => JSON.stringify(chips.map((chip) => [
+  chip.outOfUnit ? chip.unit ?? true : null,
+  chip.branch ?? null,
+  chip.locked ?? null,
+  chip.segments.map((segment) => {
+    const { start, end } = segmentHours(segment)
+    return [segment.code, start, end, segment.overtime ?? null, segment.cancelled ?? null]
+  }),
+]))
+
+const chipSpan = (chip: Chip) => {
+  const hours = chip.segments.map(segmentHours)
+  return { start: Math.min(...hours.map((h) => h.start)), end: Math.max(...hours.map((h) => h.end)) }
+}
+
+/**
+ * Gives a person's day a copy of `source`. It replaces the cells on `lines` (what was clicked) and any other cell of
+ * that day it would overlap. Locked cells (e.g. a court date) stay; overlapping one is an error and nothing changes.
+ * `changed` is false when the day already held exactly this.
+ */
+export function assignDay(chips: Chip[], lines: number[], source: Chip): { chips: Chip[]; changed: boolean; error?: string } {
+  const copy: Chip = { ...source, segments: source.segments.map((segment: WorkforceSegment) => ({ ...segment, id: `a${(assignIds += 1)}` })) }
+  delete copy.locked
+  const range = chipSpan(copy)
+  const overlaps = (chip: Chip) => {
+    const other = chipSpan(chip)
+    return other.start < range.end && other.end > range.start
+  }
+  const kept = chips.filter((chip, index) => chip.locked || (!lines.includes(index) && !overlaps(chip)))
+  const clash = kept.find((chip) => chip.locked && overlaps(chip))
+  if (clash) return { chips, changed: false, error: `has ${clash.segments[0].code} set by ${clash.locked} then` }
+  const next = [...kept, copy]
+  const result = regroupDay(next, flattenDay(next))
+  if (result.error) return { chips, changed: false, error: result.error.toLowerCase() }
+  return { chips: result.chips, changed: daySignature(result.chips) !== daySignature(chips) }
 }
 
 /* ------------------------------------------------------------------ */

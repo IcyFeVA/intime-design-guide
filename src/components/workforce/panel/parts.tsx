@@ -1,24 +1,39 @@
-import { ActionIcon, Alert, Anchor, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
-import { ArrowUpRight, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
+import { ActionIcon, Alert, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
+import { ArrowUpRight, Check, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { Chip } from '../../schedule/data'
 import classes from '../WorkforcePanel.module.css'
 
 type Preview = (action: string) => void
 
-/** The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled. */
-export function PanelFooter({ onPreview, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true }: {
+/**
+ * The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled.
+ * Assign starts assign mode (click cells to give them the shift); while it's on, the button ends it.
+ */
+export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning = false, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true, moreItems }: {
   onPreview: Preview
+  /** Starts assign mode, or ends it while `assigning`. Missing: Assign is preview only. */
+  onAssign?: () => void
+  canAssign?: boolean
+  assigning?: boolean
   /** Opens the leave entry. Missing: Leave is preview only. */
   onLeave?: () => void
   /** Missing: Delete is disabled */
   onDelete?: () => void
   deleteLabel?: string
   canLeave?: boolean
+  /** Extra ⋯ items, above History (e.g. the bulk panel's Load from template and Paste) */
+  moreItems?: ReactNode
 }) {
   return (
     <div className={classes.footer}>
-      <Button color="intime" className={classes.grow} leftSection={<Plus size={16} aria-hidden="true" />} onClick={() => onPreview('Assign')}>Assign</Button>
+      {assigning ? (
+        <Button variant="light" color="intime" className={classes.grow} leftSection={<Check size={16} aria-hidden="true" />} onClick={onAssign}>Done assigning</Button>
+      ) : (
+        <Button color="intime" className={classes.grow} leftSection={<Plus size={16} aria-hidden="true" />} onClick={onAssign ?? (() => onPreview('Assign'))} disabled={!canAssign}>
+          Assign
+        </Button>
+      )}
       <Button variant="default" leftSection={<PlaneTakeoff size={16} aria-hidden="true" />} onClick={onLeave ?? (() => onPreview('Leave'))} disabled={!canLeave}>Leave</Button>
       <Menu position="top-end" offset={6}>
         <Menu.Target>
@@ -27,6 +42,7 @@ export function PanelFooter({ onPreview, onLeave, onDelete, deleteLabel = 'Delet
           </Tooltip>
         </Menu.Target>
         <Menu.Dropdown>
+          {moreItems}
           <Menu.Item leftSection={<History size={16} aria-hidden="true" />} onClick={() => onPreview('History')}>History</Menu.Item>
           <Menu.Divider />
           <Menu.Item color="red" leftSection={<Trash2 size={16} aria-hidden="true" />} onClick={onDelete} disabled={!onDelete}>{deleteLabel}</Menu.Item>
@@ -56,22 +72,23 @@ export function PanelTabs({ details }: { details: ReactNode }) {
   )
 }
 
-/** "84th Precinct - Brooklyn" → "84th Precinct" */
-const branchName = (branch: string) => branch.split(' - ')[0]
 
 /**
- * Where the selected assignment is worked, when it isn't this unit. Out of unit (same precinct) stays editable;
- * out of branch (another precinct) is read-only, with a way to open it there.
+ * About the selected assignment. Locked (set outside scheduling, e.g. a court date): read-only. Out of branch (another
+ * precinct) and out of unit (another unit here): where it's worked; both stay editable.
  */
-export function AssignmentBanner({ chip, onPreview }: { chip: Chip | null; onPreview: Preview }) {
-  if (chip?.branch) {
-    const name = branchName(chip.branch)
+export function AssignmentBanner({ chip }: { chip: Chip | null }) {
+  if (chip?.locked) {
     return (
       <Alert variant="light" color="gray" icon={<Lock size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
-        Working at {name}. Only {name} can change this.
-        <Anchor component="button" type="button" size="sm" fw={600} className={classes.bannerLink} onClick={() => onPreview(`Open in ${name}`)}>
-          Open in {name} <ArrowUpRight size={14} aria-hidden="true" />
-        </Anchor>
+        Set by {chip.locked}. You can’t change it here.
+      </Alert>
+    )
+  }
+  if (chip?.branch) {
+    return (
+      <Alert variant="light" color="gray" icon={<ArrowUpRight size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
+        Working out of branch
       </Alert>
     )
   }

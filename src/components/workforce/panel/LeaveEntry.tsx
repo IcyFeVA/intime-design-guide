@@ -25,7 +25,7 @@ export function LeaveTypeField({ code, onCode, label = 'Leave type' }: { code: s
  * Inline leave entry, opened by the footer's Leave button. Part of the day starts on the selected assignment's
  * times and goes inside it (a partial leave); All day replaces the day's assignments, which Undo brings back.
  */
-export function LeaveEntry({ span, replaces, onAdd, onCancel }: {
+export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sick', defaultAllDay = !replaces, title = 'Add leave' }: {
   /** Where part-of-the-day leave starts: the selected assignment, or the watch's hours on an empty day */
   span: { start: number; end: number }
   /** What All day replaces ("PatD 08:00–16:00"), or null when the day has nothing to replace */
@@ -33,11 +33,15 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel }: {
   /** Save the leave. Returns an error to show, or null when saved. */
   onAdd: (leave: LeaveRequest) => string | null
   onCancel: () => void
+  defaultCode?: string
+  /** Starts on All day. Default: when the day has nothing to replace. */
+  defaultAllDay?: boolean
+  title?: string
 }) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
-  const [code, setCode] = useState('Sick')
-  const [allDay, setAllDay] = useState(!replaces)
+  const [code, setCode] = useState(defaultCode)
+  const [allDay, setAllDay] = useState(defaultAllDay)
   const [start, setStart] = useState(timeValue(span.start))
   const [end, setEnd] = useState(timeValue(span.end))
   const [error, setError] = useState<string | null>(null)
@@ -72,7 +76,7 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel }: {
         if (event.key === 'Enter' && (event.target as HTMLElement).tagName === 'INPUT' && !(event.target as HTMLElement).closest('[aria-expanded="true"]')) add()
       }}
     >
-      <Text id={titleId} size="sm" fw={600} mb={10}>Add leave</Text>
+      <Text id={titleId} size="sm" fw={600} mb={10}>{title}</Text>
       <SimpleGrid cols={2} spacing={8} verticalSpacing={10}>
         <LeaveTypeField code={code} onCode={setCode} />
         <div>

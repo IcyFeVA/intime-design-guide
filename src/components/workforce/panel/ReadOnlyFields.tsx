@@ -4,7 +4,7 @@ import { formatLongDay, type SegmentDetails, type WorkforceSegment } from '../da
 import { formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
 
-/** The selected segment as plain label and value pairs: another branch's assignment, which only that branch can change. */
+/** The selected segment as plain label and value pairs: a locked assignment (e.g. a court date), set outside scheduling. */
 export function ReadOnlyFields({ segment, details, day }: { segment: WorkforceSegment; details: SegmentDetails; day: number }) {
   const { start, end } = segmentHours(segment)
   const name = shiftCodeMap[segment.code]?.label ?? segment.code

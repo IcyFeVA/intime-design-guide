@@ -7,9 +7,55 @@
 }
 
 .gridArea {
+  position: relative;
   flex: 1;
   min-width: 0;
   min-height: 0;
+}
+
+/* ---------- Assign mode ---------- */
+
+/* Floats over the bottom of the grid, centered, so the grid keeps its height */
+.assignBar {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100% - 32px);
+  padding: 8px 8px 8px 14px;
+  border: 1px solid var(--workforce-selected-border);
+  border-radius: var(--mantine-radius-lg);
+  background: var(--intime-surface-raised);
+  box-shadow: var(--mantine-shadow-md);
+  transform: translateX(-50%);
+}
+
+.assignIcon {
+  flex: none;
+  color: var(--text-primary-default);
+}
+
+.assignText {
+  min-width: 0;
+}
+
+.assignTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.assignCode {
+  padding: 1px 6px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--schedule-chip-text);
+  background: var(--code-fill);
 }
 
 .placeholder {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FocusEvent, type KeyboardEvent, type MouseEvent, type PointerEvent } from 'react'
 
 /* ------------------------------------------------------------------ */
 /* Excel-like selection and roving focus for a grid of rows × days.    */
@@ -20,6 +20,12 @@ export type GridContextTarget =
   | { kind: 'rows'; row: string }
   | { kind: 'columns'; day: number }
   | { kind: 'cells'; cell: CellRef }
+
+/** What a click, drag or Enter ended on: cells, whole rows (a row header) or whole days (a column header), and the cells selected then */
+export interface GridActivation {
+  kind: 'cells' | 'rows' | 'columns'
+  cells: CellRef[]
+}
 
 export const cellKey = (row: string, day: number): CellKey => `${row}@${day}`
 const parseKey = (key: CellKey): CellRef => {
@@ -45,8 +51,8 @@ export interface GridSelectionOptions {
   isSelectable: (row: string, day: number) => boolean
   /** Column for the first tab stop, e.g. today. Defaults to the first day. */
   preferredDay?: number
-  /** A click, a drag or Enter on a selectable cell ended. Open the details here. */
-  onActivate?: (via: 'pointer' | 'keyboard') => void
+  /** A click, a drag or Enter on a selectable cell ended. Open the details here. `target` has the cells selected now. */
+  onActivate?: (via: 'pointer' | 'keyboard', target: GridActivation) => void
   /** Escape with at most one cell selected. Return `true` if it did something, e.g. closed a panel. */
   onEscape?: () => boolean
   /** `onEscape` will handle Escape right now (e.g. a panel is open). Keeps a surrounding Mantine modal from closing too. */
@@ -169,6 +175,10 @@ export function useGridSelection({
   const ordered = useMemo(() => [...selected].map(parseKey).sort((a, b) =>
     (indexes.rowIndex.get(a.row)! - indexes.rowIndex.get(b.row)!) || (indexes.dayIndex.get(a.day)! - indexes.dayIndex.get(b.day)!)), [selected, indexes])
 
+  /** The selection as last rendered, for the end of a drag (its listener outlives several renders) */
+  const orderedRef = useRef(ordered)
+  useLayoutEffect(() => { orderedRef.current = ordered }, [ordered])
+
   const tabStop = useMemo<CellPos | null>(() => {
     if (state.active) return state.active
     const day = preferredDay !== undefined && indexes.dayIndex.has(preferredDay) ? preferredDay : days[0]
@@ -182,7 +192,7 @@ export function useGridSelection({
     if (!dragging) return
     const end = () => {
       setDragging(false)
-      onActivate?.('pointer')
+      onActivate?.('pointer', { kind: dragKind.current, cells: orderedRef.current })
       // Opening a panel narrows the grid: keep the clicked cell in view
       requestAnimationFrame(() => requestAnimationFrame(() => {
         const focused = document.activeElement
@@ -406,7 +416,7 @@ export function useGridSelection({
       } else {
         selectRows(pos.row, mode)
       }
-      if (event.key === 'Enter') onActivate?.('keyboard')
+      if (event.key === 'Enter') onActivate?.('keyboard', { kind: onHeader ? 'columns' : 'rows', cells: [] })
       return
     }
 
@@ -422,8 +432,9 @@ export function useGridSelection({
 
     if (event.key === 'Enter' && canSelect(pos)) {
       handled()
-      if (!selected.has(cellKey(pos.row, pos.day))) selectOnly(pos)
-      onActivate?.('keyboard')
+      const inSelection = selected.has(cellKey(pos.row, pos.day))
+      if (!inSelection) selectOnly(pos)
+      onActivate?.('keyboard', { kind: 'cells', cells: inSelection ? ordered : [pos] })
       return
     }
 

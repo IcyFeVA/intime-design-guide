@@ -1,7 +1,7 @@
 import { memo, useState, type CSSProperties, type SyntheticEvent } from 'react'
 import { useElementSize } from '@mantine/hooks'
-import { ActionIcon, Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle } from 'lucide-react'
+import { Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
@@ -28,6 +28,8 @@ export interface WorkforceGridProps {
   onCoverageClick: (watch: Watch, day: number) => void
   /** Adds the right-click menu (see `GridContextMenu`). Pass `onContextMenu` to `useGridSelection` too. */
   contextMenu?: { title: string; onPreview: (action: string) => void }
+  /** Assign mode is on: people's cells show a copy cursor and a dashed outline on hover */
+  assigning?: boolean
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -37,36 +39,23 @@ const isolate = {
   onFocus: (event: SyntheticEvent) => event.stopPropagation(),
 }
 
-/** "Employee" with a search button. The button swaps the label for a filter input; X (or Escape) swaps it back. Filtering isn't built yet. */
+/** The name column's header: an always-visible employee search. X (or Escape) clears it. Filtering isn't built yet. */
 function EmployeeSearch() {
-  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const close = () => { setOpen(false); setQuery('') }
-  if (!open) {
-    return (
-      <>
-        <span>Employee</span>
-        <ActionIcon {...isolate} variant="subtle" color="gray" size={28} aria-label="Search employees" onClick={() => setOpen(true)}>
-          <Search size={16} strokeWidth={1.75} aria-hidden="true" />
-        </ActionIcon>
-      </>
-    )
-  }
   return (
     <TextInput
       {...isolate}
-      onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape') close() }}
-      data-mantine-stop-propagation="true"
+      onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape' && query) setQuery('') }}
+      data-mantine-stop-propagation={query ? 'true' : undefined}
       className={classes.cornerSearch}
       classNames={{ input: classes.cornerSearchInput }}
       size="sm"
-      autoFocus
       aria-label="Search employees"
       placeholder="Search employees…"
       value={query}
       onChange={(event) => setQuery(event.currentTarget.value)}
       leftSection={<Search size={16} strokeWidth={1.75} aria-hidden="true" />}
-      rightSection={<CloseButton size="sm" aria-label="Close search" onClick={close} />}
+      rightSection={query ? <CloseButton size="sm" aria-label="Clear search" onClick={() => setQuery('')} /> : null}
     />
   )
 }
@@ -119,15 +108,16 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
   'data-boundary': boundary || undefined,
 })
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean }) {
+const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean; warning: string | null }) {
   const context = `${name}, ${formatHeader(state.day)}`
   return (
     <div
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
-      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}`}
+      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${warning ? `. Warning: ${warning}` : ''}`}
     >
+      {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
       {chip ? (
         cells === 'detailed' ? <DetailedChip chip={chip} />
           : cells === 'stacked' ? <StackedChip chip={chip} />
@@ -208,7 +198,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false,
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
@@ -382,7 +372,7 @@ export default function WorkforceGrid({
               </div>
             )}
             {row.cells.map((chip, index) => (
-              <MemberCell key={days[index]} chip={chip} name={name} overflow={row.overflow} {...cellState(row.key, days[index], index)} />
+              <MemberCell key={days[index]} chip={chip} name={name} overflow={row.overflow} warning={row.warnings[index]} {...cellState(row.key, days[index], index)} />
             ))}
           </div>
         )
@@ -455,6 +445,7 @@ export default function WorkforceGrid({
       data-layout={density}
       data-single-day={single || undefined}
       data-cells={cells === 'codes' ? undefined : cells}
+      data-assigning={assigning || undefined}
     >
       {contextMenu ? <GridContextMenu title={contextMenu.title} onPreview={contextMenu.onPreview}>{grid}</GridContextMenu> : grid}
       <VisuallyHidden role="status">{selection.selected.size > 1 ? `${selection.selected.size} cells selected` : ''}</VisuallyHidden>

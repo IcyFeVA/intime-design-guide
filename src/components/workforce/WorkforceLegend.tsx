@@ -1,5 +1,5 @@
 import { ActionIcon, Popover, Text, Tooltip } from '@mantine/core'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { MOCK_TODAY, type Chip } from '../schedule/data'
 import { legendItems, viewDensities, type LegendKey, type ViewDensity } from '../../tokens/workforce'
@@ -18,6 +18,8 @@ const chips: Partial<Record<LegendKey, Chip>> = {
   partialLeave: { segments: [{ code: 'PatD', start: 8, end: 16 }, { code: 'Sick', start: 13, end: 16 }] },
   outOfUnit: { segments: [{ code: 'PatD' }], outOfUnit: true, unit: 'Special Ops' },
   outOfBranch: { segments: [{ code: 'PatD' }], branch: '84th Precinct - Brooklyn' },
+  locked: { segments: [{ code: 'Court' }], locked: 'Kings County Court' },
+  warning: { segments: [{ code: 'PatD' }] },
 }
 
 const openShift = (status: OpenShift['status']): OpenShift => ({
@@ -28,6 +30,14 @@ const openShift = (status: OpenShift['status']): OpenShift => ({
 function Specimen({ item, view }: { item: LegendKey; view: ViewDensity }) {
   if (item === 'open' || item === 'live') {
     return <OpenShiftChip shift={openShift(item)} density={view === 'compact' ? 'comfortable' : view} />
+  }
+  if (item === 'warning') {
+    return (
+      <span className={classes.legendWarning}>
+        <Specimen item="scheduled" view={view} />
+        <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />
+      </span>
+    )
   }
   const chip = chips[item]!
   if (view === 'detailed') return <DetailedChip chip={chip} />

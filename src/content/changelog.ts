@@ -76,6 +76,61 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'Several selected cells can now be changed at once: assign one shift to all of them, change a field, add leave or delete them.',
+    changes: [
+      'A shift picker with “Assign to N” gives every selected person-day the shift in one save. Locked cells and open shifts are skipped, and the status line says why.',
+      'A collapsed “Change fields” section sets Activity, Location, Hours modifier or Unit on every selected cell as you pick it. Differing values show “Mixed”.',
+      'The footer matches one cell’s: Assign (assign mode with the picked shift), Leave (to every selected day) and more: Load from template, Paste, History and Delete all, which asks first.',
+      'The list of selected cells is gone; the grid shows them. The selection hint moved to the empty panel.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Out of branch is simpler: the cell shows only the arrow, and the panel says “Working out of branch”.',
+    changes: [
+      'Cells drop the precinct’s short name (“84th”) and keep the ↗ arrow, in every view density.',
+      'The panel banner reads “Working out of branch”, without the “Open in 84th Precinct” link. The assignment’s first row says “Out of branch”.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Employee search is always visible, out of branch is now editable, and court dates can be locked.',
+    changes: [
+      'The “Employee” heading and its search button are gone: “Search employees…” sits above the names, one click less. X or Escape clears it.',
+      'Out of branch (another precinct) stays muted with “↗ 84th”, but the scheduler can change it. Its banner reads “Working at 84th Precinct (out of branch)”.',
+      'New: locked assignments, set outside scheduling, such as court dates. Muted with a lock, read-only in the panel (“Set by Kings County Court. You can’t change it here.”), and skipped by assign mode.',
+      'Locked court dates in the demo: T. Nguyen on Wed, S. Kowalski on Tue and L. Garcia on Fri. The legend adds Locked.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The details panel and the grid now warn about scheduling rules: double booked, already on leave, minimum rest, missing certification and the weekly hours cap.',
+    changes: [
+      'Warnings sit under the employee row; several collapse to “2 warnings”. Selecting one selects its assignment, which also gets a ⚠ in the list.',
+      'Grid cells with a warning get a small ⚠ in their corner, in every view density. The legend explains it.',
+      'Warnings never block a change, and they follow edits at once.',
+      'New demo days: A. Johnson and J. Anderson on Wed, C. Lee on Fri, Y. Cohen and O. Petrov on Tue. The odd extra assignment in the mock data no longer overlaps the main one.',
+      'New section: Warnings.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Assign in the details panel now works: it copies the selected assignment, and every cell you click or drag across gets it.',
+    changes: [
+      'A bar over the grid shows what you’re assigning, where it came from, and Done. Escape stops too.',
+      'A click assigns one cell; a drag or Shift-click assigns a range in one step, which one Undo reverts.',
+      'It replaces the clicked cell and anything it overlaps that day. Work at another precinct is skipped, and the status line says why.',
+      'Open shifts and live posts fill one place per person on their day, and leave the grid when filled.',
+      'New section: Assigning a shift.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'Work Scheduling moved to a new Work in Progress group at the bottom of the navigation.',
   },
   {

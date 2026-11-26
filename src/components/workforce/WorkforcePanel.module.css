@@ -300,15 +300,7 @@
   color: var(--text-default);
 }
 
-.bannerLink {
-  display: flex;
-  width: fit-content;
-  align-items: center;
-  gap: 2px;
-  margin-top: 4px;
-}
-
-/* Another branch's assignment: label and value pairs */
+/* A locked assignment (e.g. a court date): label and value pairs */
 .pairs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -330,32 +322,109 @@
 
 /* ---------- Bulk ---------- */
 
-.bulkList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.bulkSection {
   border: 1px solid var(--border-default);
   border-radius: var(--mantine-radius-md);
 }
 
-.bulkItem {
+.bulkToggle {
   display: flex;
   align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--mantine-radius-md);
+}
+
+.bulkToggle:hover {
+  background: var(--background-default-hover);
+}
+
+.bulkFields {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
-  padding: 8px 10px;
-}
-
-.bulkItem + .bulkItem {
-  border-top: 1px solid var(--border-default);
-}
-
-.bulkWho {
-  flex: 1;
-  min-width: 0;
+  padding: 2px 12px 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .row {
+    transition: none;
+  }
+}
+
+/* ---------- Warnings under the employee row ---------- */
+
+.warnings {
+  border: 1px solid var(--border-warning-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-warning-light);
+  color: var(--text-default);
+  overflow: hidden;
+}
+
+.warningsToggle,
+.warningRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.warningsToggle {
+  align-items: center;
+}
+
+.warningList {
+  border-top: 1px solid var(--border-warning-default);
+}
+
+.warningList .warningRow + .warningRow {
+  border-top: 1px solid var(--border-warning-default);
+}
+
+button.warningRow:hover,
+.warningsToggle:hover {
+  background: var(--background-warning-light-hover);
+}
+
+.warningIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-warning-default);
+}
+
+.warningsToggle .warningIcon {
+  margin-top: 0;
+}
+
+.warningText {
+  flex: 1;
+  min-width: 0;
+}
+
+.warningsChevron {
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+  color: var(--text-dimmed);
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.warningsChevron[data-open] {
+  transform: rotate(90deg);
+}
+
+/* The ⚠ on a segment row whose assignment has a warning */
+.rowWarn {
+  flex: none;
+  color: var(--text-warning-default);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warningsChevron {
     transition: none;
   }
 }

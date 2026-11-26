@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button, Select, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
-import { segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
-import { dayKey, type SegmentDetails, type WorkforceSegment } from '../data'
-import { flattenDay, regroupDay, type DaySegment, type PanelItem } from '../model'
+import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
+import { dayKey, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
+import { flattenDay, regroupDay, type AssignSource, type DaySegment, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { SegmentList, type BlockInfo, type PanelSegment, type SegmentHandlers } from './SegmentList'
 import { TimesCard } from './TimesCard'
@@ -12,6 +12,8 @@ import { SegmentFields } from './SegmentFields'
 import { AssignmentBanner, PanelFooter, PanelTabs } from './parts'
 import { LeaveEntry, LeaveTypeField, type LeaveRequest } from './LeaveEntry'
 import { ReadOnlyFields } from './ReadOnlyFields'
+import { WarningStack } from './Warnings'
+import { dayWarnings } from '../warnings'
 import { branches, segmentDetails } from './options'
 import { formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
@@ -47,7 +49,14 @@ function moveNote(before: DaySegment[], after: Chip[], next: DaySegment[], id: s
  * the segments that touch it indented), and one form below for the selected segment. Every change saves at once
  * and the grid follows; times that stop touching move the segment to a line of its own.
  */
-export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; onEdit: (commit: EditCommit) => void; onUndo: () => void; onPreview: Preview }) {
+export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign }: {
+  item: DayItem
+  onEdit: (commit: EditCommit) => void
+  onUndo: () => void
+  onPreview: Preview
+  assigning: boolean
+  onAssign: (source: AssignSource | null) => void
+}) {
   const { member, watch, day } = item
   const items = flattenDay(item.blocks)
   const blocks = item.blocks.map((_, index) => items.filter((entry) => entry.from === index).map((entry) => entry.segment))
@@ -89,10 +98,10 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
     .filter((entry) => !isLeave(entry.segment))
     .reduce<DaySegment | null>((last, entry) => (!last || segmentHours(entry.segment).end > segmentHours(last.segment).end ? entry : last), null)
 
-  /** A new segment touches the day's last one, unless that belongs to another branch: then it starts an hour later. */
+  /** A new segment touches the day's last one, unless that is locked: then it starts an hour later. */
   const addSegment = () => {
     const id = newId('n')
-    const last = latest(items.filter((entry) => !item.blocks[entry.from].branch))
+    const last = latest(items.filter((entry) => !item.blocks[entry.from].locked))
     const other = last ? null : latest(items)
     const segment: PanelSegment = last
       ? { id, code: last.segment.code, start: segmentHours(last.segment).end, end: segmentHours(last.segment).end + 1 }
@@ -125,16 +134,21 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
   const blockOf = (id: string | undefined) => blocks.findIndex((segments) => segments.some((segment) => segment.id === id))
   const selectedBlock = blockOf(selected?.id)
   const selectedChip = item.blocks[selectedBlock] ?? null
-  /** Another branch's assignment: shown, not edited */
-  const readOnly = !!selectedChip?.branch
+  /** Set outside scheduling (e.g. a court date): shown, not edited */
+  const readOnly = !!selectedChip?.locked
   const noteBlock = note ? blockOf(note.id) : -1
-  const blockInfo: BlockInfo[] = item.blocks.map((chip) => ({
-    tag: chip.branch ? chip.branch.split(' - ')[0] : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
-    readOnly: !!chip.branch,
-  }))
+  const warnings = dayWarnings(member, day)
+  const blockInfo: BlockInfo[] = item.blocks.map((chip, index) => {
+    const titles = warnings.filter((warning) => warning.blocks.includes(index)).map((warning) => warning.title)
+    return {
+      tag: chip.locked ? `Set by ${chip.locked}` : chip.branch ? 'Out of branch' : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
+      readOnly: !!chip.locked,
+      warning: titles.length ? titles.join('; ') : undefined,
+    }
+  })
 
-  /* Leave: part of the day starts on the selected assignment (or the day's first one this branch can change) */
-  const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].branch)
+  /* Leave: part of the day starts on the selected assignment (or the day's first one that isn't locked) */
+  const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].locked)
   const leaveBlock = !readOnly && selectedBlock >= 0 ? selectedBlock : ownBlocks[0] ?? -1
   const leaveSpan = leaveBlock >= 0
     ? (() => {
@@ -149,7 +163,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
     if (leave.allDay) {
       const segment: PanelSegment = { id, code: leave.code, start: 0, end: 24 }
       setNote(null)
-      onEdit({ days: [[key, [{ segments: [segment] }, ...item.blocks.filter((chip) => chip.branch)]]] })
+      onEdit({ days: [[key, [{ segments: [segment] }, ...item.blocks.filter((chip) => chip.locked)]]] })
     } else {
       const error = save([...items, { segment: { id, code: leave.code, start: leave.start, end: leave.end }, from: item.blocks.length }])
       if (error) return error
@@ -157,6 +171,15 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
     setSelectedId(id)
     setLeaveOpen(false)
     return null
+  }
+
+  /** Assign: copy the selected assignment into assign mode. An empty day first gets the watch's regular shift. */
+  const startAssign = () => {
+    const from = `${shortName(member)}, ${formatHeader(day)}`
+    if (selectedChip) return onAssign({ chip: selectedChip, from })
+    const chip: Chip = { segments: [{ code: watch.code, start: watch.start, end: watch.end }] }
+    onEdit({ days: [[key, [chip]]] })
+    onAssign({ chip, from })
   }
 
   const form = selected && (() => {
@@ -188,8 +211,9 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
 
   const details = (
     <div className={classes.body}>
-      <AssignmentBanner chip={selectedChip} onPreview={onPreview} />
+      <AssignmentBanner chip={selectedChip} />
       <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
+      <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
       <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />
       <Stack gap={4}>
         {blocks.length
@@ -220,6 +244,9 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
       <PanelTabs details={details} />
       <PanelFooter
         onPreview={onPreview}
+        onAssign={assigning ? () => onAssign(null) : startAssign}
+        canAssign={!readOnly}
+        assigning={assigning}
         onLeave={() => setLeaveOpen(true)}
         canLeave={!leaveOpen}
         deleteLabel={selectedChip?.segments.every(isLeave) ? 'Delete leave' : 'Delete assignment'}

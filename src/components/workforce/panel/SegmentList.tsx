@@ -1,7 +1,7 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import { ActionIcon, Anchor, Menu, Popover, Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
-import { ArrowUpRight, Ban, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, UserSearch } from 'lucide-react'
+import { ArrowUpRight, Ban, Lock, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, TriangleAlert, UserSearch } from 'lucide-react'
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { formatDuration, segmentHours, segmentKind } from '../../schedule/data'
 import type { WorkforceSegment } from '../data'
@@ -19,10 +19,12 @@ export interface SegmentHandlers {
 
 /** What the list shows about an assignment besides its segments */
 export interface BlockInfo {
-  /** Where it's worked, under the root row's times: "Special Ops" (out of unit), "84th Precinct" */
+  /** Where it's worked, under the root row's times: "Special Ops" (out of unit), "Out of branch", or who locked it */
   tag?: string
-  /** Another branch's assignment: rows can be selected, but have no actions */
+  /** Locked (set outside scheduling): rows can be selected, but have no actions, and the tag gets a lock */
   readOnly?: boolean
+  /** Warnings about the assignment, joined: its root row gets a ⚠ */
+  warning?: string
 }
 
 /** Whole-block actions on a root row's menu */
@@ -81,6 +83,7 @@ export function SegmentList({ blocks, selectedId, onSelect, handlers, note, bloc
                 handlers={handlers}
                 blockMenu={index === 0 && blockActions ? { ...blockActions, block, label: blockTotal(segments) } : undefined}
                 tag={index === 0 ? blockInfo[block]?.tag : undefined}
+                warning={index === 0 ? blockInfo[block]?.warning : undefined}
                 readOnly={!!blockInfo[block]?.readOnly}
               />
             ))}
@@ -108,7 +111,7 @@ function Times({ segment }: { segment: PanelSegment }) {
   )
 }
 
-function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockMenu, tag, readOnly }: {
+function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockMenu, tag, warning, readOnly }: {
   segment: PanelSegment
   root: boolean
   /** The block's total, on a root row with indented segments */
@@ -118,6 +121,7 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
   handlers: SegmentHandlers
   blockMenu?: BlockActions & { block: number; label: string }
   tag?: string
+  warning?: string
   readOnly: boolean
 }) {
   const [moving, setMoving] = useState(false)
@@ -161,15 +165,16 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
         className={classes.rowMain}
         onClick={onSelect}
         aria-pressed={selected}
-        aria-label={`${name}, ${formatSpan(start, end)}${segment.cancelled ? ', cancelled' : ''}${total ? `. Assignment ${total}` : ''}${tag ? `. ${tag}` : ''}`}
+        aria-label={`${name}, ${formatSpan(start, end)}${segment.cancelled ? ', cancelled' : ''}${total ? `. Assignment ${total}` : ''}${tag ? `. ${tag}` : ''}${warning ? `. Warning: ${warning}` : ''}`}
       >
         {!root && <CornerDownRight size={14} className={classes.indentMark} aria-hidden="true" />}
         <span className={classes.code} style={codeFill(segment.code)}>{segment.code}</span>
         <span className={classes.rowText}>
           <Times segment={segment} />
           {total && <span className={classes.total}>{total}</span>}
-          {tag && <span className={classes.rowTag}><ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />{tag}</span>}
+          {tag && <span className={classes.rowTag}>{readOnly ? <Lock size={12} strokeWidth={2} aria-hidden="true" /> : <ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />}{tag}</span>}
         </span>
+        {warning && <TriangleAlert size={14} strokeWidth={2} className={classes.rowWarn} aria-hidden="true" />}
         <span className={classes.duration}>{formatDuration(end - start)}</span>
       </UnstyledButton>
       {selected && !readOnly && !isLeave(segment) && (

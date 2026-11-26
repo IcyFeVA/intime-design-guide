@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Select } from '@mantine/core'
 import { findWatch, type OpenShiftEdit, type SegmentDetails } from '../data'
-import type { PanelItem } from '../model'
+import { formatHeader } from '../../schedule/data'
+import type { AssignSource, PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { SegmentList, type PanelSegment, type SegmentHandlers } from './SegmentList'
 import { TimesCard } from './TimesCard'
@@ -14,7 +15,13 @@ import classes from '../WorkforcePanel.module.css'
 type OpenItem = Extract<PanelItem, { kind: 'open-shift' }>
 
 /** An open or live shift: one segment, no employee yet. Changes save at once; Assign gives it to someone. */
-export function OpenShiftEditor({ item, onEdit, onPreview }: { item: OpenItem; onEdit: (commit: EditCommit) => void; onPreview: (action: string) => void }) {
+export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }: {
+  item: OpenItem
+  onEdit: (commit: EditCommit) => void
+  onPreview: (action: string) => void
+  assigning: boolean
+  onAssign: (source: AssignSource | null) => void
+}) {
   const { shift } = item
   const [employee, setEmployee] = useState<string | null>(null)
   const [branch, setBranch] = useState<string | null>(branches[0])
@@ -52,7 +59,15 @@ export function OpenShiftEditor({ item, onEdit, onPreview }: { item: OpenItem; o
   return (
     <>
       <PanelTabs details={body} />
-      <PanelFooter onPreview={onPreview} canLeave={false} deleteLabel="Delete open shift" onDelete={() => save({ deleted: true })} />
+      <PanelFooter
+        onPreview={onPreview}
+        assigning={assigning}
+        onAssign={assigning ? () => onAssign(null) : () => onAssign({
+          chip: { segments: [{ code: shift.code, start: shift.start, end: shift.end, details } as PanelSegment] },
+          from: `${shift.status === 'live' ? 'Live post' : 'Open shift'}, ${formatHeader(shift.day)}`,
+          openShift: { id: shift.id, day: shift.day },
+        })}
+        canLeave={false} deleteLabel="Delete open shift" onDelete={() => save({ deleted: true })} />
     </>
   )
 }
