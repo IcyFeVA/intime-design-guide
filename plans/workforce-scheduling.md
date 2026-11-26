@@ -478,6 +478,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] Page: new section `bulk` "Editing several cells" (The details panel group); the panel modes table updated; changelog.
 - Decided without the user (check): the shift picker lists working codes only (leave has the Leave button); Assign to N uses the code's default hours, not the person's watch hours; Delete all also deletes selected open shifts, while Assign to N skips them; Change fields applies to open shifts too; the footer's Assign starts assign mode with the picked shift (so it differs from Assign to N); the delete confirm is inline in the panel, not a modal; "Change fields" closes again when the selection changes.
 - Not yet: Load from template and History are preview only; Paste is disabled until copy/paste exists (step 8).
+- **Times and fields in Assign to N: not now** (2026-11-26, user). Assign to N keeps the code's default hours and no fields. For other hours or fields, set up one cell as wanted, then use the footer's Assign (assign mode) to copy it to other cells.
 
 ### Locked assignments; out of branch editable (2026-11-26, user)
 
@@ -523,7 +524,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
 
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
-- Bulk panel: should Assign to N use each person's watch hours instead of the code's default hours? Should Delete all skip open shifts, as Assign to N does?
+- Bulk panel: should Delete all skip open shifts, as Assign to N does?
 - Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
 - ~~Meaning of the employee-row icons~~ Answered 2026-11-25 (review item 8): Hours = hours summary popover, Crosshair = Find in schedule, Chevron = person actions menu.
 - Real values for Customer, Hours modifier and Rank (acting).
