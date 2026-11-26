@@ -1,5 +1,5 @@
-import { createTheme, type CSSVariablesResolver, type MantineColorsTuple } from '@mantine/core'
-import { brandPalettes, neutralPalette } from './tokens/colors'
+import { ActionIcon, Button, createTheme, type CSSVariablesResolver, type MantineColorsTuple } from '@mantine/core'
+import { brandPalettes, destructiveAction, neutralPalette } from './tokens/colors'
 import { findTheme, isColorToken, mantineAliases, type ThemeDef } from './tokens/themes'
 import { fontFamilies, fontSizes, headingScale } from './tokens/typography'
 import { radius, shadows, spacing } from './tokens/scales'
@@ -21,6 +21,10 @@ const heading = (token: string) => {
   const style = headingScale.find((item) => item.token === token)!
   return { fontSize: `${style.size / 16}rem`, lineHeight: `${style.lineHeight / style.size}`, fontWeight: String(style.weight) }
 }
+
+/** Red filled or light buttons are destructive: they all get the error-light look from `destructiveAction`. */
+const isDestructive = ({ color, variant }: { color?: string; variant?: string }) =>
+  color === 'red' && (!variant || variant === 'filled' || variant === 'light')
 
 /** Theme generated from `src/tokens/*`. Edit tokens, not this file, when Figma values change. */
 export const theme = createTheme({
@@ -53,6 +57,20 @@ export const theme = createTheme({
     Badge: { defaultProps: { radius: 'sm' } },
     Paper: { defaultProps: { radius: 'md' } },
     Card: { defaultProps: { radius: 'md' } },
+    Button: Button.extend({
+      vars: (_, props) => ({
+        root: isDestructive(props)
+          ? { '--button-bg': destructiveAction.background, '--button-hover': destructiveAction.hover, '--button-color': destructiveAction.text, '--button-bd': '1px solid transparent' }
+          : {},
+      }),
+    }),
+    ActionIcon: ActionIcon.extend({
+      vars: (_, props) => ({
+        root: isDestructive(props)
+          ? { '--ai-bg': destructiveAction.background, '--ai-hover': destructiveAction.hover, '--ai-color': destructiveAction.text, '--ai-bd': '1px solid transparent' }
+          : {},
+      }),
+    }),
   },
 })
 

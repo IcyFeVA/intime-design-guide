@@ -23,7 +23,7 @@ export default function Buttons() {
           </Preview>
           <PropsTable rows={[
             { prop: 'variant', type: 'filled | light | default | subtle | outline', default: 'filled', description: 'Action hierarchy; filled is reserved for the primary action.' },
-            { prop: 'color', type: 'MantineColor', default: 'intime', description: 'Use red for irreversible or destructive actions.' },
+            { prop: 'color', type: 'MantineColor', default: 'intime', description: 'Use red for irreversible or destructive actions. Red buttons get the error-light background and error text.' },
             { prop: 'leftSection', type: 'ReactNode', description: 'Optional 16px icon, before the label.' },
           ]} />
         </Stack>

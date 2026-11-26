@@ -99,4 +99,15 @@ export const semanticTokens: SemanticToken[] = [
   { name: 'Info', mantine: 'blue', usage: 'Neutral notices, tips, informational banners.', status: 'confirmed' },
 ]
 
+/**
+ * Delete and other destructive buttons (`color="red"`, filled or light variant): error-light background, error text.
+ * The theme applies these to every red Button and ActionIcon, so pages don't style them one by one.
+ */
+export const destructiveAction = {
+  background: 'var(--background-error-light)',
+  hover: 'var(--background-error-light-hover)',
+  text: 'var(--text-error-default)',
+  status: 'review' as TokenStatus,
+}
+
 export const allPalettes: Palette[] = [...brandPalettes, neutralPalette]

@@ -13,6 +13,237 @@
   font-weight: 600;
 }
 
+/* ---------- Add Leave Request and confirmations ---------- */
+
+.typeBox {
+  padding: 20px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+}
+
+.banks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.banks > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.banks dt {
+  color: var(--text-dimmed);
+}
+
+.banks dd {
+  margin: 0;
+}
+
+.addNoteLink {
+  align-self: flex-start;
+  color: var(--text-primary-default);
+}
+
+.confirmTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warnIcon {
+  flex: none;
+  color: var(--text-warning-default);
+}
+
+.confirmText {
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.55;
+}
+
+.confirm {
+  color: var(--text-default);
+}
+
+/* ---------- Team Bids ---------- */
+
+.teamToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.toolbarDivider {
+  width: 1px;
+  height: 24px;
+  margin-inline: 12px;
+  background: var(--border-default);
+}
+
+.teamCal {
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-sm);
+  overflow: hidden;
+}
+
+.teamHead,
+.teamWeek {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.teamHead > div {
+  padding: 10px 8px;
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-dimmed);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.teamHead > div + div,
+.teamDay + .teamDay {
+  border-left: 1px solid var(--border-default);
+}
+
+.teamWeek + .teamWeek {
+  border-top: 1px solid var(--border-default);
+}
+
+.teamDay {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  min-height: 124px;
+  padding: 8px;
+}
+
+.teamWeek[data-view='week'] .teamDay {
+  min-height: 320px;
+}
+
+.teamDayNumber {
+  padding-inline: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.teamDayNumber[data-outside] {
+  font-weight: 400;
+  color: var(--text-dimmed);
+}
+
+.teamDayNumber[data-today] {
+  color: var(--text-primary-default);
+}
+
+.teamChips {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.teamChip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  height: 26px;
+  padding-inline: 8px;
+  border-radius: var(--mantine-radius-xs);
+  font-size: var(--mantine-font-size-sm);
+}
+
+.teamChip[data-status='awarded'],
+.teamSwatch[data-status='awarded'] {
+  background: var(--bidding-awarded-bg);
+}
+
+.teamChip[data-status='pending'],
+.teamSwatch[data-status='pending'] {
+  background:
+    repeating-linear-gradient(135deg, var(--bidding-pending-stripe) 0 6px, transparent 6px 14px),
+    var(--bidding-pending-bg);
+  outline: 1px dashed var(--bidding-pending-border);
+  outline-offset: -1px;
+}
+
+.teamName {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.awardIcon {
+  flex: none;
+  color: var(--bidding-awarded-icon);
+}
+
+.pendingDot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  margin-inline: 2px;
+  border-radius: 50%;
+  background: var(--bidding-pending-dot);
+}
+
+/* “+N”: sits on the corner of the last name, as in Figma */
+.teamMore {
+  position: absolute;
+  right: 2px;
+  bottom: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-xs);
+  background: var(--background-default);
+}
+
+.teamMore:hover,
+.teamMore[aria-expanded='true'] {
+  background: var(--background-default-hover);
+}
+
+.teamMore:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
+}
+
+.teamLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-default);
+}
+
+.teamLegendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-dimmed);
+}
+
+.teamSwatch {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 24px;
+  border-radius: var(--mantine-radius-xs);
+}
+
 /* ---------- Tabs (same look as the Unit / Location tabs) ---------- */
 
 .tabs {

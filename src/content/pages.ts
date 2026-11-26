@@ -65,7 +65,7 @@ export const pages: PageDef[] = [
   },
   // Components
   {
-    path: '/components/buttons', title: 'Buttons', group: 'Components', icon: MousePointerClick, status: 'confirmed', updated: '2026-11-12',
+    path: '/components/buttons', title: 'Buttons', group: 'Components', icon: MousePointerClick, status: 'confirmed', updated: '2026-11-26',
     description: 'Button variants, sizes, icon buttons and states.',
     keywords: ['cta', 'action', 'action icon', 'destructive', 'loading'],
     sections: s(['variants', 'Variants'], ['sizes', 'Sizes'], ['icon-buttons', 'Icon buttons'], ['states', 'States'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
@@ -157,10 +157,10 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/Approvals')),
   },
   {
-    path: '/patterns/vacation-bidding', title: 'Vacation Bidding', group: 'Patterns', icon: TreePalm, status: 'review', updated: '2026-11-26',
+    path: '/patterns/vacation-bidding', title: 'Vacation Bidding', group: 'Patterns', icon: TreePalm, status: 'confirmed', updated: '2026-11-26',
     description: 'How employees bid for time off: wait for their turn, add leave requests, rank them and submit.',
-    keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once'],
-    sections: s(['desktop', 'Turn-based bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once', 'team bids', 'awarded', 'team calendar'],
+    sections: s(['desktop', 'Turn-based bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['team-bids', 'Team Bids'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/VacationBidding')),
   },
   {

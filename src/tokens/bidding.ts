@@ -8,7 +8,7 @@ import type { TokenStatus } from './types'
 export type BidMode = 'turn-based' | 'all-at-once'
 
 export const bidModes: { key: BidMode; label: string; meaning: string; status: TokenStatus }[] = [
-  { key: 'turn-based', label: 'Turn-based', meaning: 'Employees bid one after another, usually by seniority. You wait in a queue, then rank your requests while it is your turn.', status: 'review' },
+  { key: 'turn-based', label: 'Turn-based', meaning: 'Employees bid one after another, usually by seniority. You wait in a queue, then rank your requests while it is your turn.', status: 'confirmed' },
   { key: 'all-at-once', label: 'All at once', meaning: 'Everyone bids during the same window. Coming next.', status: 'draft' },
 ]
 
@@ -23,17 +23,17 @@ export const bidStates: { key: BidState; badge: string; when: string; panel: str
   {
     key: 'queued', badge: 'queued', when: 'Other employees bid before you',
     panel: 'How many employees are ahead of you, and that you will be notified when it is your turn. No requests yet.',
-    list: 'Queued badge and the time left in the bid.', status: 'review',
+    list: 'Queued badge and the time left in the bid.', status: 'confirmed',
   },
   {
     key: 'your-turn', badge: 'your-turn', when: 'It is your turn to bid',
     panel: 'Add Request and View Team Bids, your ranked requests, and Submit at the bottom. Submit is disabled until you add a request.',
-    list: 'Your Turn badge, the time left, and “Selected: N” once you add requests.', status: 'review',
+    list: 'Your Turn badge, the time left, and “Selected: N” once you add requests.', status: 'confirmed',
   },
   {
     key: 'pending', badge: 'pending', when: 'You submitted your requests',
     panel: 'Your selection is locked in. You can change the ranking (Edit) or remove a request, but not add one. “Submitted on” at the bottom.',
-    list: 'Pending badge and “Signed up for: N”.', status: 'review',
+    list: 'Pending badge and “Signed up for: N”.', status: 'confirmed',
   },
 ]
 
@@ -51,6 +51,13 @@ export const leaveTypes: { key: LeaveTypeKey; label: string; meaning: string }[]
   { key: 'personal', label: 'Personal Day', meaning: 'A single personal day.' },
 ]
 
+/** Team Bids: leave other employees bid for. Awarded is approved; pending waits for a scheduler. */
+export type TeamBidStatus = 'awarded' | 'pending'
+export const teamBidStatuses: { key: TeamBidStatus; label: string; meaning: string }[] = [
+  { key: 'awarded', label: 'Awarded', meaning: 'A scheduler approved the leave. Solid green with an award icon.' },
+  { key: 'pending', label: 'Pending', meaning: 'Submitted and waiting for a scheduler. Striped with a dashed outline and a dot.' },
+]
+
 export const leaveTypeLabel = (key: LeaveTypeKey) => leaveTypes.find((type) => type.key === key)!.label
 
 /* ------------------------------------------------------------------ */
@@ -66,7 +73,7 @@ export interface BiddingToken {
 }
 
 const t = (name: BiddingToken['name'], value: string, kind: BiddingToken['kind'], usage: string): BiddingToken =>
-  ({ name, value, kind, usage, status: 'review' })
+  ({ name, value, kind, usage, status: 'confirmed' })
 
 /** Vacation bidding. All aliases of theme tokens, so they follow the dark and light schemes. */
 export const biddingTokens: BiddingToken[] = [
@@ -79,6 +86,12 @@ export const biddingTokens: BiddingToken[] = [
   t('--bidding-request-border', 'var(--border-border-info)', 'color', 'Dashed outline of the requested days. Dashed, because they are not approved yet.'),
   t('--bidding-request-text', 'var(--text-info)', 'color', 'Label on the requested days.'),
   t('--bidding-picked-text', 'var(--text-success-default)', 'color', 'Selected and Signed up for, in the bid list.'),
+  t('--bidding-awarded-bg', 'var(--background-success-light)', 'color', 'Awarded leave in Team Bids.'),
+  t('--bidding-awarded-icon', 'var(--text-success-default)', 'color', 'Award icon on awarded leave.'),
+  t('--bidding-pending-bg', 'var(--calendar-pending-bg)', 'color', 'Pending leave in Team Bids, under the stripes. Same as a pending calendar event.'),
+  t('--bidding-pending-stripe', 'var(--calendar-pending-stripe)', 'color', 'Stripes on pending leave.'),
+  t('--bidding-pending-border', 'var(--calendar-pending-border)', 'color', 'Dashed outline of pending leave.'),
+  t('--bidding-pending-dot', 'var(--text-warning-default)', 'color', 'Dot before a pending name.'),
 ]
 
 export const biddingCssVariables: Record<string, string> = Object.fromEntries(biddingTokens.map((token) => [token.name, token.value]))

@@ -24,6 +24,7 @@
 - Workforce Scheduling (`src/components/workforce/`) selects cells like a spreadsheet with `useGridSelection` (right-click opens `GridContextMenu`, a Mantine `Menu.ContextMenu`) and edits them in a docked `WorkforcePanel`; it reuses the schedule components and Team View's cell design. View densities: Compact (default, shift codes) and Detailed (`DetailedChip`: activity names and times, overtime split into its own container), Detailed only where days are 96px or wider; Stacked (`StackedChip`: a 16px colored bar per assignment, no text) at any width.
 - Prefer Mantine components and theme tokens over hand-built equivalents.
 - Use CSS variables (`--intime-surface`, `--intime-surface-raised`, `--intime-border`, `--mantine-color-*`) so both color schemes work.
+- Delete and other destructive buttons: `color="red"` on Button/ActionIcon. The theme gives them the error-light background and error text (`destructiveAction` in `src/tokens/colors.ts`); don't restyle them.
 - Show shift states with an icon and a label, never color alone.
 - Preserve responsive layouts, semantic labels, keyboard access, and visible focus states.
 

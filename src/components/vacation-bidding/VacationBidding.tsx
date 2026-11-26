@@ -4,19 +4,21 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import {
-  ArrowDown, ArrowUp, CalendarDays, ChevronDown, CircleCheck, Clock, GripVertical, Inbox, Plus, Search, Send, SquarePen, StickyNote, Trash2,
+  ArrowDown, ArrowUp, Calendar, CalendarDays, ChevronDown, CircleCheck, Clock, GripVertical, Inbox, Plus, Search, Send, SquarePen, StickyNote, Trash2, TriangleAlert,
 } from 'lucide-react'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import { formatMonthDay, weekdayIndex } from '../schedule/data'
 import { bidStates, leaveTypeLabel, leaveTypes, type LeaveTypeKey } from '../../tokens/bidding'
-import { calendarDayLabel, formatSpan, requestWeeks, spanDays, type Bid, type BidRequest } from './data'
+import {
+  FULL_DAY, calendarDayLabel, formatRangeShort, formatSpan, plural, requestTimes, requestWeeks, spanDays, timeBanks, type Bid, type BidRequest,
+} from './data'
 import type { BidStatusFilter, VacationBiddingState } from './useVacationBidding'
+import { TeamBidsModal } from './TeamBids'
 import classes from './VacationBidding.module.css'
 
 const badgeFor = (bid: Bid) => bidStates.find((item) => item.key === bid.state)!.badge
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`
 
 /* ------------------------------------------------------------------ */
 /* Tabs and filters                                                    */
@@ -115,7 +117,7 @@ export function BidList({ state }: { state: VacationBiddingState }) {
       <Text size="sm" fw={600} c="dimmed" tt="uppercase" lts="0.06em" className={classes.eyebrow}>{label}</Text>
       {state.items.length ? (
         <Stack gap={6}>
-          {state.items.map((bid) => <BidListItem key={bid.id} bid={bid} active={bid.id === state.active?.id} onOpen={state.open} />)}
+          {state.items.map((bid) => <BidListItem key={bid.id} bid={bid} active={bid.id === state.active?.id} onOpen={(id) => state.leave({ kind: 'bid', id })} />)}
         </Stack>
       ) : (
         <Stack align="center" gap={6} py={48} ta="center">
@@ -274,6 +276,7 @@ export function RequestList({ state, ranking, editable, onEdit, onDelete }: {
                     <Tooltip label="Has a note"><span className={classes.noteIcon} role="img" aria-label="Has a note"><StickyNote size={18} strokeWidth={1.75} /></span></Tooltip>
                   )}
                   <Text className="tabular">{formatSpan(request.start, request.end)}</Text>
+                  {requestTimes(request) && <Text c="dimmed" className="tabular">{requestTimes(request)}</Text>}
                 </div>
                 <RowActions
                   name={name}
@@ -318,55 +321,89 @@ const toIso = (day: number) => new Date(day * 86_400_000).toISOString().slice(0,
 const fromIso = (value: string) => Date.parse(`${value.slice(0, 10)}T00:00:00Z`) / 86_400_000
 let requestCount = 0
 const newRequestId = () => `request-${++requestCount}`
+const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$|^24:00$/.test(value)
 
 function RequestForm({ bid, request, onClose, onSave }: { bid: Bid; request?: BidRequest; onClose: () => void; onSave: (request: BidRequest) => void }) {
-  const [type, setType] = useState<LeaveTypeKey>(request?.type ?? 'vacation')
   const [dates, setDates] = useState<[string | null, string | null]>(request ? [toIso(request.start), toIso(request.end)] : [null, null])
+  const [startTime, setStartTime] = useState(request?.startTime ?? FULL_DAY.start)
+  const [endTime, setEndTime] = useState(request?.endTime ?? FULL_DAY.end)
+  const [type, setType] = useState<LeaveTypeKey>(request?.type ?? 'vacation')
   const [note, setNote] = useState(request?.note ?? '')
-  const [error, setError] = useState<string | null>(null)
+  const [noteOpen, setNoteOpen] = useState(!!request?.note)
+  const [errors, setErrors] = useState<{ dates?: string; startTime?: string; endTime?: string }>({})
   const span = dates[0] ? { start: fromIso(dates[0]), end: fromIso(dates[1] ?? dates[0]) } : null
 
   const submit = () => {
-    if (!span) { setError('Pick the days you want off.'); return }
-    onSave({ id: request?.id ?? newRequestId(), type, ...span, note: note.trim() || undefined })
+    const next = {
+      dates: span ? undefined : 'Pick the days you want off.',
+      startTime: validTime(startTime) ? undefined : 'Use HH:MM, e.g. 07:00.',
+      endTime: !validTime(endTime) ? 'Use HH:MM, e.g. 19:00.'
+        : span && span.start === span.end && endTime <= startTime ? 'End after the start time.' : undefined,
+    }
+    setErrors(next)
+    if (!span || next.startTime || next.endTime) return
+    onSave({ id: request?.id ?? newRequestId(), type, ...span, startTime, endTime, note: note.trim() || undefined })
   }
 
   return (
     <form onSubmit={(event) => { event.preventDefault(); submit() }}>
       <Stack gap="lg">
-        <Select
-          label="Leave type"
-          withAsterisk
-          data={leaveTypes.map((item) => ({ value: item.key, label: item.label }))}
-          value={type}
-          onChange={(value) => value && setType(value as LeaveTypeKey)}
-          allowDeselect={false}
-          data-autofocus
-        />
         <DatePickerInput
           type="range"
-          label="Days"
+          label="Date Range"
           withAsterisk
           placeholder="Pick the first and last day"
-          description={`Within the bid: ${formatSpan(...bid.period)}. Click one day twice for a single day.`}
           value={dates}
-          onChange={(value) => { setDates(value); setError(null) }}
+          onChange={(value) => { setDates(value); setErrors((current) => ({ ...current, dates: undefined })) }}
           minDate={toIso(bid.period[0])}
           maxDate={toIso(bid.period[1])}
           defaultDate={toIso(request?.start ?? bid.period[0])}
           allowSingleDateInRange
           numberOfColumns={2}
-          valueFormat="MMM D, YYYY"
-          leftSection={<CalendarDays size={18} aria-hidden="true" />}
-          error={error}
+          valueFormatter={({ date }) => {
+            const [first, last] = date as [string | null, string | null]
+            return first ? formatRangeShort(fromIso(first), fromIso(last ?? first)) : ''
+          }}
+          rightSection={<Calendar size={18} aria-hidden="true" />}
+          rightSectionPointerEvents="none"
+          error={errors.dates}
           popoverProps={{ withinPortal: true }}
+          data-autofocus
         />
-        {span && <Text size="sm" c="dimmed" mt={-8} className="tabular">{plural(span.end - span.start + 1, 'day')}: {formatSpan(span.start, span.end)}</Text>}
-        <Textarea label="Note" description="Optional. Schedulers see it with your request." autosize minRows={2} maxLength={300} value={note} onChange={(event) => setNote(event.currentTarget.value)} placeholder="Anything the scheduler should know" />
+        <Group grow align="flex-start" gap="lg">
+          <TextInput label="Start Time" withAsterisk value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="HH:MM" maxLength={5} inputMode="numeric" className="tabular" error={errors.startTime} />
+          <TextInput label="End Time" withAsterisk value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="HH:MM" maxLength={5} inputMode="numeric" className="tabular" error={errors.endTime} />
+        </Group>
+        <div className={classes.typeBox}>
+          <Select
+            label="Leave Type"
+            withAsterisk
+            data={leaveTypes.map((item) => ({ value: item.key, label: item.label }))}
+            value={type}
+            onChange={(value) => value && setType(value as LeaveTypeKey)}
+            allowDeselect={false}
+            rightSection={<ChevronDown size={18} aria-hidden="true" />}
+            rightSectionPointerEvents="none"
+          />
+          <Text size="sm" fw={600} mt="lg" mb={6}>Time bank available hours as of start date</Text>
+          <dl className={classes.banks}>
+            {timeBanks.map((bank) => (
+              <div key={bank.type}>
+                <dt>{leaveTypeLabel(bank.type)}</dt>
+                <dd className="tabular">{bank.hours.toFixed(1)}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+        {noteOpen ? (
+          <Textarea label="Note" autosize minRows={2} maxLength={300} value={note} onChange={(event) => setNote(event.currentTarget.value)} placeholder="Anything the scheduler should know" autoFocus={!request?.note} />
+        ) : (
+          <Button variant="subtle" fw={600} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => setNoteOpen(true)} className={classes.addNoteLink}>Add a note</Button>
+        )}
       </Stack>
       <Group justify="flex-end" gap="sm" mt="xl">
         <Button variant="default" onClick={onClose}>Cancel</Button>
-        <Button type="submit">{request ? 'Save' : 'Add request'}</Button>
+        <Button type="submit">{request ? 'Save' : 'Add Request'}</Button>
       </Group>
     </form>
   )
@@ -380,26 +417,72 @@ export function RequestFormModal({ opened, bid, request, onClose, onSave }: {
   onSave: (request: BidRequest) => void
 }) {
   return (
-    <Modal opened={opened} onClose={onClose} centered size={480} title={request ? 'Edit request' : 'Add request'} classNames={{ title: classes.modalTitle }}>
+    <Modal opened={opened} onClose={onClose} centered size={600} title={request ? 'Edit Leave Request' : 'Add Leave Request'} classNames={{ title: classes.modalTitle }}>
       <RequestForm key={`${request?.id ?? 'new'}-${String(opened)}`} bid={bid} request={request} onClose={onClose} onSave={(saved) => { onSave(saved); onClose() }} />
     </Modal>
   )
 }
 
-/** Asks before removing a request from a submitted bid: it can't be added back. */
-export function RemoveRequestModal({ request, onClose, onConfirm }: { request: BidRequest | null; onClose: () => void; onConfirm: () => void }) {
+/* ------------------------------------------------------------------ */
+/* Confirmations                                                       */
+/* ------------------------------------------------------------------ */
+
+/** Warning dialog: amber triangle, title, message, Cancel and Confirm (or a red Delete when `destructive`). */
+export function ConfirmDialog({ opened, title, confirmLabel = 'Confirm', destructive, onClose, onConfirm, children }: {
+  opened: boolean
+  title: string
+  confirmLabel?: string
+  destructive?: boolean
+  onClose: () => void
+  onConfirm: () => void
+  children: ReactNode
+}) {
   return (
-    <Modal opened={!!request} onClose={onClose} centered size={440} title="Remove request?" classNames={{ title: classes.modalTitle }}>
-      {request && (
-        <Text size="sm">
-          {leaveTypeLabel(request.type)}, {formatSpan(request.start, request.end)} is removed from your bid. While the bid is pending you can’t add requests, so you can’t get it back.
-        </Text>
-      )}
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      centered
+      size={480}
+      title={<span className={classes.confirmTitle}><TriangleAlert size={26} strokeWidth={1.75} aria-hidden="true" className={classes.warnIcon} />{title}</span>}
+      classNames={{ title: classes.modalTitle }}
+    >
+      <Stack gap="md" className={classes.confirmText}>{children}</Stack>
       <Group justify="flex-end" gap="sm" mt="xl">
         <Button variant="default" onClick={onClose} data-autofocus>Cancel</Button>
-        <Button color="red" onClick={onConfirm}>Remove</Button>
+        {destructive
+          ? <Button color="red" onClick={onConfirm}>{confirmLabel}</Button>
+          : <Button variant="outline" className={classes.confirm} onClick={onConfirm}>{confirmLabel}</Button>}
       </Group>
     </Modal>
+  )
+}
+
+/** Before submitting: after this, no requests can be added. */
+export function SubmitBidModal({ opened, onClose, onConfirm }: { opened: boolean; onClose: () => void; onConfirm: () => void }) {
+  return (
+    <ConfirmDialog opened={opened} title="Submit Bid" onClose={onClose} onConfirm={onConfirm}>
+      <Text inherit>By clicking “Confirm” you will be submitting these leave requests as part of your Vacation Bid to a Scheduler.</Text>
+      <Text inherit><strong>You will no longer be able to add more leave requests</strong> to your bid. You can still make edits to leaves with status pending.</Text>
+      <Text inherit>Do you want to proceed with your submission?</Text>
+    </ConfirmDialog>
+  )
+}
+
+/** Leaving a bid during your turn throws away the requests that were not submitted. */
+export function LeaveBidModal({ count, opened, onClose, onConfirm }: { count: number; opened: boolean; onClose: () => void; onConfirm: () => void }) {
+  return (
+    <ConfirmDialog opened={opened} title="Warning" onClose={onClose} onConfirm={onConfirm}>
+      <Text inherit>You have an unsubmitted bid. If you choose to leave the page, your {count === 1 ? 'request' : plural(count, 'request')} will be discarded. Proceed?</Text>
+    </ConfirmDialog>
+  )
+}
+
+/** Asks before deleting a request. */
+export function DeleteRequestModal({ request, onClose, onConfirm }: { request: BidRequest | null; onClose: () => void; onConfirm: () => void }) {
+  return (
+    <ConfirmDialog opened={!!request} title="Delete this request?" confirmLabel="Delete" destructive onClose={onClose} onConfirm={onConfirm}>
+      <Text inherit>Please confirm that you want to delete this request.<br />This action cannot be undone.</Text>
+    </ConfirmDialog>
   )
 }
 
@@ -439,6 +522,8 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 export function BidDetail({ state }: { state: VacationBiddingState }) {
   const [form, setForm] = useState<{ opened: boolean; request?: BidRequest }>({ opened: false })
   const [removing, setRemoving] = useState<BidRequest | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [teamOpen, setTeamOpen] = useState(false)
   const bid = state.active
   if (!bid) {
     return (
@@ -456,11 +541,10 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
   const pending = bid.state === 'pending'
   const ranking = yourTurn || state.editingRanks
   const teamBids = (
-    <Button variant="subtle" color="intime" fw={600} className={classes.teamBids} rightSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => state.setHint('View Team Bids shows everyone’s requests on a calendar. Not part of this demo yet.')}>
+    <Button variant="subtle" color="intime" fw={600} className={classes.teamBids} rightSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => setTeamOpen(true)}>
       View Team Bids
     </Button>
   )
-  const remove = (request: BidRequest) => (pending ? setRemoving(request) : state.remove(request.id))
 
   return (
     <div className={classes.detailPane}>
@@ -495,7 +579,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
           )}
           {bid.state !== 'queued' && (count ? (
             <>
-              <RequestList state={state} ranking={ranking} editable={yourTurn} onEdit={(request) => setForm({ opened: true, request })} onDelete={remove} />
+              <RequestList state={state} ranking={ranking} editable={yourTurn} onEdit={(request) => setForm({ opened: true, request })} onDelete={setRemoving} />
               {ranking && count > 1 && <Text size="sm" className={classes.tip}>Tip: Drag and drop, or use the arrow buttons, to set your preferred priority.</Text>}
             </>
           ) : (
@@ -512,7 +596,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
             <Button
               data-disabled={!count || undefined}
               aria-disabled={!count || undefined}
-              onClick={(event) => (count ? state.submit() : event.preventDefault())}
+              onClick={(event) => (count ? setSubmitting(true) : event.preventDefault())}
             >
               Submit
             </Button>
@@ -540,7 +624,10 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
         </div>
       )}
       <RequestFormModal opened={form.opened} bid={bid} request={form.request} onClose={() => setForm((value) => ({ ...value, opened: false }))} onSave={state.save} />
-      <RemoveRequestModal request={removing} onClose={() => setRemoving(null)} onConfirm={() => { if (removing) state.remove(removing.id); setRemoving(null) }} />
+      <DeleteRequestModal request={removing} onClose={() => setRemoving(null)} onConfirm={() => { if (removing) state.remove(removing.id); setRemoving(null) }} />
+      <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />
+      <SubmitBidModal opened={submitting} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
+      <LeaveBidModal count={state.unsubmitted} opened={!!state.leaving} onClose={state.cancelLeave} onConfirm={state.confirmLeave} />
     </div>
   )
 }

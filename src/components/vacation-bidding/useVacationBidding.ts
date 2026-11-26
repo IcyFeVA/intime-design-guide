@@ -2,9 +2,12 @@ import { useState } from 'react'
 import type { BidState } from '../../tokens/bidding'
 import { leaveTypeLabel } from '../../tokens/bidding'
 import { dayOf } from '../schedule/data'
-import { SUBMITTED_ON, formatSpan, initialBids, move, type Bid, type BidRequest } from './data'
+import { SUBMITTED_ON, formatSpan, initialBids, move, plural, type Bid, type BidRequest } from './data'
 
 export type BidStatusFilter = 'all' | BidState
+
+/** Where the employee is going when they leave the open bid: another bid, or another Sign-Ups tab */
+export type LeaveTarget = { kind: 'bid'; id: string } | { kind: 'tab'; tab: string }
 
 export interface VacationBiddingOptions {
   /** Changes the starting bids, e.g. to open the demo with ranked requests or a submitted bid */
@@ -23,6 +26,8 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
   const [hint, setHint] = useState<string | null>(null)
   /** Ranking being changed on a submitted bid; null when not editing */
   const [rankDraft, setRankDraft] = useState<BidRequest[] | null>(null)
+  /** Leaving a bid with unsubmitted requests waits for the Warning dialog */
+  const [leaving, setLeaving] = useState<LeaveTarget | null>(null)
 
   const active = bids.find((bid) => bid.id === activeId) ?? null
   const items = bids.filter((bid) =>
@@ -33,14 +38,36 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
 
   /** Requests in their current order: the draft while changing the ranking of a submitted bid */
   const requests = rankDraft ?? active?.requests ?? []
+  /** Requests added during your turn that are not submitted yet */
+  const unsubmitted = active?.state === 'your-turn' ? active.requests.length : 0
+
+  const open = (id: string) => {
+    setActiveId(id)
+    setRankDraft(null)
+    setHint(null)
+  }
+  const go = (target: LeaveTarget) => (target.kind === 'bid' ? open(target.id) : setHint(`${target.tab} are not part of this guide yet.`))
 
   return {
-    bids, items, active, requests, search, status, dateRange, hint, editingRanks: rankDraft !== null,
+    bids, items, active, requests, search, status, dateRange, hint, editingRanks: rankDraft !== null, unsubmitted, leaving,
     setSearch, setStatus, setDateRange, setHint,
-    open(id: string) {
-      setActiveId(id)
-      setRankDraft(null)
-      setHint(null)
+    open,
+    /** Opens another bid or tab, but asks first when the open bid has unsubmitted requests */
+    leave(target: LeaveTarget) {
+      if (target.kind === 'bid' && target.id === activeId) return
+      if (unsubmitted) setLeaving(target)
+      else go(target)
+    },
+    /** Warning confirmed: discards the unsubmitted requests and goes on */
+    confirmLeave() {
+      if (!leaving) return
+      update((bid) => ({ ...bid, requests: [] }))
+      go(leaving)
+      setLeaving(null)
+      if (leaving.kind === 'bid') setHint(`${plural(unsubmitted, 'request')} discarded.`)
+    },
+    cancelLeave() {
+      setLeaving(null)
     },
     save(request: BidRequest) {
       update((bid) => {
@@ -94,6 +121,7 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
       setSearch('')
       setStatus('all')
       setRankDraft(null)
+      setLeaving(null)
       setHint(null)
     },
   }

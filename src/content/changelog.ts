@@ -12,6 +12,29 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: turn-based bidding approved. The page, the Queued, Your Turn and Pending states and the --bidding-* variables are confirmed.',
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: Team Bids, the Add Leave Request dialog from Figma, and confirmations for Submit, leaving an unsubmitted bid and Delete.',
+    changes: [
+      'View Team Bids opens a month or week calendar of awarded and pending leave, with “+N” for busy days and a legend.',
+      'New --bidding-awarded-* and --bidding-pending-* CSS variables.',
+      'Add Leave Request: date range, start and end time, leave type with the time banks left, and Add a note.',
+      'Submit asks for confirmation. Opening another bid or tab with unsubmitted requests warns that they are discarded.',
+      'Deleting a request always asks first.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/components/buttons',
+    summary: 'Delete and other destructive buttons use the error-light background with error text everywhere.',
+    changes: ['The theme applies it to every red Button and ActionIcon (filled or light); see destructiveAction in tokens/colors.ts.'],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
     summary: 'New page: Vacation Bidding. Employees wait for their turn, add leave requests, rank them and submit. Turn-based bids first.',
     changes: [
       'Three states with their badges: Queued, Your Turn and Pending.',
