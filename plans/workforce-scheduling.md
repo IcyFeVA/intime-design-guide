@@ -416,6 +416,17 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - Decided without the user (check): clicking any person's cell while assigning gives it the shift, so you stop to look around; name/date headers don't assign a whole row or day; an empty day's Assign uses the watch's regular shift rather than asking for a code.
 - Not yet: the employee picker in the panel (reassigning a day, or picking who gets an open shift) is still preview only; the context menu's Fill/Paste don't use assign mode; bulk Assign (code picker + "Assign to N") is the bulk step.
 
+### Step 4 as built (2026-11-26): warnings
+
+- [x] `workforce/warnings.ts`: `dayWarnings(member, day)` returns `ScheduleWarning[]` (`kind`, `title`, `detail`, `blocks` = the day's cells it's about), most serious first: **double booked** (working segments in two cells at once; "Double booked with 84th Precinct", "PatD 07:00–17:00 overlaps Spe 15:00–19:00"), **already on leave** (leave covers all of a working segment; "Already on Vac"), **minimum rest** (< `MIN_REST_HOURS` 8h between the latest work on the two days before and the day's first work; "Only 7h rest after PatS on Mon, Jun 1", "8h minimum · Spe 06:00–10:00"), **not certified** (`WorkforceMember.lacks`, matched against each segment's activity field or its code's activity), **over weekly hours cap** (> `WEEKLY_HOURS_CAP` 60h Monday–Sunday, counted wherever worked, minus leave; shows from the day the week goes over, on days with work; "Week of Jun 1 · 70h of 60h"). `workedHours(chips)`; `subtract`/`Span` now exported from `data.ts`.
+- [x] Grid: `buildGridModel` gives member rows `warnings` (per day, this line's warning titles or null). `MemberCell` draws a 16px `TriangleAlert` (was 12px; user, 2026-11-26) in the cell's top-left (`.warnMark`, warning-filled fill, black stroke) in every density and adds "Warning: …" to its label. Legend row "Warning" (`legendItems` key `warning`, draft).
+- [x] Panel: `panel/Warnings.tsx` `WarningStack` under the employee row (`--background-warning-light`, `--border-warning-default`). One warning shows as is; several collapse to "N warnings" (toggle). Rows about an assignment are buttons that select its root segment (›); the hours cap row isn't. The block's root row gets a ⚠ before its duration (`BlockInfo.warning`).
+- [x] Warnings never block; they're derived from the edited schedule, so they follow saves and Undo at once (e.g. assign B. Haddad's Friday to Sat + Sun → Sun "70h of 60h").
+- [x] Mock days: A. Johnson Wed (PatD + Spe at 84th 15–19, double booked), C. Lee Fri (PatD + Vac 07–17), Y. Cohen Mon PatN then Tue Train 06–10 + PatN (rest), J. Anderson lacks Special detail (Wed), O. Petrov Mon PatS to 23:00, Tue Spe 06–10 at Barclays Center with activity Special event + PatS, lacks Special event (two warnings). The rotation's random extra assignment now only lands on working days without overlapping the main one (it made spurious double bookings).
+- [x] Page: section `warnings` (table of the five, how they show, try-it); changelog.
+- Decided without the user (check): the cap is 60h (50h flagged almost every weekend overtime); the hours cap marks only days from the crossing on, not the whole week (the prototype shows it on a Wednesday); a split shift within one day (J. Anderson 17:00 → 18:00) doesn't count as rest; double booked and leave are one warning kind (`conflict`).
+- Note: a mock day that is already double booked can't save other edits until the overlap is fixed (`regroupDay` refuses overlaps: "Overlaps … Not saved."). Deleting or moving either assignment works.
+
 ### Attachments tab (2026-11-25, user)
 
 Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalski). It has three sections, Tags, Assets and Tasks, each with a count and an empty state ("None yet."). **The prototype's free-text inputs are wrong** (user). The correct behavior:
@@ -433,7 +444,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
-- Details panel scenarios (see that section): steps 1–3 built (core, scenarios, assign mode). **Still to build:** warnings (review item 7), bulk (item 12), the Attachments tab (items 1 and 13), the employee row's Hours popover, Find in schedule and person menu (item 8).
+- Details panel scenarios (see that section): steps 1–4 built (core, scenarios, assign mode, warnings). **Still to build:** bulk (item 12), the Attachments tab (items 1 and 13), the employee row's Hours popover, Find in schedule and person menu (item 8).
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
@@ -443,6 +454,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 
 ## Open questions (ask the user when relevant)
 
+- Warnings (step 4): the real hours cap and rest minimum, and whether they vary by rank or contract. Should a warning ask for a reason (override) before saving? Which certifications exist, per activity?
 - Assign mode (step 3): should a name or date header assign the whole row or day while assigning? Should picking another employee in the panel move the assignment to them?
 - All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?
 - Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?

@@ -359,3 +359,79 @@
     transition: none;
   }
 }
+
+/* ---------- Warnings under the employee row ---------- */
+
+.warnings {
+  border: 1px solid var(--border-warning-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--background-warning-light);
+  color: var(--text-default);
+  overflow: hidden;
+}
+
+.warningsToggle,
+.warningRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.warningsToggle {
+  align-items: center;
+}
+
+.warningList {
+  border-top: 1px solid var(--border-warning-default);
+}
+
+.warningList .warningRow + .warningRow {
+  border-top: 1px solid var(--border-warning-default);
+}
+
+button.warningRow:hover,
+.warningsToggle:hover {
+  background: var(--background-warning-light-hover);
+}
+
+.warningIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--text-warning-default);
+}
+
+.warningsToggle .warningIcon {
+  margin-top: 0;
+}
+
+.warningText {
+  flex: 1;
+  min-width: 0;
+}
+
+.warningsChevron {
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+  color: var(--text-dimmed);
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.warningsChevron[data-open] {
+  transform: rotate(90deg);
+}
+
+/* The ⚠ on a segment row whose assignment has a warning */
+.rowWarn {
+  flex: none;
+  color: var(--text-warning-default);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warningsChevron {
+    transition: none;
+  }
+}

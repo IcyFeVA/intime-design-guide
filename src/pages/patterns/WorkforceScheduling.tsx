@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MIN_REST_HOURS, WEEKLY_HOURS_CAP } from '../../components/workforce/warnings'
 import { Badge, Button, Group, Stack, Table, Text } from '@mantine/core'
 import PageHeader from '../../components/PageHeader'
 import Section from '../../components/Section'
@@ -524,6 +525,28 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Open shifts and live posts</strong> fill one place per person, on the shift’s own day. When nobody else is needed, the shift leaves the grid and assign mode stops.</Text>
           <Text size="sm"><strong>Stopping.</strong> Escape, Done in the bar or Done assigning in the footer. Selecting other cells while assigning gives them the shift, so stop first to just look around.</Text>
           <Text size="sm" c="dimmed">Try it: select B. Haddad on Fri, Jun 5, select Assign, then drag across empty days. Or select the night open shift on Tue, Jun 2 (2 needed) and give it to two people that day.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="warnings" title="Warnings" description="The panel warns about a person’s day when it breaks a scheduling rule. Warnings never block a change: it saves, then the warning shows.">
+        <Table.ScrollContainer minWidth={560} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th>Warning</Table.Th><Table.Th>When</Table.Th><Table.Th>In the demo</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              <Table.Tr><Table.Td>Double booked</Table.Td><Table.Td>Two assignments at the same time, e.g. one at another precinct.</Table.Td><Table.Td>A. Johnson, Wed, Jun 3</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td>Already on leave</Table.Td><Table.Td>Leave covers all of an assignment.</Table.Td><Table.Td>C. Lee, Fri, Jun 5</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td>Minimum rest</Table.Td><Table.Td>Less than {MIN_REST_HOURS}h between the last work on the two days before and the day’s first work.</Table.Td><Table.Td>Y. Cohen, Tue, Jun 2</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td>Not certified</Table.Td><Table.Td>A segment’s activity needs a certification the person doesn’t have.</Table.Td><Table.Td>J. Anderson, Wed, Jun 3</Table.Td></Table.Tr>
+              <Table.Tr><Table.Td>Over weekly hours cap</Table.Td><Table.Td>More than {WEEKLY_HOURS_CAP}h worked Monday to Sunday. It shows from the day the week goes over.</Table.Td><Table.Td>P. Fitzgerald, Sun, Jun 7</Table.Td></Table.Tr>
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Stack gap="xs" mt="md">
+          <Text size="sm"><strong>In the panel</strong>, warnings sit under the employee row, most serious first. One shows as it is; several collapse to “2 warnings” (O. Petrov, Tue, Jun 2). Each names what it’s about, and selecting it selects that assignment.</Text>
+          <Text size="sm"><strong>In the list</strong>, the assignment a warning is about gets a ⚠ after its times.</Text>
+          <Text size="sm"><strong>In the grid</strong>, the cell gets a small ⚠ in its corner, in every view density. Its label reads the warning to screen readers.</Text>
+          <Text size="sm"><strong>They follow your changes.</strong> Assign B. Haddad’s Friday shift to Saturday and Sunday: Sunday goes over the hours cap and warns at once. Undo clears it.</Text>
+          <Text size="sm" c="dimmed">For developers: dayWarnings(member, day) in src/components/workforce/warnings.ts returns each warning with the cells (blocks) it’s about. The grid model and the panel both use it. The cap and the rest minimum are mock rules ({WEEKLY_HOURS_CAP}h, {MIN_REST_HOURS}h).</Text>
         </Stack>
       </Section>
 

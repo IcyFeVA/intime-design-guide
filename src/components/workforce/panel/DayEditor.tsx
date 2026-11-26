@@ -12,6 +12,8 @@ import { SegmentFields } from './SegmentFields'
 import { AssignmentBanner, PanelFooter, PanelTabs } from './parts'
 import { LeaveEntry, LeaveTypeField, type LeaveRequest } from './LeaveEntry'
 import { ReadOnlyFields } from './ReadOnlyFields'
+import { WarningStack } from './Warnings'
+import { dayWarnings } from '../warnings'
 import { branches, segmentDetails } from './options'
 import { formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
@@ -135,10 +137,15 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
   /** Another branch's assignment: shown, not edited */
   const readOnly = !!selectedChip?.branch
   const noteBlock = note ? blockOf(note.id) : -1
-  const blockInfo: BlockInfo[] = item.blocks.map((chip) => ({
-    tag: chip.branch ? chip.branch.split(' - ')[0] : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
-    readOnly: !!chip.branch,
-  }))
+  const warnings = dayWarnings(member, day)
+  const blockInfo: BlockInfo[] = item.blocks.map((chip, index) => {
+    const titles = warnings.filter((warning) => warning.blocks.includes(index)).map((warning) => warning.title)
+    return {
+      tag: chip.branch ? chip.branch.split(' - ')[0] : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
+      readOnly: !!chip.branch,
+      warning: titles.length ? titles.join('; ') : undefined,
+    }
+  })
 
   /* Leave: part of the day starts on the selected assignment (or the day's first one this branch can change) */
   const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].branch)
@@ -206,6 +213,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     <div className={classes.body}>
       <AssignmentBanner chip={selectedChip} onPreview={onPreview} />
       <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
+      <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
       <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />
       <Stack gap={4}>
         {blocks.length

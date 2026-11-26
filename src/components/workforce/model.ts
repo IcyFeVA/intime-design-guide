@@ -3,6 +3,7 @@ import {
   daysUnder, openShifts, sortWorkforce, type OpenShift, type OpenShiftEdit, type Watch, type WatchId, type WorkforceMember, type WorkforceSegment,
   type WorkforceSort,
 } from './data'
+import { dayWarnings } from './warnings'
 
 /* ------------------------------------------------------------------ */
 /* Grid model: the rendered rows, worked out once per structure change */
@@ -32,7 +33,11 @@ export type GridRow =
   | { kind: 'group'; key: string; watch: Watch; expanded: boolean; count: number }
   | { kind: 'staffing-toggle'; key: string; watch: Watch; expanded: boolean; daysUnder: number }
   | { kind: 'staffing'; key: string; watch: Watch; metric: StaffingMetric }
-  | { kind: 'member'; key: string; watch: Watch; member: WorkforceMember; line: number; overflow: boolean; cells: (Chip | null)[] }
+  | {
+    kind: 'member'; key: string; watch: Watch; member: WorkforceMember; line: number; overflow: boolean; cells: (Chip | null)[]
+    /** Per day: the warnings about this line's cell (see `dayWarnings`), joined for its label, or null */
+    warnings: (string | null)[]
+  }
 
 /** Key of the date row in the selection hook: its cells select a day, the corner selects everything */
 export const HEADER_ROW = 'head'
@@ -97,9 +102,14 @@ export function buildGridModel({ watches, days, collapsed, staffingCollapsed, so
 
     for (const member of members) {
       const chipsByDay = days.map((day) => member.chips(day))
+      const warningsByDay = days.map((day) => dayWarnings(member, day))
       const lines = Math.max(1, ...chipsByDay.map((chips) => chips.length))
       for (let line = 0; line < lines; line += 1) {
-        rows.push({ kind: 'member', key: memberRowKey(member.id, line), watch, member, line, overflow: line > 0, cells: chipsByDay.map((chips) => chips[line] ?? null) })
+        const warnings = warningsByDay.map((list) => {
+          const titles = list.filter((warning) => warning.blocks.includes(line)).map((warning) => warning.title)
+          return titles.length ? titles.join('; ') : null
+        })
+        rows.push({ kind: 'member', key: memberRowKey(member.id, line), watch, member, line, overflow: line > 0, cells: chipsByDay.map((chips) => chips[line] ?? null), warnings })
       }
     }
   }

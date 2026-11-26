@@ -1,7 +1,7 @@
 import { memo, useState, type CSSProperties, type SyntheticEvent } from 'react'
 import { useElementSize } from '@mantine/hooks'
 import { ActionIcon, Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
-import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle } from 'lucide-react'
+import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
@@ -121,15 +121,16 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
   'data-boundary': boundary || undefined,
 })
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean }) {
+const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean; warning: string | null }) {
   const context = `${name}, ${formatHeader(state.day)}`
   return (
     <div
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
-      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}`}
+      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${warning ? `. Warning: ${warning}` : ''}`}
     >
+      {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
       {chip ? (
         cells === 'detailed' ? <DetailedChip chip={chip} />
           : cells === 'stacked' ? <StackedChip chip={chip} />
@@ -384,7 +385,7 @@ export default function WorkforceGrid({
               </div>
             )}
             {row.cells.map((chip, index) => (
-              <MemberCell key={days[index]} chip={chip} name={name} overflow={row.overflow} {...cellState(row.key, days[index], index)} />
+              <MemberCell key={days[index]} chip={chip} name={name} overflow={row.overflow} warning={row.warnings[index]} {...cellState(row.key, days[index], index)} />
             ))}
           </div>
         )

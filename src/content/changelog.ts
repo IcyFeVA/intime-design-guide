@@ -12,6 +12,18 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'The details panel and the grid now warn about scheduling rules: double booked, already on leave, minimum rest, missing certification and the weekly hours cap.',
+    changes: [
+      'Warnings sit under the employee row; several collapse to “2 warnings”. Selecting one selects its assignment, which also gets a ⚠ in the list.',
+      'Grid cells with a warning get a small ⚠ in their corner, in every view density. The legend explains it.',
+      'Warnings never block a change, and they follow edits at once.',
+      'New demo days: A. Johnson and J. Anderson on Wed, C. Lee on Fri, Y. Cohen and O. Petrov on Tue. The odd extra assignment in the mock data no longer overlaps the main one.',
+      'New section: Warnings.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'Assign in the details panel now works: it copies the selected assignment, and every cell you click or drag across gets it.',
     changes: [
       'A bar over the grid shows what you’re assigning, where it came from, and Done. Escape stops too.',
