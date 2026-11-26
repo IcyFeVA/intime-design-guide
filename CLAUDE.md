@@ -15,7 +15,7 @@ Design guide for InTime's police/fire workforce scheduling app. Vite + React 19 
 ## Adding a page (checklist)
 
 1. **Register** it in `src/content/pages.ts`. The registry drives the sidebar, ⌘K search (pages and sections), the TOC, the Overview cards and prev/next links, so nothing else needs wiring.
-   - Fields: `path`, `title`, `group` (`Getting started | Foundations | Components | Patterns | Resources`), `icon` (Lucide, import at the top of the file), `status`, `updated` (YYYY-MM-DD, today), `description` (one sentence; shown in the header and cards), `keywords` (search synonyms), `sections: s(['id', 'Title'], …)`, `component: lazy(() => import('../pages/<group>/<Name>'))`.
+   - Fields: `path`, `title`, `group` (`Getting started | Foundations | Components | Patterns | Resources | Work in Progress`), `icon` (Lucide, import at the top of the file), `status`, `updated` (YYYY-MM-DD, today), `description` (one sentence; shown in the header and cards), `keywords` (search synonyms), `sections: s(['id', 'Title'], …)`, `component: lazy(() => import('../pages/<group>/<Name>'))`.
    - Order inside a group = sidebar order.
    - Long pages can group their sections: a third item `'group'` (`['the-panel', 'The details panel', 'group']`) marks a group heading. Render it as `<Section id title size="display" description />` (no children). The TOC shows it as a label and indents the sections after it, up to the next group. See Work Scheduling.
 2. **Create** `src/pages/<group>/<Name>.tsx` with a default export. Pattern:
