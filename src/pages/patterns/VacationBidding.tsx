@@ -114,6 +114,7 @@ export default function VacationBidding() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Submit</strong> stays disabled until there is at least one request. It asks for confirmation first, because no requests can be added afterwards. After submitting, the bid is Pending and the selection is locked in.</Text>
           <Text size="sm"><strong>Pending</strong> bids can be re-ranked with Edit (then Save ranking or Cancel) and requests can be deleted. New requests can’t be added, so the last request can’t be deleted.</Text>
+          <Text size="sm"><strong>Withdraw</strong>, on the left of a Pending bid’s footer, asks first, then starts the bid over: back to Your Turn (Open when all at once) with every request removed.</Text>
           <Text size="sm">After the window closes each ranked request is <strong>Awarded</strong> or <strong>Denied</strong>. Who wins depends on the agency’s rules; usually seniority.</Text>
           <Text size="sm">The <strong>Live</strong> badge says the bid window is open. The time left counts down to when the window closes.</Text>
         </Stack>
@@ -182,7 +183,7 @@ export default function VacationBidding() {
           { prop: 'activeId', type: 'string', default: "'summer'", description: 'The bid that is open at first.' },
         ]} />
         <Text size="sm" c="dimmed" mt="sm">
-          Returns the state every other piece takes as <code>state</code>: the bids, the open bid, its requests in order, filters, a hint for preview-only messages and the actions (save, remove, reorder, submit, leave/confirmLeave/cancelLeave, startEditRanks, saveRanks, cancelRanks).
+          Returns the state every other piece takes as <code>state</code>: the bids, the open bid, its requests in order, filters, a hint for preview-only messages and the actions (save, remove, reorder, submit, withdraw, leave/confirmLeave/cancelLeave, startEditRanks, saveRanks, cancelRanks).
         </Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Pieces</Text>
         <PropsTable rows={[
