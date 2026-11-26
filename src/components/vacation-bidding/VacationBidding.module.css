@@ -446,6 +446,10 @@
   border-top: 1px solid var(--border-default);
 }
 
+.withdraw {
+  margin-right: auto;
+}
+
 .submitted {
   color: var(--bidding-picked-text);
 }

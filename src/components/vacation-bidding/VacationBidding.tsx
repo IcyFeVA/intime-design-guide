@@ -509,6 +509,16 @@ export function LeaveBidModal({ count, opened, onClose, onConfirm }: { count: nu
   )
 }
 
+/** Before withdrawing a submitted bid: it starts over with no requests. */
+export function WithdrawBidModal({ opened, onClose, onConfirm }: { opened: boolean; onClose: () => void; onConfirm: () => void }) {
+  return (
+    <ConfirmDialog opened={opened} title="Withdraw bid?" confirmLabel="Withdraw" destructive onClose={onClose} onConfirm={onConfirm}>
+      <Text inherit>Your bid will no longer be submitted to the scheduler, and <strong>all your requests will be removed</strong>. This can’t be undone.</Text>
+      <Text inherit>To take part, add your requests again and submit before the bid closes.</Text>
+    </ConfirmDialog>
+  )
+}
+
 /** Asks before deleting a request. */
 export function DeleteRequestModal({ request, onClose, onConfirm }: { request: BidRequest | null; onClose: () => void; onConfirm: () => void }) {
   return (
@@ -610,6 +620,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
   const [form, setForm] = useState<{ opened: boolean; request?: BidRequest }>({ opened: false })
   const [removing, setRemoving] = useState<BidRequest | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [withdrawing, setWithdrawing] = useState(false)
   const [teamOpen, setTeamOpen] = useState(false)
   const bid = state.active
   if (!bid) {
@@ -753,6 +764,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
             </>
           ) : (
             <>
+              <Button variant="light" color="red" className={classes.withdraw} onClick={() => setWithdrawing(true)}>Withdraw</Button>
               {bid.submittedOn !== undefined && (
                 <Group gap={8} wrap="nowrap" className={classes.submitted}>
                   <Send size={18} strokeWidth={1.75} aria-hidden="true" />
@@ -770,6 +782,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
         ? <ViewSignUpsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />
         : <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />}
       <SubmitBidModal opened={submitting} mode={bid.mode} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
+      <WithdrawBidModal opened={withdrawing} onClose={() => setWithdrawing(false)} onConfirm={() => { state.withdraw(); setWithdrawing(false) }} />
       <LeaveBidModal count={state.unsubmitted} opened={!!state.leaving} onClose={state.cancelLeave} onConfirm={state.confirmLeave} />
     </div>
   )

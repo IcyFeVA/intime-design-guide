@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: submitted bids can be withdrawn. Withdraw sits on the left of the Pending footer in both modes, is styled as destructive, asks first, and starts the bid over with no requests.',
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
     summary: 'Vacation Bidding: all-at-once bidding approved. All at once, its states (Open, Closed, Expired, Taken Down), the Open, Awarded and Denied request states and every --bidding-* variable are confirmed.',
   },
   {

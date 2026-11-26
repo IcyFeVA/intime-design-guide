@@ -137,6 +137,13 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
         ? 'Submitted. Until the window closes you can still add shifts, remove them and change the ranking.'
         : 'Submitted. Your selection is locked in; you can still change the ranking.')
     },
+    /** Takes a submitted bid back and starts over: Your Turn (or Open) with no requests */
+    withdraw() {
+      update((bid) => ({ ...bid, state: bid.mode === 'all-at-once' ? 'open' : 'your-turn', submittedOn: undefined, requests: [] }))
+      setRankDraft(null)
+      setShiftNotes({})
+      setHint('Bid withdrawn. Your requests were removed.')
+    },
     startEditRanks() {
       setRankDraft(active?.requests ?? [])
       setHint('Drag the rows or use the arrows, then save.')
