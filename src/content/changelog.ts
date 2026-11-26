@@ -17,6 +17,7 @@ export const changelog: ChangelogEntry[] = [
       'One list of the day’s segments: each assignment’s first segment is the root and the segments that touch it are indented. A segment whose times no longer touch moves to its own line, with a note and Undo.',
       'One form below the list edits the selected segment: scheduled day, times and actual times, then its own shift code, activity, location, customer, hours modifier, time bank (Bank this time), unit and acting rank.',
       'Changes save as you go. Undo in the toolbar and Ctrl/⌘ Z revert them; Reset demo restores the schedule.',
+      'Times are typed in plain 24-hour fields, no time picker and no AM/PM: 0830, 830, 8:30 and 17 all work.',
       'Ends before the start run to the next day (“+1”); overlapping or zero-length times aren’t saved; spans over 16h ask “Is that right?”.',
       'An assignment can move to another day (its first segment’s menu, or Scheduled) or be deleted. Add segment works on empty days too.',
       'The title is the person (or “Open shift · Swing Patrol”) with the date below. Notes will join Attachments, so there are two tabs. Branch has its label on top.',

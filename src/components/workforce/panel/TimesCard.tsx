@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { ActionIcon, Button, Group, SimpleGrid, Text, TextInput, Tooltip } from '@mantine/core'
-import { DatePickerInput, TimeInput } from '@mantine/dates'
+import { DatePickerInput } from '@mantine/dates'
 import { Plus, X } from 'lucide-react'
 import { formatDuration, formatHour } from '../../schedule/data'
 import type { SegmentDetails } from '../data'
 import { fromIso, longSpanWarning, normalizeEnd, parseTime, timeValue, toIso } from './format'
+import { TimeField } from './TimeField'
 import classes from '../WorkforcePanel.module.css'
 
 /**
@@ -33,7 +34,7 @@ export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMo
   const warning = draft && longSpanWarning(draft.start, draft.end)
 
   const commit = () => {
-    if (from === null || to === null) return setError('Enter times like 08:00')
+    if (from === null || to === null) return setError('Type times like 0800, 830 or 17:30')
     if (from === to) return setError(`Starts and ends at ${formatHour(from)}`)
     if (!draft || (draft.start === savedStart && draft.end === savedEnd)) return setError(null)
     setError(onTimes(draft.start, draft.end))
@@ -55,8 +56,8 @@ export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMo
           size="sm"
           readOnly={readOnly || !onMoveDay}
         />
-        <TimeInput label="Start" value={start} onChange={(event) => setStart(event.currentTarget.value)} error={!!error} size="sm" readOnly={readOnly} classNames={{ input: classes.mono }} />
-        <TimeInput label="End" value={end} onChange={(event) => setEnd(event.currentTarget.value)} error={!!error} size="sm" readOnly={readOnly} classNames={{ input: classes.mono }} />
+        <TimeField label="Start" value={start} onChange={setStart} error={!!error} readOnly={readOnly} />
+        <TimeField label="End" value={end} onChange={setEnd} error={!!error} readOnly={readOnly} />
         <TextInput
           label="Hours"
           value={draft ? formatDuration(draft.end - draft.start) : '–'}
@@ -100,8 +101,8 @@ function ActualTimes({ actual, onChange, readOnly }: { actual: NonNullable<Segme
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) commit() }}
       onKeyDown={(event) => { if (event.key === 'Enter') commit() }}
     >
-      <TimeInput label="Actual start" value={start} onChange={(event) => setStart(event.currentTarget.value)} size="sm" className={classes.grow} readOnly={readOnly} classNames={{ input: classes.mono }} />
-      <TimeInput label="Actual end" value={end} onChange={(event) => setEnd(event.currentTarget.value)} size="sm" className={classes.grow} readOnly={readOnly} classNames={{ input: classes.mono }} />
+      <TimeField label="Actual start" value={start} onChange={setStart} className={classes.grow} readOnly={readOnly} />
+      <TimeField label="Actual end" value={end} onChange={setEnd} className={classes.grow} readOnly={readOnly} />
       {!readOnly && (
         <Tooltip label="Remove actual times">
           <ActionIcon variant="subtle" color="gray" size={36} aria-label="Remove actual times" onClick={() => onChange(null)}><X size={16} /></ActionIcon>

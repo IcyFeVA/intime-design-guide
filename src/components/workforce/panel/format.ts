@@ -1,13 +1,23 @@
 import type { CSSProperties } from 'react'
 import { formatHour, segmentKind } from '../../schedule/data'
 
-/** "16:30" → 16.5, or null when it isn't a time */
+/**
+ * A typed time → hours, or null when it isn't one. Schedulers type fast, so all of these work:
+ * "8" and "08" (08:00), "17", "830" and "0830" (08:30), "1730", "8:30", "8.30", "8h30". Up to 24:00 (end of day).
+ */
 export function parseTime(value: string): number | null {
-  const match = /^(\d{1,2}):(\d{2})/.exec(value.trim())
-  if (!match) return null
-  const hours = Number(match[1])
-  const minutes = Number(match[2])
-  if (hours > 23 || minutes > 59) return null
+  const text = value.trim()
+  let hours: number
+  let minutes: number
+  const separated = /^(\d{1,2})\s*[:.h]\s*(\d{2})$/.exec(text)
+  if (separated) {
+    hours = Number(separated[1])
+    minutes = Number(separated[2])
+  } else if (/^\d{1,4}$/.test(text)) {
+    hours = Number(text.length <= 2 ? text : text.slice(0, -2))
+    minutes = text.length <= 2 ? 0 : Number(text.slice(-2))
+  } else return null
+  if (minutes > 59 || hours > 24 || (hours === 24 && minutes > 0)) return null
   return hours + minutes / 60
 }
 

@@ -169,7 +169,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
           <Text size="sm"><strong>Blocks.</strong> Segments that touch (one ends when the next starts, like PatD 08:00–16:00 and overtime 16:00–17:00) form a block, which the grid shows as one cell. A segment that doesn’t touch is a block of its own, on an extra line in the grid. The panel lists every segment of the person’s day, whichever line was clicked: each assignment starts with its first segment, and the segments that touch it are indented below it.</Text>
-          <Text size="sm"><strong>Editing.</strong> Click a segment to select it. The form below the list edits it: scheduled day, start, end and hours (and actual times), then its shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own. Add segment adds one that starts where the day’s last one ends.</Text>
+          <Text size="sm"><strong>Editing.</strong> Click a segment to select it. The form below the list edits it: scheduled day, start, end and hours (and actual times), then its shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own. Times are typed, in 24-hour time: 0830, 830, 8:30 and 17 all work, and leaving the field tidies them to 08:30. Add segment adds one that starts where the day’s last one ends.</Text>
           <Text size="sm"><strong>Times decide the block.</strong> Change a segment’s times so it no longer touches and it moves to a block (and grid line) of its own, with a note and Undo. An end before the start means the next day (“20:00–04:00 +1”). Times that overlap another segment or start and end together aren’t saved; the field says why.</Text>
           <Text size="sm"><strong>Changes save as you go.</strong> A field saves when you pick a value or leave it, the grid and staffing update at once, and the title says “Saved”. Undo in the toolbar (or Ctrl/⌘ Z outside a field) reverts the last change. The first segment’s menu moves the whole assignment to another day or deletes it; so does changing Scheduled.</Text>
           <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming. Assign, Leave, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
@@ -439,6 +439,7 @@ export default function WorkforceScheduling() {
             'Show what the panel is editing in its title: the person or unit, with the date below.',
             'Show the person’s whole day in the panel, so a separate assignment on another line is never missed. Indent the segments that touch an assignment under its first one.',
             'Save as people type, say “Saved”, and keep Undo one click away.',
+            'Let schedulers type times (0830, 1730) in 24-hour format. They are faster than any time picker.',
           ]}
           dontItems={[
             'Open the panel while the user is still dragging or moving with the arrow keys.',
