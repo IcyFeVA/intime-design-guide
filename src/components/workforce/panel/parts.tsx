@@ -1,13 +1,16 @@
-import { ActionIcon, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
-import { Ellipsis, History, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
+import { ActionIcon, Alert, Anchor, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
+import { ArrowUpRight, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import type { Chip } from '../../schedule/data'
 import classes from '../WorkforcePanel.module.css'
 
 type Preview = (action: string) => void
 
 /** The same footer in every state: Assign, Leave and more. Buttons that don't apply are disabled. */
-export function PanelFooter({ onPreview, onDelete, deleteLabel = 'Delete', canLeave = true }: {
+export function PanelFooter({ onPreview, onLeave, onDelete, deleteLabel = 'Delete', canLeave = true }: {
   onPreview: Preview
+  /** Opens the leave entry. Missing: Leave is preview only. */
+  onLeave?: () => void
   /** Missing: Delete is disabled */
   onDelete?: () => void
   deleteLabel?: string
@@ -16,7 +19,7 @@ export function PanelFooter({ onPreview, onDelete, deleteLabel = 'Delete', canLe
   return (
     <div className={classes.footer}>
       <Button color="intime" className={classes.grow} leftSection={<Plus size={16} aria-hidden="true" />} onClick={() => onPreview('Assign')}>Assign</Button>
-      <Button variant="default" leftSection={<PlaneTakeoff size={16} aria-hidden="true" />} onClick={() => onPreview('Leave')} disabled={!canLeave}>Leave</Button>
+      <Button variant="default" leftSection={<PlaneTakeoff size={16} aria-hidden="true" />} onClick={onLeave ?? (() => onPreview('Leave'))} disabled={!canLeave}>Leave</Button>
       <Menu position="top-end" offset={6}>
         <Menu.Target>
           <Tooltip label="More actions">
@@ -51,4 +54,33 @@ export function PanelTabs({ details }: { details: ReactNode }) {
       </Tabs.Panel>
     </Tabs>
   )
+}
+
+/** "84th Precinct - Brooklyn" → "84th Precinct" */
+const branchName = (branch: string) => branch.split(' - ')[0]
+
+/**
+ * Where the selected assignment is worked, when it isn't this unit. Out of unit (same precinct) stays editable;
+ * out of branch (another precinct) is read-only, with a way to open it there.
+ */
+export function AssignmentBanner({ chip, onPreview }: { chip: Chip | null; onPreview: Preview }) {
+  if (chip?.branch) {
+    const name = branchName(chip.branch)
+    return (
+      <Alert variant="light" color="gray" icon={<Lock size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
+        Working at {name}. Only {name} can change this.
+        <Anchor component="button" type="button" size="sm" fw={600} className={classes.bannerLink} onClick={() => onPreview(`Open in ${name}`)}>
+          Open in {name} <ArrowUpRight size={14} aria-hidden="true" />
+        </Anchor>
+      </Alert>
+    )
+  }
+  if (chip?.outOfUnit) {
+    return (
+      <Alert variant="light" color="intime" icon={<ArrowUpRight size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
+        Working for {chip.unit ?? 'another unit'} (out of unit)
+      </Alert>
+    )
+  }
+  return null
 }

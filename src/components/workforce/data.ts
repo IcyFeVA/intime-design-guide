@@ -107,7 +107,15 @@ export const shortName = (member: Pick<WorkforceMember, 'first' | 'last'>) => `$
 /* ------------------------------------------------------------------ */
 
 const c = (code: string, extra: Partial<Segment> = {}): Segment => ({ code, ...extra })
-const cell = (segments: Segment[], outOfUnit?: boolean): Chip => ({ segments, outOfUnit })
+const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}): Chip => ({ segments, ...extra })
+/** Working for another unit in the same precinct */
+const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
+
+/** The precinct the demo's unit belongs to, and another one people are sometimes lent to */
+export const HOME_BRANCH = '99th Precinct - Brooklyn'
+export const OTHER_BRANCH = '84th Precinct - Brooklyn'
+/** Units in the same precinct that borrow people (out of unit) */
+const lendingUnits = ['Special Ops', 'K9 Unit']
 
 /** Per watch: the block code, a court or detail that shares the main cell, and an extra assignment outside the block. */
 const watchCodes: Record<WatchId, { base: string; split: Segment[]; extra: Segment }> = {
@@ -127,9 +135,9 @@ function rotation(seed: number, watch: WatchId, offset: number) {
     if (r < 0.05) main = cell([c('Sick')])
     else if (r < 0.08) main = cell([c('PTO')])
     else if (r < 0.1) main = cell([c('Vac')])
-    else if (r < 0.15) main = cell([c('Train')], r2 < 0.3)
+    else if (r < 0.15) main = r2 < 0.3 ? ou([c('Train')], 'Training') : cell([c('Train')])
     else if (r < 0.19) main = cell([c(base, { overtime: 'partial' })])
-    else if (r < 0.22) main = cell([c(base)], true)
+    else if (r < 0.22) main = ou([c(base)], lendingUnits[Math.floor(r2 * lendingUnits.length)])
     else if (r < 0.27) main = cell(split)
     else if (r < 0.29) main = cell([c('Spe')])
     else main = cell([c(base)])
@@ -151,15 +159,23 @@ type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offse
 
 const specs: Record<WatchId, Spec[]> = {
   day: [
-    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac')])] }],
+    // Scenario 3, leave: on vacation all day Tue
+    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])] }],
     ['kowalski', 'Sofia', 'Kowalski', 'PO', 1],
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
-    ['garcia', 'Lucia', 'Garcia', 'PO', 4],
+    // Scenario 7, out of unit: lent to Special Ops on Tue
+    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')] }],
     ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
-    ['anderson', 'Jamal', 'Anderson', 'PO', 6, { 2: [cell([c('PatD')]), cell([c('ExP', { overtime: 'full' })])], 3: [cell([c('Train')])] }],
-    ['rodriguez', 'Elena', 'Rodriguez', 'PO', 0],
-    ['patel', 'Dev', 'Patel', 'PO', 1],
+    // Scenario 6, two assignments on Wed: PatD + Spe OT that touch (one cell), then Spe after a gap (a second line)
+    ['anderson', 'Jamal', 'Anderson', 'PO', 6, {
+      2: [cell([c('PatD', { start: 8, end: 16 }), c('Spe', { start: 16, end: 17, overtime: 'full' })]), cell([c('Spe', { start: 18, end: 19 })])],
+      3: [cell([c('Train')])],
+    }],
+    // Scenario 5, partial leave: sick for the last 3 hours of Wed's shift
+    ['rodriguez', 'Elena', 'Rodriguez', 'PO', 0, { 2: [cell([c('PatD', { start: 8, end: 16 }), c('Sick', { start: 13, end: 16 })])] }],
+    // Scenario 8, out of branch: working at the 84th Precinct on Thu
+    ['patel', 'Dev', 'Patel', 'PO', 1, { 3: [cell([c('PatD')], { branch: OTHER_BRANCH })] }],
     ['lee', 'Christine', 'Lee', 'PO', 2],
     ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [cell([c('PatD')])], 5: [], 6: [] }],
     ['johnson', 'Aaron', 'Johnson', 'PO', 4],
@@ -216,9 +232,24 @@ const needs: Record<WatchId, number[]> = {
   night: [6, 6, 6, 6, 6, 6, 6],
 }
 
-/** Segments that put someone on the street for the watch: not leave, not cancelled, not lent to another unit. */
-const workingSegments = (chips: Chip[]) => chips.flatMap((chip) => (chip.outOfUnit ? [] : chip.segments))
-  .filter((segment) => !segment.cancelled && segmentKind(segment) !== 'leave')
+type Span = { start: number; end: number }
+const isLeave = (segment: Segment) => segmentKind(segment) === 'leave'
+/** `span` without the hours of `off` */
+const subtract = (span: Span, off: Span): Span[] => (off.end <= span.start || off.start >= span.end
+  ? [span]
+  : [{ start: span.start, end: off.start }, { start: off.end, end: span.end }].filter((part) => part.end > part.start))
+
+/**
+ * When someone is on the street for the watch: working segments (not cancelled, not lent to another unit or
+ * precinct), minus a partial leave in the same cell.
+ */
+const workingSpans = (chips: Chip[]): Span[] => chips.flatMap((chip) => {
+  if (chip.outOfUnit || chip.branch) return []
+  const leave = chip.segments.filter(isLeave).map(segmentHours)
+  return chip.segments
+    .filter((segment) => !segment.cancelled && !isLeave(segment))
+    .flatMap((segment) => leave.reduce<Span[]>((spans, off) => spans.flatMap((span) => subtract(span, off)), [segmentHours(segment)]))
+})
 
 function watchCoverage(members: WorkforceMember[], id: WatchId, start: number, end: number) {
   const cache = new Map<number, WatchCoverage>()
@@ -231,13 +262,12 @@ function watchCoverage(members: WorkforceMember[], id: WatchId, start: number, e
     let supervisors = 0
     let hours = 0
     for (const member of members) {
-      const segments = workingSegments(member.chips(day))
-      if (!segments.length) continue
+      const spans = workingSpans(member.chips(day))
+      if (!spans.length) continue
       bodies += 1
       if (member.supervisor) supervisors += 1
       const covered = new Set<number>()
-      for (const segment of segments) {
-        const { start: from, end: to } = segmentHours(segment)
+      for (const { start: from, end: to } of spans) {
         hours += Math.min(to, 24) - from
         for (let hour = Math.floor(from); hour < Math.min(Math.ceil(to), 24); hour += 1) covered.add(hour)
       }

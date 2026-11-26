@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { Button, Select, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
-import { segmentHours, segmentKind, type Chip } from '../../schedule/data'
+import { segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
 import { dayKey, type SegmentDetails, type WorkforceSegment } from '../data'
 import { flattenDay, regroupDay, type DaySegment, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
-import { SegmentList, type PanelSegment, type SegmentHandlers } from './SegmentList'
+import { SegmentList, type BlockInfo, type PanelSegment, type SegmentHandlers } from './SegmentList'
 import { TimesCard } from './TimesCard'
 import { EmployeeRow } from './EmployeeRow'
 import { SegmentFields } from './SegmentFields'
-import { PanelFooter, PanelTabs } from './parts'
+import { AssignmentBanner, PanelFooter, PanelTabs } from './parts'
+import { LeaveEntry, LeaveTypeField, type LeaveRequest } from './LeaveEntry'
+import { ReadOnlyFields } from './ReadOnlyFields'
 import { branches, segmentDetails } from './options'
 import { formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
@@ -18,6 +20,7 @@ type DayItem = Extract<PanelItem, { kind: 'day' }>
 type Preview = (action: string) => void
 
 const newId = (prefix: string) => `${prefix}${Math.random().toString(36).slice(2, 8)}`
+const isLeave = (segment: Segment) => segmentKind(segment) === 'leave'
 
 /** "08:00–17:00" for a set of segments */
 const spanOf = (segments: WorkforceSegment[]) => {
@@ -53,6 +56,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
   const [selectedId, setSelectedId] = useState<string | null>((blocks[item.line] ?? blocks[0])?.[0]?.id ?? null)
   const [note, setNote] = useState<{ id: string; text: string; undo: boolean } | null>(null)
   const [branch, setBranch] = useState<string | null>(branches[0])
+  const [leaveOpen, setLeaveOpen] = useState(false)
 
   const selected = items.find((entry) => entry.segment.id === selectedId)?.segment ?? items[0]?.segment ?? null
 
@@ -80,14 +84,21 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
     onPreview,
   }
 
+  /** The working segment that ends last, among `entries` */
+  const latest = (entries: DaySegment[]) => entries
+    .filter((entry) => !isLeave(entry.segment))
+    .reduce<DaySegment | null>((last, entry) => (!last || segmentHours(entry.segment).end > segmentHours(last.segment).end ? entry : last), null)
+
+  /** A new segment touches the day's last one, unless that belongs to another branch: then it starts an hour later. */
   const addSegment = () => {
     const id = newId('n')
-    const last = items
-      .filter((entry) => segmentKind(entry.segment) !== 'leave')
-      .reduce<DaySegment | null>((latest, entry) => (!latest || segmentHours(entry.segment).end > segmentHours(latest.segment).end ? entry : latest), null)
+    const last = latest(items.filter((entry) => !item.blocks[entry.from].branch))
+    const other = last ? null : latest(items)
     const segment: PanelSegment = last
       ? { id, code: last.segment.code, start: segmentHours(last.segment).end, end: segmentHours(last.segment).end + 1 }
-      : { id, code: watch.code, start: watch.start, end: watch.end }
+      : other
+        ? { id, code: watch.code, start: segmentHours(other.segment).end + 1, end: segmentHours(other.segment).end + 2 }
+        : { id, code: watch.code, start: watch.start, end: watch.end }
     const error = save([...items, { segment, from: last ? last.from : item.blocks.length }], id)
     if (error) onPreview(`Add segment (${error})`)
     else setSelectedId(id)
@@ -113,12 +124,48 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
 
   const blockOf = (id: string | undefined) => blocks.findIndex((segments) => segments.some((segment) => segment.id === id))
   const selectedBlock = blockOf(selected?.id)
+  const selectedChip = item.blocks[selectedBlock] ?? null
+  /** Another branch's assignment: shown, not edited */
+  const readOnly = !!selectedChip?.branch
   const noteBlock = note ? blockOf(note.id) : -1
+  const blockInfo: BlockInfo[] = item.blocks.map((chip) => ({
+    tag: chip.branch ? chip.branch.split(' - ')[0] : chip.outOfUnit ? chip.unit ?? 'Another unit' : undefined,
+    readOnly: !!chip.branch,
+  }))
+
+  /* Leave: part of the day starts on the selected assignment (or the day's first one this branch can change) */
+  const ownBlocks = item.blocks.map((_, index) => index).filter((index) => !item.blocks[index].branch)
+  const leaveBlock = !readOnly && selectedBlock >= 0 ? selectedBlock : ownBlocks[0] ?? -1
+  const leaveSpan = leaveBlock >= 0
+    ? (() => {
+      const hours = blocks[leaveBlock].map(segmentHours)
+      return { start: Math.min(...hours.map((h) => h.start)), end: Math.max(...hours.map((h) => h.end)) }
+    })()
+    : { start: watch.start, end: watch.end }
+  const replaces = ownBlocks.length ? ownBlocks.map((index) => `${blocks[index][0].code} ${spanOf(blocks[index])}`).join(' and ') : null
+
+  const addLeave = (leave: LeaveRequest): string | null => {
+    const id = newId('l')
+    if (leave.allDay) {
+      const segment: PanelSegment = { id, code: leave.code, start: 0, end: 24 }
+      setNote(null)
+      onEdit({ days: [[key, [{ segments: [segment] }, ...item.blocks.filter((chip) => chip.branch)]]] })
+    } else {
+      const error = save([...items, { segment: { id, code: leave.code, start: leave.start, end: leave.end }, from: item.blocks.length }])
+      if (error) return error
+    }
+    setSelectedId(id)
+    setLeaveOpen(false)
+    return null
+  }
 
   const form = selected && (() => {
-    const details = segmentDetails(selected, watch.unit, `${key}:${selected.id}`)
+    const unit = selectedChip?.outOfUnit ? selectedChip.unit ?? watch.unit : watch.unit
+    const details = segmentDetails(selected, unit, `${key}:${selected.id}`)
+    if (readOnly) return <ReadOnlyFields segment={selected} details={details} day={day} />
     const hours = segmentHours(selected)
     const setDetails = (change: Partial<SegmentDetails>) => patch(selected.id, { details: { ...details, ...change } })
+    const leave = isLeave(selected)
     return (
       <>
         <TimesCard
@@ -128,18 +175,22 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
           day={day}
           onTimes={(start, end) => save(items.map((entry) => (entry.segment.id === selected.id ? { ...entry, segment: { ...entry.segment, start, end } } : entry)), selected.id)}
           onMoveDay={(to) => moveBlock(selectedBlock, to)}
-          actual={details.actual}
-          onActual={(actual) => setDetails({ actual })}
+          actual={leave ? null : details.actual}
+          warnLong={!leave}
+          onActual={leave ? undefined : (actual) => setDetails({ actual })}
         />
-        <SegmentFields code={selected.code} onCode={(code) => patch(selected.id, { code })} details={details} scheduled={hours} onChange={setDetails} />
+        {leave
+          ? <LeaveTypeField code={selected.code} onCode={(code) => patch(selected.id, { code })} />
+          : <SegmentFields code={selected.code} onCode={(code) => patch(selected.id, { code })} details={details} scheduled={hours} onChange={setDetails} />}
       </>
     )
   })()
 
   const details = (
     <div className={classes.body}>
+      <AssignmentBanner chip={selectedChip} onPreview={onPreview} />
       <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
-      <Select label="Branch" data={branches} value={branch} onChange={setBranch} allowDeselect={false} />
+      <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />
       <Stack gap={4}>
         {blocks.length
           ? (
@@ -150,6 +201,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
               handlers={handlers}
               note={note && noteBlock >= 0 ? { block: noteBlock, text: note.text, onUndo: note.undo ? () => { setNote(null); onUndo() } : undefined } : null}
               blockActions={{ day, onMove: moveBlock, onDelete: deleteBlock }}
+              blockInfo={blockInfo}
             />
           )
           : <Text size="sm" c="dimmed">No assignment on this day yet.</Text>}
@@ -157,7 +209,9 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
           Add segment
         </Button>
       </Stack>
-      {form}
+      {leaveOpen
+        ? <LeaveEntry span={leaveSpan} replaces={replaces} onAdd={addLeave} onCancel={() => setLeaveOpen(false)} />
+        : form}
     </div>
   )
 
@@ -166,9 +220,10 @@ export function DayEditor({ item, onEdit, onUndo, onPreview }: { item: DayItem; 
       <PanelTabs details={details} />
       <PanelFooter
         onPreview={onPreview}
-        canLeave={blocks.length > 0}
-        deleteLabel="Delete assignment"
-        onDelete={selectedBlock >= 0 ? () => deleteBlock(selectedBlock) : undefined}
+        onLeave={() => setLeaveOpen(true)}
+        canLeave={!leaveOpen}
+        deleteLabel={selectedChip?.segments.every(isLeave) ? 'Delete leave' : 'Delete assignment'}
+        onDelete={selectedBlock >= 0 && !readOnly ? () => deleteBlock(selectedBlock) : undefined}
       />
     </>
   )

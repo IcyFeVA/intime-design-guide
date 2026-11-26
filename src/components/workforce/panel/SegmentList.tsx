@@ -1,7 +1,7 @@
 import { Fragment, useState, type ReactNode } from 'react'
 import { ActionIcon, Anchor, Menu, Popover, Text, Tooltip, UnstyledButton } from '@mantine/core'
 import { DatePicker } from '@mantine/dates'
-import { Ban, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, UserSearch } from 'lucide-react'
+import { ArrowUpRight, Ban, CalendarArrowUp, CornerDownRight, Ellipsis, History, Radio, RotateCcw, Trash2, UserSearch } from 'lucide-react'
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { formatDuration, segmentHours, segmentKind } from '../../schedule/data'
 import type { WorkforceSegment } from '../data'
@@ -15,6 +15,14 @@ export interface SegmentHandlers {
   onPatch: (id: string, patch: Partial<WorkforceSegment>) => void
   onDelete?: (id: string) => void
   onPreview: (action: string) => void
+}
+
+/** What the list shows about an assignment besides its segments */
+export interface BlockInfo {
+  /** Where it's worked, under the root row's times: "Special Ops" (out of unit), "84th Precinct" */
+  tag?: string
+  /** Another branch's assignment: rows can be selected, but have no actions */
+  readOnly?: boolean
 }
 
 /** Whole-block actions on a root row's menu */
@@ -46,7 +54,7 @@ function blockTotal(segments: WorkforceSegment[]) {
  * root; the segments that touch it are indented below. A block that doesn't touch starts a new root. Click a row
  * to edit it in the form below the list.
  */
-export function SegmentList({ blocks, selectedId, onSelect, handlers, note, blockActions, readOnly = false }: {
+export function SegmentList({ blocks, selectedId, onSelect, handlers, note, blockActions, blockInfo = [] }: {
   blocks: PanelSegment[][]
   selectedId: string | null
   onSelect: (id: string) => void
@@ -54,7 +62,8 @@ export function SegmentList({ blocks, selectedId, onSelect, handlers, note, bloc
   /** Shown under a block after a save moved a segment: what happened, and Undo */
   note?: { block: number; text: string; onUndo?: () => void } | null
   blockActions?: BlockActions
-  readOnly?: boolean
+  /** Per block, in the same order */
+  blockInfo?: BlockInfo[]
 }) {
   return (
     <div className={classes.segmentList} role="list" aria-label="Segments">
@@ -71,7 +80,8 @@ export function SegmentList({ blocks, selectedId, onSelect, handlers, note, bloc
                 onSelect={() => onSelect(segment.id)}
                 handlers={handlers}
                 blockMenu={index === 0 && blockActions ? { ...blockActions, block, label: blockTotal(segments) } : undefined}
-                readOnly={readOnly}
+                tag={index === 0 ? blockInfo[block]?.tag : undefined}
+                readOnly={!!blockInfo[block]?.readOnly}
               />
             ))}
           </div>
@@ -98,7 +108,7 @@ function Times({ segment }: { segment: PanelSegment }) {
   )
 }
 
-function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockMenu, readOnly }: {
+function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockMenu, tag, readOnly }: {
   segment: PanelSegment
   root: boolean
   /** The block's total, on a root row with indented segments */
@@ -107,6 +117,7 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
   onSelect: () => void
   handlers: SegmentHandlers
   blockMenu?: BlockActions & { block: number; label: string }
+  tag?: string
   readOnly: boolean
 }) {
   const [moving, setMoving] = useState(false)
@@ -115,15 +126,15 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
 
   const action = (label: string, icon: ReactNode, onClick = () => handlers.onPreview(label)) => (
     <Tooltip label={label}>
-      <ActionIcon variant="subtle" color="gray" size={28} aria-label={label} onClick={onClick} disabled={readOnly}>{icon}</ActionIcon>
+      <ActionIcon variant="subtle" color="gray" size={28} aria-label={label} onClick={onClick}>{icon}</ActionIcon>
     </Tooltip>
   )
 
   const menu = (
-    <Menu position="bottom-end" disabled={readOnly}>
+    <Menu position="bottom-end">
       <Menu.Target>
         <Tooltip label="More actions">
-          <ActionIcon variant="subtle" color="gray" size={28} aria-label={`More actions for ${segment.code} ${formatSpan(start, end)}`} disabled={readOnly}><Ellipsis size={16} /></ActionIcon>
+          <ActionIcon variant="subtle" color="gray" size={28} aria-label={`More actions for ${segment.code} ${formatSpan(start, end)}`}><Ellipsis size={16} /></ActionIcon>
         </Tooltip>
       </Menu.Target>
       <Menu.Dropdown>
@@ -150,17 +161,18 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
         className={classes.rowMain}
         onClick={onSelect}
         aria-pressed={selected}
-        aria-label={`${name}, ${formatSpan(start, end)}${segment.cancelled ? ', cancelled' : ''}${total ? `. Assignment ${total}` : ''}`}
+        aria-label={`${name}, ${formatSpan(start, end)}${segment.cancelled ? ', cancelled' : ''}${total ? `. Assignment ${total}` : ''}${tag ? `. ${tag}` : ''}`}
       >
         {!root && <CornerDownRight size={14} className={classes.indentMark} aria-hidden="true" />}
         <span className={classes.code} style={codeFill(segment.code)}>{segment.code}</span>
         <span className={classes.rowText}>
           <Times segment={segment} />
           {total && <span className={classes.total}>{total}</span>}
+          {tag && <span className={classes.rowTag}><ArrowUpRight size={12} strokeWidth={2} aria-hidden="true" />{tag}</span>}
         </span>
         <span className={classes.duration}>{formatDuration(end - start)}</span>
       </UnstyledButton>
-      {selected && (
+      {selected && !readOnly && !isLeave(segment) && (
         <>
           {action('Post as live', <Radio size={16} />)}
           {action('Find an employee', <UserSearch size={16} />)}
@@ -169,7 +181,7 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
             : action('Cancel segment', <Ban size={16} />, () => handlers.onPatch(segment.id, { cancelled: true }))}
         </>
       )}
-      {blockMenu ? (
+      {readOnly ? null : blockMenu ? (
         <Popover opened={moving} onChange={setMoving} position="bottom-end" trapFocus>
           <Popover.Target><div>{menu}</div></Popover.Target>
           <Popover.Dropdown>

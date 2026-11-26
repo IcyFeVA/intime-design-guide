@@ -132,11 +132,11 @@ export const pages: PageDef[] = [
   {
     path: '/patterns/workforce-scheduling', title: 'Work Scheduling', group: 'Patterns', icon: Grid3x3, status: 'confirmed', updated: '2026-11-25',
     description: 'The scheduler’s grid: open shifts, watches with their staffing, and people’s shifts. Select cells like in a spreadsheet and edit them in a panel beside the grid.',
-    keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'segment', 'assignment', 'autosave', 'undo', 'typing times', 'time entry', '24-hour', 'time format', 'actual times', 'bank time', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
+    keywords: ['work scheduling', 'workforce scheduling', 'workforce', 'scheduling', 'scheduler', 'grid', 'select', 'multi-select', 'range', 'drag', 'spreadsheet', 'excel', 'bulk edit', 'assign', 'open shift', 'live shift', 'watch', 'day', 'swing', 'night', 'staffing', 'supervisors', 'details panel', 'editing', 'new activity', 'segment', 'assignment', 'autosave', 'undo', 'typing times', 'time entry', '24-hour', 'time format', 'actual times', 'bank time', 'leave', 'partial leave', 'sick', 'all day', 'out of unit', 'out of branch', 'another precinct', 'read-only', 'density', 'detailed', 'compact', 'stacked', 'day view', 'responsive', 'screen size', 'resolution', 'mini', 'column width', 'fit to width', 'horizontal scroll'],
     sections: s(
       ['desktop', 'Desktop'],
       ['the-grid', 'The grid', 'group'], ['selection', 'Selecting cells'], ['rows', 'Groups and staffing'], ['views', 'Views and densities'], ['sizing', 'Sizing for screens'],
-      ['the-panel', 'The details panel', 'group'], ['panel', 'What it shows'], ['assignments', 'Assignments and segments'], ['editing', 'Editing and saving'], ['times', 'Typing times'],
+      ['the-panel', 'The details panel', 'group'], ['panel', 'What it shows'], ['assignments', 'Assignments and segments'], ['editing', 'Editing and saving'], ['times', 'Typing times'], ['leave', 'Adding leave'], ['elsewhere', 'Out of unit and branch'],
       ['reference', 'Reference', 'group'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference'],
     ),
     component: lazy(() => import('../pages/patterns/WorkforceScheduling')),

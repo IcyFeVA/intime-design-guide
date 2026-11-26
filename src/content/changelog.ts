@@ -12,6 +12,19 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-25',
     page: '/patterns/workforce-scheduling',
+    summary: 'The panel adds leave, and shows work for another unit or precinct.',
+    changes: [
+      'Leave opens a short form: leave type, then part of the day (a partial leave inside the assignment) or all day (replaces the day’s assignments, with Undo).',
+      'A leave segment shows only its times and leave type.',
+      'Out of unit: a banner names the unit, and the assignment stays editable.',
+      'Out of branch: a banner with “Open in 84th Precinct”, the values as plain text, and nothing can be changed. The grid shows the cell muted with “↗ 84th”, and it no longer counts towards staffing.',
+      'Partial leave lowers the staffing hours. New demo days: E. Rodriguez and J. Anderson on Wed, L. Garcia on Tue, D. Patel on Thu.',
+      'New sections: Adding leave, and Out of unit and branch. The legend adds Partial leave and Out of branch.',
+    ],
+  },
+  {
+    date: '2026-11-25',
+    page: '/patterns/workforce-scheduling',
     summary: 'The page is grouped into The grid, The details panel and Reference, and the panel has its own sections, including Typing times.',
     changes: [
       'New sections: What it shows, Assignments and segments, Editing and saving, and Typing times (with fields to try the formats).',

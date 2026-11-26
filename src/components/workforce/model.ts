@@ -202,15 +202,29 @@ export function flattenDay(chips: Chip[]): DaySegment[] {
   })))
 }
 
-/** Rebuilds a day's cells from its segments. Each new block keeps the cell flags (out of unit…) of its first segment's old block. */
+/**
+ * Rebuilds a day's cells from its segments. Each new block keeps the cell flags (out of unit, branch…) of its first
+ * segment's old block. Another branch's assignment can't take in segments, or lose them to this branch's.
+ */
 export function regroupDay(chips: Chip[], items: DaySegment[], focusId?: string): { chips: Chip[]; error?: string } {
   const focus = focusId === undefined ? undefined : items.findIndex((item) => item.segment.id === focusId)
   const { blocks, error } = groupBlocks(items.map((item) => item.segment), focus)
   if (error) return { chips, error }
+  const branchOf = (index: number) => chips[items[index].from]?.branch
+  for (const block of blocks) {
+    const branch = block.map(branchOf).find(Boolean)
+    if (branch && block.some((index) => branchOf(index) !== branch)) {
+      return { chips, error: `Touches the assignment at ${branch.split(' - ')[0]}, which only they can change` }
+    }
+  }
   return {
     chips: blocks.map((block) => {
       const old: Partial<Chip> = chips[items[block[0]].from] ?? {}
-      return { outOfUnit: old.outOfUnit, partialKind: old.partialKind, segments: block.map((index) => items[index].segment) }
+      const chip: Chip = { segments: block.map((index) => items[index].segment) }
+      if (old.outOfUnit) Object.assign(chip, { outOfUnit: true, unit: old.unit })
+      if (old.branch) chip.branch = old.branch
+      if (old.partialKind) chip.partialKind = old.partialKind
+      return chip
     }),
   }
 }

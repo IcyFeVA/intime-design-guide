@@ -30,8 +30,11 @@ export const normalizeEnd = (start: number, end: number) => (end <= start ? end 
 /** "04:00 +1" for an end past midnight */
 export const formatEnd = (end: number) => (end > 24 ? `${formatHour(end)} +1` : formatHour(end))
 
-/** "08:00–17:00" or "20:00–04:00 +1" */
-export const formatSpan = (start: number, end: number) => `${formatHour(start)}–${formatEnd(end)}`
+/** "08:00–17:00", "20:00–04:00 +1", or "All day" for 00:00–24:00 */
+export const formatSpan = (start: number, end: number) => (start === 0 && end === 24 ? 'All day' : `${formatHour(start)}–${formatEnd(end)}`)
+
+/** An end time's input value: 24:00 for a whole day, so it doesn't read as 00:00–00:00 */
+export const endValue = (start: number, end: number) => (start === 0 && end === 24 ? '24:00' : timeValue(end))
 
 /** Spans longer than this get a "Is that right?" warning */
 export const LONG_SPAN_HOURS = 16

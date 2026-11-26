@@ -95,6 +95,8 @@ export const scheduleTokens: ScheduleToken[] = [
   fromCell('--schedule-expired-hatch', 'expired', 'hatch', 'Thin stripes over the cells of an inactive employee, from the expiry day on. Also the dashed outline of their initials.'),
   t('--schedule-expired-text', 'var(--text-dimmed)', 'color', 'The “Inactive” label and icon on the first inactive day.'),
   t('--schedule-chip-text', 'var(--text-default)', 'color', 'Codes and tags inside a shift cell.'),
+  { ...t('--schedule-branch-bg', 'var(--background-default)', 'color', 'Fill of a cell worked at another branch (precinct). Muted, as only that branch can change it.'), status: 'draft' },
+  { ...t('--schedule-branch-text', 'var(--text-dimmed)', 'color', 'Code and branch tag of a cell worked at another branch.'), status: 'draft' },
   t('--schedule-chip-divider', mix('--neutral-black', 25), 'color', 'Line between two assignments in one cell.'),
   t('--schedule-boundary', 'var(--text-info)', 'color', 'Vertical line where a new schedule period starts.'),
   t('--schedule-today-bg', mix('--background-info', 16), 'color', 'Background of today’s column header.'),

@@ -4,7 +4,7 @@ import { DatePickerInput } from '@mantine/dates'
 import { Plus, X } from 'lucide-react'
 import { formatDuration, formatHour } from '../../schedule/data'
 import type { SegmentDetails } from '../data'
-import { fromIso, longSpanWarning, normalizeEnd, parseTime, timeValue, toIso } from './format'
+import { endValue, fromIso, longSpanWarning, normalizeEnd, parseTime, timeValue, toIso } from './format'
 import { TimeField } from './TimeField'
 import classes from '../WorkforcePanel.module.css'
 
@@ -12,7 +12,7 @@ import classes from '../WorkforcePanel.module.css'
  * The selected segment's times: the scheduled day (moves its whole assignment), start, end and hours, and the
  * actual times once set. Times save when focus leaves the start/end pair, so changing both saves once.
  */
-export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMoveDay, actual, onActual, readOnly = false }: {
+export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMoveDay, actual, onActual, warnLong = true, readOnly = false }: {
   start: number
   end: number
   day: number
@@ -21,17 +21,20 @@ export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMo
   /** Missing: the day can't change here */
   onMoveDay?: (day: number) => void
   actual: SegmentDetails['actual']
-  onActual: (actual: SegmentDetails['actual']) => void
+  /** Missing: no actual times (e.g. leave) */
+  onActual?: (actual: SegmentDetails['actual']) => void
+  /** Warn about spans over 16h. Off for leave, which can last all day. */
+  warnLong?: boolean
   readOnly?: boolean
 }) {
   const [start, setStart] = useState(timeValue(savedStart))
-  const [end, setEnd] = useState(timeValue(savedEnd))
+  const [end, setEnd] = useState(endValue(savedStart, savedEnd))
   const [error, setError] = useState<string | null>(null)
 
   const from = parseTime(start)
   const to = parseTime(end)
   const draft = from !== null && to !== null && from !== to ? { start: from, end: normalizeEnd(from, to) } : null
-  const warning = draft && longSpanWarning(draft.start, draft.end)
+  const warning = warnLong && draft && longSpanWarning(draft.start, draft.end)
 
   const commit = () => {
     if (from === null || to === null) return setError('Type times like 0800, 830 or 17:30')
@@ -71,7 +74,7 @@ export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMo
       </SimpleGrid>
       {error && <Text size="xs" mt={6} c="var(--text-error-default)" role="alert">{error}. Not saved.</Text>}
       {!error && warning && <Text size="xs" mt={6} c="var(--text-warning-default)">{warning}</Text>}
-      {actual
+      {!onActual ? null : actual
         ? <ActualTimes key={`${actual.start}:${actual.end}`} actual={actual} onChange={onActual} readOnly={readOnly} />
         : !readOnly && (
           <Button variant="subtle" color="gray" size="xs" mt={6} leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => onActual({ start: savedStart, end: savedEnd })}>

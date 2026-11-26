@@ -243,6 +243,17 @@
   color: var(--text-dimmed);
 }
 
+.rowTag {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--text-dimmed);
+  white-space: nowrap;
+}
+
 .duration {
   flex: none;
   margin-left: auto;
@@ -277,6 +288,44 @@
 
 .linkButton {
   align-self: flex-start;
+}
+
+/* ---------- Out of unit / branch ---------- */
+
+.banner {
+  padding: 10px 12px;
+}
+
+.bannerMessage {
+  color: var(--text-default);
+}
+
+.bannerLink {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+/* Another branch's assignment: label and value pairs */
+.pairs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin: 0;
+}
+
+.pairs dt {
+  font-size: 12px;
+  color: var(--text-dimmed);
+}
+
+.pairs dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  color: var(--text-default);
 }
 
 /* ---------- Bulk ---------- */

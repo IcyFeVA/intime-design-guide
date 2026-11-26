@@ -17,7 +17,8 @@ export function TimeField({ value, onChange, onBlur, ...props }: Omit<TextInputP
       onFocus={(event) => event.currentTarget.select()}
       onBlur={(event) => {
         const hours = parseTime(value)
-        if (hours !== null && timeValue(hours) !== value) onChange(timeValue(hours))
+        const tidy = hours === 24 ? '24:00' : hours !== null ? timeValue(hours) : value
+        if (tidy !== value) onChange(tidy)
         onBlur?.(event)
       }}
       placeholder="HH:MM"

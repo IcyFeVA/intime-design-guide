@@ -1,6 +1,6 @@
 import { shiftCodeMap, shiftCodes } from '../../../tokens/schedule'
 import { navUnits } from '../../../tokens/navigation'
-import { watches, shortName, type SegmentDetails, type TimeBank, type WorkforceSegment } from '../data'
+import { HOME_BRANCH, OTHER_BRANCH, watches, shortName, type SegmentDetails, type TimeBank, type WorkforceSegment } from '../data'
 
 /* Mock options for the details panel's fields */
 
@@ -9,11 +9,15 @@ export const locations = ['Sector A', 'Sector B', 'Sector C', 'Sector D', 'Kings
 export const modifiers = ['None', 'Overtime 1.5×', 'Overtime 2×', 'Holiday pay', 'Comp time']
 export const actingRanks = ['None', 'Corporal', 'Sergeant', 'Lieutenant']
 export const customers = ['City of New York', 'NYC Transit', 'Barclays Center']
-export const units = [...watches.map((watch) => watch.unit), 'Special Ops', 'K9 Unit']
-export const branches = navUnits
+export const units = [...watches.map((watch) => watch.unit), 'Special Ops', 'K9 Unit', 'Training']
+/** Branches (precincts) people can work at. The demo's unit is in the first one. */
+export const branches = [...new Set([HOME_BRANCH, OTHER_BRANCH, ...navUnits])]
 export const timeBanks: TimeBank[] = ['Overtime', 'Comp Time', 'Holiday']
 /** Hours each bank can still take this period (mock) */
 export const bankAvailable: Record<TimeBank, number> = { Overtime: 16, 'Comp Time': 40, Holiday: 8 }
+
+/** Leave types: the leave codes, by name */
+export const leaveOptions = shiftCodes.filter((code) => code.kind === 'leave').map((code) => ({ value: code.code, label: code.label }))
 
 /** Shift codes for the code picker: the field shows the code, the list adds its name */
 export const codeOptions = shiftCodes.map((code) => ({ value: code.code, label: code.code }))

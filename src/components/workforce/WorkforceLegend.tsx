@@ -15,7 +15,9 @@ const chips: Partial<Record<LegendKey, Chip>> = {
   overtime: { segments: [{ code: 'ExP', overtime: 'full' }] },
   partialOvertime: { segments: [{ code: 'PatS', overtime: 'partial' }] },
   leave: { segments: [{ code: 'Sick' }] },
-  outOfUnit: { segments: [{ code: 'PatD' }], outOfUnit: true },
+  partialLeave: { segments: [{ code: 'PatD', start: 8, end: 16 }, { code: 'Sick', start: 13, end: 16 }] },
+  outOfUnit: { segments: [{ code: 'PatD' }], outOfUnit: true, unit: 'Special Ops' },
+  outOfBranch: { segments: [{ code: 'PatD' }], branch: '84th Precinct - Brooklyn' },
 }
 
 const openShift = (status: OpenShift['status']): OpenShift => ({

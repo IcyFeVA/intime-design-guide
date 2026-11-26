@@ -305,6 +305,13 @@
     var(--part-fill);
 }
 
+/* Out of branch: muted, as only that branch can change it */
+.part[data-branch] {
+  color: var(--schedule-branch-text);
+  background: var(--schedule-branch-bg);
+  box-shadow: inset 0 0 0 1px var(--border-default);
+}
+
 .cell:hover .part {
   filter: brightness(1.12);
 }
@@ -515,6 +522,11 @@
   background:
     repeating-linear-gradient(135deg, var(--schedule-hatch) 0 2px, transparent 2px 7px),
     var(--part-fill);
+}
+
+.bar[data-branch] {
+  background: var(--schedule-branch-bg);
+  box-shadow: inset 0 0 0 1px var(--border-default);
 }
 
 /* Cancelled: struck through, as Mini's bar */

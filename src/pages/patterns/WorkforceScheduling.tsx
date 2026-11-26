@@ -50,7 +50,7 @@ const keyboard: { keys: string[]; action: string }[] = [
 ]
 
 const modes: { mode: string; when: string; shows: string; footer: string }[] = [
-  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment.', footer: 'Assign, Leave, more (History, Delete block)' },
+  { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment. Another unit’s or precinct’s assignment adds a banner; another precinct’s is read-only.', footer: 'Assign, Leave, more (History, Delete assignment or leave)' },
   { mode: 'Open shift', when: 'An open or live shift in the top row', shows: '“Open shift · Swing Patrol” or “Live post · …”, no employee yet, and the shift as one block.', footer: 'Assign, more (History, Delete open shift)' },
   { mode: 'Several cells', when: 'Two or more cells', shows: 'How many activities and empty cells, a list of the cells, and fields that apply to all of them. Fields that differ show “Mixed”.', footer: 'Assign, Leave, more' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell.', footer: 'None' },
@@ -61,6 +61,26 @@ const assignmentCases: [string, string, string, string][] = [
   ['With a gap', 'PatD 07:00–17:00, then Spe 19:00–20:00', 'A second line for that day', 'Two assignments, each starting a new row.'],
   ['Partial leave', 'PatD 08:00–16:00, with Sick 13:00–16:00', 'One cell, split diagonally', 'The leave indented under PatD: 5h worked · 3h leave.'],
   ['Overnight', 'PatN 20:00–04:00', 'One cell, on the day it starts', '20:00–04:00 +1, 8h.'],
+  ['All-day leave', 'Sick, all day', 'One leave cell', 'Sick, All day, 24h. The form shows only its times and leave type.'],
+  ['Out of unit', 'PatD for Special Ops', 'Striped, with an OU tag', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
+  ['Out of branch', 'PatD at 84th Precinct', 'Muted, with “↗ 84th”', 'A banner with “Open in 84th Precinct”, and its values as plain text. Nothing can be changed.'],
+]
+
+/** Days in the demo that show each case (week of Jun 1–7) */
+const scenarioDays: [string, string][] = [
+  ['Partial leave', 'E. Rodriguez, Wed, Jun 3'],
+  ['Two assignments in a day', 'J. Anderson, Wed, Jun 3'],
+  ['Out of unit', 'L. Garcia, Tue, Jun 2'],
+  ['Out of branch', 'D. Patel, Thu, Jun 4'],
+  ['All-day leave', 'T. Nguyen, Tue, Jun 2'],
+]
+
+const elsewhereRows: [string, string, string][] = [
+  ['Example', 'L. Garcia works PatD for Special Ops.', 'D. Patel works PatD at the 84th Precinct.'],
+  ['In the grid', 'Striped, with an OU tag where there is room.', 'Muted, with the precinct’s short name (“↗ 84th”).'],
+  ['Banner', '“Working for Special Ops (out of unit)”', '“Working at 84th Precinct. Only 84th Precinct can change this.” and “Open in 84th Precinct”.'],
+  ['In the panel', 'Editable as usual. Unit shows Special Ops.', 'Read-only: the values as plain text, no form, and Delete is off. Branch shows 84th Precinct.'],
+  ['Staffing', 'Not counted: they are on the other unit’s street.', 'Not counted, and that precinct’s schedulers own it.'],
 ]
 
 const typedTimes: [string, string][] = [
@@ -419,7 +439,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
           <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming.</Text>
-          <Text size="sm"><strong>Not built yet:</strong> Assign, Leave, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
+          <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
 
@@ -444,6 +464,10 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Times decide the assignment.</strong> Change a segment’s times so it no longer touches and it moves to an assignment, and a grid line, of its own. A note says “Doesn’t touch 08:00–17:00. It shows on its own line.” with Undo. Make it touch another assignment and it joins that one.</Text>
           <Text size="sm"><strong>Add segment</strong> adds one that starts where the day’s last one ends, so it touches. On an empty day it adds the watch’s shift.</Text>
           <Text size="sm"><strong>Moving and deleting.</strong> The first segment’s menu moves the whole assignment to another day or deletes it. Changing Scheduled in the form moves it too. A move that would overlap on the new day is refused.</Text>
+        </Stack>
+        <Text size="sm" fw={600} mt="md" mb={6}>Try them in the demo</Text>
+        <Stack gap={4}>
+          {scenarioDays.map(([name, where]) => <Text size="sm" key={name}>{name}: <strong>{where}</strong></Text>)}
         </Stack>
       </Section>
 
@@ -481,6 +505,33 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Mistakes aren’t saved.</strong> Anything that isn’t a time stays as typed, and the card says “Type times like 0800, 830 or 17:30. Not saved.”</Text>
           <Text size="sm" c="dimmed">For developers: TimeField (src/components/workforce/panel/TimeField.tsx) is a plain text input with a numeric keyboard on touch screens. parseTime in panel/format.ts reads the formats above. Times are stored as hours; an end past 24 is the next day.</Text>
         </Stack>
+      </Section>
+
+      <Section id="leave" title="Adding leave" description="Leave in the panel opens a short form below the day’s segments: the leave type, then part of the day or all day.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Part of the day</strong> starts on the selected assignment’s times. Leave that overlaps an assignment stays in its cell, as a partial leave: indented under the segment and counted as “5h worked · 3h leave”. The grid splits the cell diagonally, and staffing hours drop by the leave.</Text>
+          <Text size="sm"><strong>All day</strong> replaces the day’s assignments with one leave cell. The form says what it replaces (“Replaces PatD 07:00–17:00. Undo brings it back.”).</Text>
+          <Text size="sm"><strong>A leave segment</strong> shows only its times and leave type: no activity, location or customer, and no post or cancel actions. Delete in the footer reads “Delete leave”.</Text>
+          <Text size="sm"><strong>Cancel or Escape</strong> closes the form without saving. Leave in another precinct’s assignment is refused, as only that precinct can change it.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="elsewhere" title="Out of unit and branch" description="People sometimes work for another unit in the precinct, or at another precinct. The grid and the panel show both, so nobody is counted twice or changed by the wrong scheduler.">
+        <Table.ScrollContainer minWidth={640} className="doc-table">
+          <Table verticalSpacing="sm" horizontalSpacing="md">
+            <Table.Thead><Table.Tr><Table.Th w={130}></Table.Th><Table.Th>Out of unit</Table.Th><Table.Th>Out of branch</Table.Th></Table.Tr></Table.Thead>
+            <Table.Tbody>
+              {elsewhereRows.map(([label, unit, branch]) => (
+                <Table.Tr key={label}>
+                  <Table.Td><Text size="sm" fw={600}>{label}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{unit}</Text></Table.Td>
+                  <Table.Td><Text size="sm">{branch}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+        <Text size="sm" mt="md">On a day with assignments in both places, the banner follows the selected assignment, and each assignment’s first row names where it is worked.</Text>
       </Section>
 
       <Section id="reference" title="Reference" size="display" description="The components behind the demo, its CSS variables and guidelines." />
@@ -553,6 +604,7 @@ export default function WorkforceScheduling() {
             'Show the person’s whole day in the panel, so a separate assignment on another line is never missed. Indent the segments that touch an assignment under its first one.',
             'Save as people type, say “Saved”, and keep Undo one click away.',
             'Let schedulers type times (0830, 1730) in 24-hour format. They are faster than any time picker.',
+            'Say where an assignment is worked when it isn’t this unit, and who can change it.',
           ]}
           dontItems={[
             'Open the panel while the user is still dragging or moving with the arrow keys.',
@@ -563,6 +615,7 @@ export default function WorkforceScheduling() {
             'Clear the selection when a range gets longer. Keep the cells that are still in view.',
             'Block a save because of a warning. Only times that can’t work (overlapping, zero length) are refused, and the field says why.',
             'Make schedulers scroll sideways to see the rest of a week or month.',
+            'Let a scheduler change another precinct’s assignment. Show it, and link to it there.',
           ]}
         />
       </Section>

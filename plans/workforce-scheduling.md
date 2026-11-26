@@ -390,6 +390,19 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - **Page regrouped** (2026-11-25, user): Desktop, then groups **The grid** (selection, rows, views, sizing), **The details panel** (`panel` "What it shows", `assignments`, `editing`, `times` "Typing times" with a try-it field) and **Reference** (component, tokens, guidelines, figma). Group headings are registry sections with `'group'` (`s()` in `pages.ts`), rendered as `Section size="display"`; the TOC indents the sections under them.
 - Not yet: Branch isn't saved (local state, per day). The employee picker on a day says "Preview only" (reassigning is assign mode, step 3). A collapsed single block isn't reopened automatically after a move.
 
+### Step 2 as built (2026-11-25): scenarios
+
+- [x] `Chip` (`schedule/data.ts`) has `unit` (out of unit) and `branch` (out of branch); `describeChip` names them, `branchShort` gives "84th". `regroupDay` keeps both, and refuses a block that would mix another branch's segments with ours.
+- [x] Mock days (week of Jun 1–7): T. Nguyen Tue Vac all day (3), E. Rodriguez Wed PatD 08–16 + Sick 13–16 (5), J. Anderson Wed PatD 08–16 + Spe OT 16–17 and Spe 18–19 (6), L. Garcia Tue PatD for Special Ops (7), D. Patel Thu PatD at 84th Precinct - Brooklyn (8). Random out-of-unit cells name a unit (Special Ops, K9 Unit, Training). `HOME_BRANCH`/`OTHER_BRANCH` in `data.ts`; `branches` in `panel/options.ts` lists both.
+- [x] Coverage: out-of-branch cells don't count; a partial leave takes its hours off the working segment (`workingSpans`).
+- [x] Grid: out of branch is muted (`--schedule-branch-bg`/`-text`, draft) with "↗ 84th" in ShiftChip, DetailedChip and StackedChip; no OU or OT tag on it. Legend adds Partial leave and Out of branch.
+- [x] Panel: `AssignmentBanner` (parts.tsx) for the selected block. Out of unit: "Working for Special Ops (out of unit)", editable, Unit defaults to the chip's unit. Out of branch: "Working at 84th Precinct. Only 84th Precinct can change this." + "Open in 84th Precinct" (preview), `ReadOnlyFields` (label + value pairs), Branch shows the other precinct read-only, rows have no actions, Delete is off. Each block's root row names where it's worked under its times ("↗ Special Ops", "↗ 84th Precinct").
+- [x] Leave entry (`panel/LeaveEntry.tsx`), from the footer's Leave: type (leave codes), Part of day (from–to, defaults to the selected block; nests as a partial leave) or All day (replaces this branch's blocks with one 00:00–24:00 leave cell, "Replaces … Undo brings it back."). Cancel/Escape close it; Enter adds.
+- [x] A selected leave segment: Times card (no Set actual, no 16h warning) + Leave type only; no live/find/cancel icons. Footer Delete reads "Delete leave" for a leave-only block. 00:00–24:00 shows "All day" (24:00 in the End field; `endValue`, `TimeField` keeps 24:00).
+- [x] Page: new sections `leave` "Adding leave" and `elsewhere` "Out of unit and branch"; scenario days listed under Assignments and segments.
+- Decided without the user (check): All day **replaces** the day's assignments (Undo restores) rather than nesting a 24h leave in each block. Out of unit is a cell flag, so changing a segment's Unit field doesn't make it out of unit, and Branch still isn't saved (changing it to another precinct would lock the day).
+- Not yet: leave approval states (open question); the freed shift after all-day leave doesn't become an open shift.
+
 ### Attachments tab (2026-11-25, user)
 
 Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalski). It has three sections, Tags, Assets and Tasks, each with a count and an empty state ("None yet."). **The prototype's free-text inputs are wrong** (user). The correct behavior:
@@ -416,6 +429,9 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Panel as a drawer over the grid (built, hidden): bring back the pin in the panel header and document it.
 
 ## Open questions (ask the user when relevant)
+
+- All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?
+- Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?
 
 - Details panel: the open UI decisions are tracked in `plans/workforce-panel-review.md`, not here. Leave approval states (pending, approved, denied) and how they show in the panel are open too.
 - Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
