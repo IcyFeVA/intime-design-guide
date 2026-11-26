@@ -117,7 +117,7 @@ Check both schemes: `localStorage.setItem('intime-guide-color-scheme', 'light')`
 - Git repo on `master`. Commit only when asked, ending messages with the Co-Authored-By line from the system reminder.
 - `.figma/` holds Figma Make config. Leave it alone and keep it committed.
 - `plans/intime-style-guide.md` is the original scaffold plan and is partly outdated (it says Inter/blue; the current design uses Roboto/cyan).
-- `plans/workforce-scheduling.md` is the living plan for the Workforce Scheduling page (`/patterns/workforce-scheduling`). Read it before working on that page, tick its progress checklist and add to its "Later" and "Open questions" lists.
+- `plans/workforce-scheduling.md` is the living plan for the Workforce Scheduling page (`/patterns/workforce-scheduling`). Read it before working on that page. Its "Start here: remaining steps" checklist says what to build next: "continue with the next step" means the first unchecked step there. Tick it when done, write a "Step N as built" section, and add to its "Later" and "Open questions" lists. `plans/workforce-panel-review.md` holds the panel review's decisions the steps point to.
 
 ## Deployment
 

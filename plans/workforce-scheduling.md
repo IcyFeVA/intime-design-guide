@@ -3,6 +3,46 @@
 > **Living plan.** Read this first when working on the Workforce Scheduling page. Tick the progress checklist,
 > and add to "Later" and "Open questions" instead of starting over. Reference screenshots: `public/figma/workforce-scheduling-*.png`. The details panel's scenarios and review: see "Details panel scenarios" and `plans/workforce-panel-review.md`.
 
+## Start here: remaining steps
+
+**"Continue with the next step" means: build the first unchecked step below.** Each step names where its spec is.
+The decisions there are final unless the user changes them; ask only about the open questions a step lists.
+
+Done: 1. panel core · 2. scenarios (leave, out of unit/branch) · 3. assign mode · 4. warnings, plus locked
+court dates, out of branch editable and the always-visible employee search. Details in the "Step N as built"
+sections and the 2026-11-26 sections below.
+
+- [ ] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
+  - [ ] No list of the selected cells. The selection help line ("Shift-click or drag to select several cells") moves to the Blank (`none`) empty state.
+  - [ ] A shift code picker + "Assign to N": gives every selected person-day the shift in one save (reuse `assignDay`; locked cells and open shifts are skipped, the status line says why).
+  - [ ] A collapsed "Change fields" section (Activity, Location, Hours modifier, Unit…) that autosaves to every selected cell's segments.
+  - [ ] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
+- [ ] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
+  - [ ] Tabs "Details · Attachments (n)", n = all four sections.
+  - [ ] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
+  - [ ] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
+  - [ ] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
+  - [ ] Notes: add and list notes; the latest note also shows read-only at the end of the Details tab.
+  - Open question to ask: do attachments belong to the whole day, an assignment or a segment? Can one asset be on two people at once (warn)?
+- [ ] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
+  - [ ] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
+  - [ ] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
+  - [ ] Chevron menu: Message, Call, View profile (opens `EmployeeDetailsModal` with `workforceProfile`, `contained`), View schedule.
+- [ ] **8. Smaller gaps** (from the "Not yet" lines of steps 1–3):
+  - [ ] Picking another employee in the panel moves the assignment to them (today "Preview only").
+  - [ ] Save the Branch field.
+  - [ ] Context menu: Copy/Paste and Fill (could reuse assign mode); the others stay preview.
+  - [ ] Reopen a moved single assignment in the panel after "Move to another day".
+
+**After each step:** `npx tsc -b` and `npx eslint src` print nothing; check it in the browser (dark and light,
+see CLAUDE.md); tick it here; add a "Step N as built" section (what changed, decisions made without the user,
+"Not yet"); add a changelog entry at the top of `src/content/changelog.ts` and a page section if users need
+to know; update the Workforce row in CLAUDE.md and `.github/copilot-instructions.md`; move new deferred
+items to "Later" and new questions to "Open questions".
+
+Open questions that block nothing yet (ask when the step touches them): see "Open questions" below, e.g. leave
+approval states, whether all-day leave frees an open shift, the real hours cap and rest minimum.
+
 ## Context
 
 InTime needs a desktop demo of the **Workforce Scheduling** view: an advanced Team View for schedulers.
@@ -452,7 +492,7 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
 - Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
-- Details panel scenarios (see that section): steps 1–4 built (core, scenarios, assign mode, warnings). **Still to build:** bulk (item 12), the Attachments tab (items 1 and 13), the employee row's Hours popover, Find in schedule and person menu (item 8).
+- Details panel scenarios: steps 1–4 built. What's left is tracked in **"Start here: remaining steps"** at the top.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.

@@ -12,7 +12,7 @@
 - Code is hidden for now: `SHOW_CODE = false` in `src/content/flags.ts` hides sections with ids in `CODE_SECTION_IDS` (`component` "Using the components", `usage` "Usage in code") from the page, TOC and search, and hides the `Preview` "Show code" toggle. Keep writing them with those ids so they return when the flag is on.
 - Figma references are hidden for now: `SHOW_FIGMA = false` in `src/content/flags.ts` hides sections with ids in `FIGMA_SECTION_IDS` (`figma` "Figma reference") the same way. Keep adding them as usual.
 - `.page-wide` (global.css) breaks a demo out of the 1000px page column to fill the main column, up to 1920px. Used for the Desktop demos on Team View, Location View and Calendar.
-- `plans/workforce-scheduling.md` is the living plan for the Workforce Scheduling page. Read it before working on that page and keep its progress checklist up to date.
+- `plans/workforce-scheduling.md` is the living plan for the Workforce Scheduling page. Read it before working on that page. Its "Start here: remaining steps" checklist says what to build next ("continue with the next step" = the first unchecked step). Tick it when done and write a "Step N as built" section. `plans/workforce-panel-review.md` holds the panel review's decisions the steps point to.
 - Values have a status of `draft`, `review`, or `confirmed`. When a Figma frame confirms a value, update the token, set its status to `confirmed`, and add a `src/content/changelog.ts` entry. The same applies when the user approves a page: set the page and its tokens to `confirmed` and add the changelog entry in the same change, without being asked.
 
 ## UI Conventions
