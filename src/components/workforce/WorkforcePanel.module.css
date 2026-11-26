@@ -134,30 +134,126 @@
   color: var(--text-dimmed);
 }
 
-/* ---------- Segments and times ---------- */
+/* ---------- Blocks and segments ---------- */
 
-.segment {
+.saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: pre;
+}
+
+.saved svg {
+  color: var(--text-success-default);
+}
+
+/* One block = one grid cell: segments that touch */
+.block {
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+}
+
+.blockHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 4px;
+}
+
+.blockToggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 32px;
+  padding: 2px 6px;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.blockToggle:hover {
+  background: var(--background-default-hover);
+}
+
+.blockChevron {
+  flex: none;
+  color: var(--text-dimmed);
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.block[data-open] .blockChevron {
+  transform: rotate(90deg);
+}
+
+.blockSpan {
+  flex: none;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-default);
+}
+
+.note {
+  margin: 0 8px 6px;
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--background-info-light);
+  color: var(--text-default);
+}
+
+.segments {
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px 6px;
+}
+
+/* Touching segments are joined: one continuous stack of rows */
+.row {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 6px 6px 6px 8px;
+  min-width: 0;
+  padding: 4px 4px 4px 6px;
   border: 1px solid var(--border-default);
-  border-radius: var(--mantine-radius-md);
+  border-radius: var(--mantine-radius-sm);
   transition: border-color 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-.segment[data-active] {
+.row + .row {
+  margin-top: -1px;
+}
+
+.row[data-nested] {
+  margin-left: 20px;
+}
+
+.row[data-expanded] {
+  position: relative;
+  z-index: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 8px;
   border-color: var(--text-primary-default);
   box-shadow: 0 0 0 1px var(--text-primary-default);
 }
 
-.segmentMain {
+.rowMain {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
-  border-radius: var(--mantine-radius-sm);
+  min-height: 30px;
+  padding-inline: 2px;
+  border-radius: var(--mantine-radius-xs);
+}
+
+.row[data-cancelled] .time,
+.row[data-cancelled] .code {
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
 .code {
@@ -172,23 +268,77 @@
 }
 
 .time {
+  min-width: 0;
+  overflow: hidden;
   font-family: var(--mantine-font-family-monospace);
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text-default);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.scheduled {
+  color: var(--text-dimmed);
+}
+
+.duration {
+  margin-left: auto;
+  padding-right: 4px;
+  font-size: 13px;
+  color: var(--text-dimmed);
+  font-variant-numeric: tabular-nums;
+}
+
+.editLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.codeSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The code input carries the kind's color as a stripe, like the badge */
+.codeInput {
+  font-weight: 600;
+  box-shadow: inset 4px 0 0 var(--code-fill);
+}
+
+.timeInput {
+  flex: none;
+  width: 92px;
+}
+
+.timeInput input {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.dash {
+  color: var(--text-dimmed);
+}
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 28px;
+}
+
+.actions {
+  display: flex;
+  gap: 2px;
+}
+
+.fields {
+  padding-top: 10px;
+  border-top: 1px solid var(--border-default);
 }
 
 .linkButton {
   align-self: flex-start;
-}
-
-.times {
-  padding: 12px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--mantine-radius-md);
-}
-
-.readOnly {
-  color: var(--text-dimmed);
 }
 
 /* ---------- Bulk ---------- */
@@ -218,7 +368,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .segment {
+  .row,
+  .blockChevron {
     transition: none;
   }
 }

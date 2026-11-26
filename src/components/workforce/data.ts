@@ -60,7 +60,44 @@ export interface OpenShift {
   status: 'open' | 'live'
   needed: number
   location: string
+  /** Fields set in the details panel (activity, customer…); defaults apply when missing */
+  details?: SegmentDetails
 }
+
+/* ------------------------------------------------------------------ */
+/* Edits made in the details panel                                     */
+/* ------------------------------------------------------------------ */
+
+export type TimeBank = 'Overtime' | 'Comp Time' | 'Holiday'
+
+/** A segment's fields in the details panel. Every segment of a block can have its own. */
+export interface SegmentDetails {
+  activity: string
+  location: string | null
+  modifier: string
+  /** "Bank this time": hours put into a time bank instead of paid */
+  bank: { bank: TimeBank; amount: number } | null
+  customer: string
+  unit: string
+  acting: string
+  /** Actual start and end (hours, end past 24 = next day), when they differ from the schedule */
+  actual: { start: number; end: number } | null
+}
+
+/** A segment as the panel edits it: a stable id and its fields. Unedited mock segments have neither. */
+export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
+
+/** Changes to an open shift. `deleted` takes it off the schedule. */
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details'>> & { deleted?: boolean }
+
+/** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
+export interface ScheduleEdits {
+  days: ReadonlyMap<string, Chip[]>
+  open: ReadonlyMap<string, OpenShiftEdit>
+}
+
+export const noEdits: ScheduleEdits = { days: new Map(), open: new Map() }
+export const dayKey = (memberId: string, day: number) => `${memberId}@${day}`
 
 /** "B. Haddad" */
 export const shortName = (member: Pick<WorkforceMember, 'first' | 'last'>) => `${member.first[0]}. ${member.last}`
@@ -238,6 +275,18 @@ export const watches: Watch[] = [
   watch('night', 'Night', 'PatN', 19, 24),
 ]
 
+/** The watches with the panel's edits applied: changed days replace the mock cells, and coverage is counted again. */
+export function applyEdits(edits: ScheduleEdits): Watch[] {
+  if (!edits.days.size) return watches
+  return watches.map((base) => {
+    const members = base.members.map((member) => ({
+      ...member,
+      chips: (day: number) => edits.days.get(dayKey(member.id, day)) ?? member.chips(day),
+    }))
+    return { ...base, members, coverage: watchCoverage(members, base.id, base.start, base.end) }
+  })
+}
+
 export const allMembers = watches.flatMap((item) => item.members)
 export const findWatch = (id: WatchId) => watches.find((item) => item.id === id)!
 
@@ -255,7 +304,18 @@ const sectors = ['Sector A', 'Sector B', 'Sector C', 'Sector D']
 const openCache = new Map<number, OpenShift[]>()
 
 /** 0–2 open or live shifts a day. Tue, Jun 2 has three: the open Swing Patrol shift from the Figma frame, a live Day Patrol and an open Night Patrol. */
-export function openShifts(day: number): OpenShift[] {
+export function openShifts(day: number, edits?: ReadonlyMap<string, OpenShiftEdit>): OpenShift[] {
+  const shifts = baseOpenShifts(day)
+  if (!edits?.size) return shifts
+  return shifts.flatMap((shift) => {
+    const edit = edits.get(shift.id)
+    if (!edit) return [shift]
+    const { deleted, ...patch } = edit
+    return deleted ? [] : [{ ...shift, ...patch }]
+  })
+}
+
+function baseOpenShifts(day: number): OpenShift[] {
   const cached = openCache.get(day)
   if (cached) return cached
   const shifts: OpenShift[] = []

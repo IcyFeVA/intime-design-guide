@@ -13,9 +13,10 @@ import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, formatHeader, rangeDays } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
-import { findUnit, shortName, watches, type Watch, type WatchId, type WorkforceSort } from './data'
+import { applyEdits, findUnit, shortName, watches, type Watch, type WatchId, type WorkforceSort } from './data'
 import { HEADER_ROW, buildGridModel, panelContent } from './model'
 import { useGridSelection, type GridContextTarget } from './useGridSelection'
+import { useScheduleEdits } from './useScheduleEdits'
 import WorkforceGrid from './WorkforceGrid'
 import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
@@ -39,7 +40,7 @@ const panelSlide = {
   transitionProperty: 'opacity, transform',
 }
 
-const DEFAULT_STATUS = 'Preview only. “Today” is Friday, June 5, 2026 in this demo. Click, Shift-click, Ctrl/⌘-click or drag to select cells.'
+const DEFAULT_STATUS = '“Today” is Friday, June 5, 2026 in this demo. Click, Shift-click, Ctrl/⌘-click or drag to select cells. Changes in the panel save as you go; Undo reverts them and Reset demo restores the schedule.'
 const APPROVALS_STATUS = 'Preview only. Approvals opens on top of the schedule, so going back is instant and keeps your place.'
 const DEFAULT_STAFFING: ReadonlySet<WatchId> = new Set(['swing'])
 
@@ -61,6 +62,8 @@ export default function WorkforceDemo() {
   const [approvalsOpen, setApprovalsOpen] = useState(false)
   const [menuTarget, setMenuTarget] = useState<GridContextTarget | null>(null)
   const approvals = useApprovals({ kind: 'activity' })
+  const schedule = useScheduleEdits()
+  const edited = useMemo(() => applyEdits(schedule.edits), [schedule.edits])
   const approvalsButton = useRef<HTMLButtonElement>(null)
   const pendingApprovals = approvalKinds.reduce((sum, item) => sum + openCount(approvals.requests, item.key), 0)
   const closeApprovals = () => {
@@ -75,8 +78,8 @@ export default function WorkforceDemo() {
   const stepperDays = useMemo(() => rangeDays(range, anchor), [range, anchor])
 
   const model = useMemo(
-    () => buildGridModel({ watches, days, collapsed, staffingCollapsed, sort, direction, filter: 'all' }),
-    [days, collapsed, staffingCollapsed, sort, direction],
+    () => buildGridModel({ watches: edited, days, collapsed, staffingCollapsed, sort, direction, filter: 'all', openEdits: schedule.edits.open }),
+    [edited, days, collapsed, staffingCollapsed, sort, direction, schedule.edits.open],
   )
 
   const onActivate = useCallback((via: 'pointer' | 'keyboard') => {
@@ -88,6 +91,7 @@ export default function WorkforceDemo() {
     rows: model.navRows,
     headerRow: HEADER_ROW,
     rowGroup: model.rowGroup,
+    fallbackRow: model.fallbackRow,
     days: model.days,
     isSelectable: model.isSelectable,
     preferredDay: MOCK_TODAY,
@@ -136,7 +140,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); setMenuTarget(null); selection.reset(); setApprovalsOpen(false); approvals.reset()
+    setCoverage(null); setMenuTarget(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
   }
 
   return (
@@ -168,7 +172,7 @@ export default function WorkforceDemo() {
             setCollapsed(collapse ? ALL_WATCHES : new Set())
             setStaffingCollapsed(collapse ? ALL_WATCHES : new Set())
           }}
-          onPreview={preview}
+          onUndo={schedule.canUndo ? schedule.undo : undefined}
         />
       )}
       toolbar={(
@@ -188,7 +192,16 @@ export default function WorkforceDemo() {
         />
       )}
     >
-      <div className={classes.workspace}>
+      <div
+        className={classes.workspace}
+        onKeyDown={(event) => {
+          // Ctrl/⌘+Z undoes the last saved change, except while typing, where it undoes the typing
+          if (event.key.toLowerCase() !== 'z' || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
+          if ((event.target as HTMLElement).closest('input, textarea, [contenteditable="true"]') || !schedule.canUndo) return
+          event.preventDefault()
+          schedule.undo()
+        }}
+      >
         <div className={classes.gridArea}>
           {placeholder ? (
             <div className={classes.placeholder}>
@@ -211,7 +224,7 @@ export default function WorkforceDemo() {
           )}
         </div>
         <Transition mounted={panelOpen} transition={panelSlide} duration={reduceMotion ? 0 : 220} timingFunction="cubic-bezier(0.2, 0, 0, 1)">
-          {(style) => <WorkforcePanel style={style} content={content} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
+          {(style) => <WorkforcePanel style={style} content={content} onEdit={schedule.commit} onUndo={schedule.undo} saves={schedule.saves} onClose={closePanel} onPreview={preview} focusTick={focusTick} />}
         </Transition>
         <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} contained />
         <SortModal

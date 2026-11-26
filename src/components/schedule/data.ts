@@ -109,7 +109,18 @@ export const formatMonthDay = (day: number) => monthDay.format(toDate(day))
 export const formatFullDate = (day: number) => fullDate.format(toDate(day))
 export const formatHeader = (day: number) => `${formatWeekday(day)}, ${formatMonthDay(day)}`
 /** 24.5 → "00:30": shifts past midnight wrap around */
-export const formatHour = (hour: number) => `${String(Math.floor(hour) % 24).padStart(2, '0')}:${hour % 1 ? '30' : '00'}`
+export const formatHour = (hour: number) => {
+  const minutes = Math.round(hour * 60)
+  return `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+/** 8 → "8h", 7.5 → "7h 30m", 0.25 → "15m" */
+export const formatDuration = (hours: number) => {
+  const minutes = Math.round(hours * 60)
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (!m) return `${h}h`
+  return h ? `${h}h ${m}m` : `${m}m`
+}
 
 /** "Today" in the demos, so the mock data and the Figma frames line up. */
 export const MOCK_TODAY = dayOf(2026, 6, 5)

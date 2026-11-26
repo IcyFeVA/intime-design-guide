@@ -55,6 +55,8 @@ export interface GridSelectionOptions {
   headerRow?: string
   /** Rows that make up one logical row, top to bottom, e.g. a person's extra lines. Selecting a row header selects them all. */
   rowGroup?: (row: string) => readonly string[]
+  /** When a selected cell's row is gone or its cell empties (e.g. a person's extra line after an edit), select this row's cell on the same day instead */
+  fallbackRow?: (row: string) => string | null
   /**
    * Right-click (or the Menu key) on a row header, a column header or a selectable cell. Like a spreadsheet, the
    * row, day or cell is selected first unless it already is. Open a menu here (e.g. Mantine `Menu.ContextMenu`
@@ -69,11 +71,23 @@ const modeOf = (event: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }
 
 type Indexes = { rowIndex: Map<string, number>; dayIndex: Map<number, number> }
 
-function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, rows: readonly string[], days: readonly number[], isSelectable: GridSelectionOptions['isSelectable']) {
+function materialize(
+  state: SelectionState, { rowIndex, dayIndex }: Indexes, rows: readonly string[], days: readonly number[],
+  isSelectable: GridSelectionOptions['isSelectable'], fallbackRow?: GridSelectionOptions['fallbackRow'],
+) {
   const result = new Set<CellKey>()
+  /** The cell, or its fallback row's cell on the same day when it can't be selected any more */
+  const add = (row: string, day: number) => {
+    if (rowIndex.has(row) && isSelectable(row, day)) return result.add(cellKey(row, day))
+    const other = fallbackRow?.(row)
+    if (other && rowIndex.has(other) && isSelectable(other, day)) result.add(cellKey(other, day))
+  }
   for (const key of state.base) {
     const { row, day } = parseKey(key)
-    if (rowIndex.has(row) && dayIndex.has(day) && isSelectable(row, day)) result.add(key)
+    if (dayIndex.has(day)) add(row, day)
+  }
+  if (state.anchor && state.focus && state.anchor.row === state.focus.row && state.anchor.day === state.focus.day && !rowIndex.has(state.anchor.row)) {
+    add(state.anchor.row, state.anchor.day)
   }
   if (state.anchor && state.focus) {
     const r1 = rowIndex.get(state.anchor.row)
@@ -81,9 +95,11 @@ function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, row
     const d1 = dayIndex.get(state.anchor.day)
     const d2 = dayIndex.get(state.focus.day)
     if (r1 !== undefined && r2 !== undefined && d1 !== undefined && d2 !== undefined) {
+      const single = r1 === r2 && d1 === d2
       for (let r = Math.min(r1, r2); r <= Math.max(r1, r2); r += 1) {
         for (let d = Math.min(d1, d2); d <= Math.max(d1, d2); d += 1) {
-          if (isSelectable(rows[r], days[d])) result.add(cellKey(rows[r], days[d]))
+          if (single) add(rows[r], days[d])
+          else if (isSelectable(rows[r], days[d])) result.add(cellKey(rows[r], days[d]))
         }
       }
     }
@@ -94,7 +110,7 @@ function materialize(state: SelectionState, { rowIndex, dayIndex }: Indexes, row
 const samePos = (a: CellPos | null, b: CellPos | null) => a?.row === b?.row && a?.day === b?.day
 
 export function useGridSelection({
-  rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false, headerRow, rowGroup, onContextMenu: onContextMenuOpen,
+  rows, days, isSelectable, preferredDay, onActivate, onEscape, escapeHandled = false, headerRow, rowGroup, fallbackRow, onContextMenu: onContextMenuOpen,
 }: GridSelectionOptions) {
   const gridRef = useRef<HTMLDivElement>(null)
   /** What a drag started on: cells draw a rectangle, a row header whole rows, a column header whole days */
@@ -110,18 +126,20 @@ export function useGridSelection({
 
   // Rows or days changed (range, date, collapse, sort, filter): keep only cells that are still on screen.
   if (state.signature !== signature) {
-    const kept = materialize(state, indexes, rows, days, isSelectable)
+    const kept = materialize(state, indexes, rows, days, isSelectable, fallbackRow)
     const visible = (pos: CellPos | null) => !!pos && indexes.rowIndex.has(pos.row) && (pos.day === null || indexes.dayIndex.has(pos.day))
+    const fallback = state.active && fallbackRow?.(state.active.row)
+    const moved = state.active && fallback ? { ...state.active, row: fallback } : null
     setState({
       base: kept,
       anchor: null,
       focus: null,
-      active: visible(state.active) ? state.active : null,
+      active: visible(state.active) ? state.active : visible(moved) ? moved : null,
       signature,
     })
   }
 
-  const selected = useMemo(() => materialize(state, indexes, rows, days, isSelectable), [state, indexes, rows, days, isSelectable])
+  const selected = useMemo(() => materialize(state, indexes, rows, days, isSelectable, fallbackRow), [state, indexes, rows, days, isSelectable, fallbackRow])
 
   const stopEscape = selected.size > 1 || escapeHandled
   const escapeProps = useMemo((): Record<string, string> => (stopEscape ? { 'data-mantine-stop-propagation': 'true' } : {}), [stopEscape])

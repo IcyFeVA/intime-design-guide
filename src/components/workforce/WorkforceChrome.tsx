@@ -142,7 +142,7 @@ export function WorkforceToolbar({
 }
 
 /** Sort, collapse/expand all, density, undo, legend and the panel toggle: the right side of the title row. */
-export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, allCollapsed, onCollapseAll, onPreview }: {
+export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePanel, onSort, allCollapsed, onCollapseAll, onUndo }: {
   density: ViewDensity
   onDensity: (density: ViewDensity) => void
   panelOpen: boolean
@@ -152,11 +152,12 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
   allCollapsed: boolean
   /** true collapses every watch and its staffing rows, false expands them all */
   onCollapseAll: (collapse: boolean) => void
-  onPreview: (action: string) => void
+  /** Reverts the last saved change. Missing: nothing to undo, the button is disabled. */
+  onUndo?: () => void
 }) {
-  const icon = (label: string, Icon: typeof Search, onClick: () => void) => (
+  const icon = (label: string, Icon: typeof Search, onClick: () => void, disabled = false) => (
     <Tooltip label={label}>
-      <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick}><Icon size={18} /></ActionIcon>
+      <ActionIcon variant="default" size={36} aria-label={label} onClick={onClick} disabled={disabled}><Icon size={18} /></ActionIcon>
     </Tooltip>
   )
   return (
@@ -166,7 +167,7 @@ export function WorkforceViewActions({ density, onDensity, panelOpen, onTogglePa
         ? icon('Expand all', ChevronsUpDown, () => onCollapseAll(false))
         : icon('Collapse all', ChevronsDownUp, () => onCollapseAll(true))}
       <DensityMenu value={density} onChange={onDensity} />
-      {icon('Undo', Undo2, () => onPreview('Undo'))}
+      {icon(onUndo ? 'Undo' : 'Nothing to undo', Undo2, () => onUndo?.(), !onUndo)}
       <WorkforceLegend view={density} />
       <ActionIcon variant={panelOpen ? 'light' : 'default'} color={panelOpen ? 'intime' : undefined} size={36} aria-label="Details panel" aria-pressed={panelOpen} onClick={onTogglePanel}>
         {panelOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
