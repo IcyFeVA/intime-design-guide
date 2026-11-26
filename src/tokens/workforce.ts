@@ -71,7 +71,7 @@ export const viewDensities: { key: ViewDensity; label: string; description: stri
 /* Legend: what each kind of cell means (the title row's Legend button) */
 /* ------------------------------------------------------------------ */
 
-export type LegendKey = 'scheduled' | 'several' | 'overtime' | 'partialOvertime' | 'leave' | 'outOfUnit' | 'open' | 'live'
+export type LegendKey = 'scheduled' | 'several' | 'overtime' | 'partialOvertime' | 'leave' | 'partialLeave' | 'outOfUnit' | 'outOfBranch' | 'open' | 'live'
 
 /** Only cells the grid shows today. The legend draws each with the real cell for the current view density. */
 export const legendItems: { key: LegendKey; label: string; meaning: string; status: TokenStatus }[] = [
@@ -80,7 +80,9 @@ export const legendItems: { key: LegendKey; label: string; meaning: string; stat
   { key: 'overtime', label: 'Overtime', meaning: 'Red, with an OT tag where there is room.', status: 'draft' },
   { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'Split diagonally in Compact. Detailed and Stacked show the overtime part on its own.', status: 'draft' },
   { key: 'leave', label: 'Leave', meaning: 'Sick, PTO or vacation.', status: 'draft' },
-  { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit: striped, with an OU tag where there is room.', status: 'draft' },
+  { key: 'partialLeave', label: 'Partial leave', meaning: 'Leave for part of a shift, in the same cell. Split diagonally in Compact.', status: 'draft' },
+  { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit in this precinct: striped, with an OU tag where there is room. You can still change it.', status: 'draft' },
+  { key: 'outOfBranch', label: 'Out of branch', meaning: 'Working at another precinct: muted, with its name. Only that precinct can change it, and it doesn’t count towards staffing.', status: 'draft' },
   { key: 'open', label: 'Open shift', meaning: 'Nobody holds it yet: dashed outline, no fill.', status: 'draft' },
   { key: 'live', label: 'Live shift', meaning: 'Posted to employees, who can sign up.', status: 'draft' },
 ]

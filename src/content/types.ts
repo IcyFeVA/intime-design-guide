@@ -2,12 +2,17 @@ import type { ComponentType, LazyExoticComponent } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import type { TokenStatus } from '../tokens/types'
 
-export type PageGroup = 'Getting started' | 'Foundations' | 'Components' | 'Patterns' | 'Resources'
+export type PageGroup = 'Getting started' | 'Foundations' | 'Components' | 'Patterns' | 'Resources' | 'Work in Progress'
 
 export interface PageSection {
   /** Must match the `id` passed to <Section> on the page */
   id: string
   title: string
+  /**
+   * A group heading (`<Section size="display">` on the page). The TOC shows it as a label and indents the
+   * sections after it, up to the next group.
+   */
+  group?: boolean
 }
 
 export interface PageDef {

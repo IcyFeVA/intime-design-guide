@@ -209,6 +209,17 @@ time {
   font-weight: 500;
 }
 
+/* A page group heading: a label, with its sections indented below */
+.toc__link[data-group] {
+  margin-top: 10px;
+  color: var(--mantine-color-text);
+  font-weight: 600;
+}
+
+.toc__link[data-nested] {
+  padding-left: 24px;
+}
+
 /* Copy chip */
 .copy-value {
   display: inline-flex;

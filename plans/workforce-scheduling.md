@@ -1,7 +1,7 @@
 # Workforce Scheduling demo: plan
 
 > **Living plan.** Read this first when working on the Workforce Scheduling page. Tick the progress checklist,
-> and add to "Later" and "Open questions" instead of starting over. Reference screenshots: `public/figma/workforce-scheduling-*.png`.
+> and add to "Later" and "Open questions" instead of starting over. Reference screenshots: `public/figma/workforce-scheduling-*.png`. The details panel's scenarios and review: see "Details panel scenarios" and `plans/workforce-panel-review.md`.
 
 ## Context
 
@@ -22,7 +22,7 @@ View densities, the Day view, attachments, notes and most toolbar actions come l
 - **Selection** works like Excel on employee cells and filled open-shift cells. Coverage and group rows can't be selected. Empty employee cells can be selected and show a **+ on hover**.
 - **Open-shift cells**: Team View chip shape, no fill, dashed border, an icon plus label before the code: `CircleDashed` "Open", `Radio` "Live".
 - **Panel**: docked right, so the grid shrinks. Opens on a cell click (on pointer up), closes with its X, and the toolbar toggle does both. It has five modes (see Panel spec).
-- **Form**: inputs can be edited locally and reset when the selection changes. **The grid data never changes.** Assign, Leave, Add segment, Set actual and the icon buttons show a "Preview only" hint (`role="status"` demo bar).
+- **Form**: ~~inputs can be edited locally and reset when the selection changes. **The grid data never changes.**~~ Replaced 2026-11-25 by autosave (see "Details panel scenarios" → Save model and "Step 1 as built"). Assign, Leave, Add segment, Set actual and the icon buttons show a "Preview only" hint (`role="status"` demo bar).
 - **Bulk panel**: summary line, a list of the selected cells, shared fields, footer actions.
 - **Ranges**: 5 views: 1 Day, 1 Week, 2 Weeks, 3 Weeks, 1 Month (numerals since 2026-11-24, user). ~~**Day is a placeholder** (empty state "Day view is coming")~~ (built 2026-11-24, see "Day view"); the stepper moves one day at a time.
 - **View density menu**: ~~Detailed (active); Compact and Stacked disabled, marked "Coming soon".~~ Since 2026-11-24 see "View densities" below. Kept in state, applied as `data-view` on the grid. 5 ranges × 3 densities = 15 combinations eventually. View density (row layout) is separate from chip density, which still follows the range.
@@ -275,13 +275,152 @@ The toolbar's Approvals button opens the Approvals screen on top of the schedule
 
 - [x] Right-click (or the Menu key / Shift+F10) on a row header, a date header or a selectable cell opens `workforce/GridContextMenu.tsx`, a Mantine `Menu` with `Menu.ContextMenu` around the grid (opens at the cursor). `useGridSelection`'s `onContextMenu` option first selects the row, day or cell unless it is already fully selected (spreadsheet behavior), then reports the target; elsewhere in the grid it suppresses the browser menu. No visible title; the dropdown's `aria-label` says what it acts on ("Wed, Jun 3", "3 days", "M. Alvarez", "4 rows", "12 cells"). Items (from the user's screenshot, 2026-11-25): Copy (Ctrl C), Paste (Ctrl V, disabled until Copy), Load from template…, Pre-fill | Leave, Post, Fill | Add new ruler (a schedule ruler for the selected days; user, menu entry only), History. **No functionality**: each shows a "Preview only" hint.
 
+## Details panel scenarios (2026-11-25, user)
+
+Spec only; nothing built yet. The UI review session (`plans/workforce-panel-review.md`) comes first, then the build.
+Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. Anderson, one cell with touching PatD + Spe OT, panel editing three segments, "Over weekly hours cap" banner). More screenshots are coming; add each one to the Screenshot column.
+
+**Assignment rules** (user):
+- An assignment is made of **segments**. Segments that **touch** (one ends when the next starts, e.g. PatD 08–16 + Spe OT 16–17) form one **block** = one grid cell (`Chip.segments`).
+- A segment that **doesn't touch** (Spe 18–19 after 08–16) is a separate block = an extra grid line (a second `Chip` on that day).
+- Segments can be typed into the panel, so the panel has to work out the blocks too.
+
+**Decisions** (user, 2026-11-25):
+- **Blank** = panel open with nothing selected (the `none` mode). The empty-cell `new` mode stays as an extra state.
+- **Same-day assignments**: the panel shows the person's **whole day as blocks**, whichever grid line was clicked. The clicked block is expanded; the others are collapsed to a summary line.
+- **Typed times that no longer touch**: the segment **moves into a new block right away** with an inline note ("Doesn't touch 08:00–16:00. It shows on its own line.") and Undo. Nothing is blocked.
+- **Partial leave**: a leave segment **inside the block**, overlapping the base (PatD 08–16 + Sick 13–16). The panel says "5h worked · 3h leave"; the grid keeps the diagonal split (`Chip.partialKind`).
+- **Out of unit** (another unit, same precinct): **editable**, with a banner ("Working for Special Ops · out of unit"); the Unit field shows the other unit.
+- **Out of branch** (another precinct): **read-only**, with a banner naming the precinct and an "Open in 84th Precinct" link (preview only).
+- **Notes** move into the Attachments tab (one tab). Its name is decided in the review session.
+- **Field scope** (review item 3):
+  - Employee and Branch are shared at the top.
+  - Every other field is **per segment**: times, Activity, Location, Hours modifier, Bank, Customer, Unit, Rank (acting). ~~They live inside the selected segment, which expands like an accordion.~~ They're in **one form below the segment list** (changed 2026-11-25, see "Step 1 as built").
+  - Checking **Bank this time** reveals a Time bank `Select` (Overtime, Comp Time, Holiday) and "Amount (h) · 16 avail.".
+- **Blocks UI** (review item 4; **replaced 2026-11-25** by the indented list, see "Step 1 as built"):
+  - One card per block, with a header showing the times and total; collapsed blocks shrink to the header.
+  - One "+ Add segment" at the end of the day; the new segment touches the last one, and the times decide the block.
+  - Partial leave is an indented row under the segment it overlaps, and the header reads "5h worked · 3h leave".
+- **No Times card** (review item 2; **reversed 2026-11-25**: the Times card is back in the form):
+  - Times are edited in the expanded segment's row.
+  - The date belongs to the block: "Move to another day" moves all its segments, and "+1 day" marks times past midnight.
+  - Set actual is per segment: Actual start/end, with the scheduled times dimmed.
+- **Save model** (review item 9). This **replaces** "The grid data never changes" from the 2026-11-23 decisions.
+  - **Autosave**: a field saves when you leave it. The demo keeps an editable copy of the mock data, so the grid re-splits cells and lines live, toolbar Undo works, and Reset demo restores it.
+  - Invalid times aren't saved: the field shows an error and the last valid value is kept.
+  - The footer is the same everywhere: **Assign + Leave + ⋯ (History, Delete)**, with buttons that don't apply disabled.
+  - **Assign** on a filled cell copies the shift into an assign mode: click cells to give them the shift, Escape ends it.
+  - **Leave** opens an inline leave entry (type, All day or from–to, defaulting to the expanded block).
+  - Assign mode replaces a filled cell's assignment (Undo reverts), and a drag assigns a range.
+- **Warnings** (review item 7):
+  - Four kinds: hours cap, minimum rest, missing qualification, double booked / on leave.
+  - They form one stack under the employee row ("2 warnings ›" when there are several), and the block's header gets a ⚠ mark.
+  - They never block saving; the grid cell gets a small ⚠ mark.
+  - Mock data needs a few people who trigger each one.
+- **Out of unit / branch** (review item 10):
+  - Out of branch in the grid is a muted cell with a "↗ 84th" tag; out of unit keeps its hatching.
+  - The out-of-branch panel shows plain label + value pairs.
+  - Banners: "Working for Special Ops (out of unit)" and "Working at 84th Precinct. Only 84th Precinct can change this." + "Open in 84th Precinct".
+  - This needs a new legend item (`legendItems`).
+- **Bulk** (review item 12):
+  - No list of the selected cells.
+  - A shift code picker + "Assign to N", then a collapsed "Change fields" section that autosaves to every selected cell.
+  - Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm).
+  - The selection help line moves to the Blank empty state.
+- **Tabs and Attachments** (review items 1 and 13). These override the free-text and two-dropdown descriptions in "Attachments tab" below.
+  - Two tabs: Details · Attachments (n); the latest note also shows read-only at the end of Details.
+  - Tags and assets use one grouped, searchable picker (category › value, Custom… for tags only) and show as removable chips.
+  - All four sections are always shown, with "None yet.".
+- **Small items** (review items 5, 6 and 11):
+  - Segment icons (live, find, cancel) show only on the expanded segment; other rows show just ⋯.
+  - Durations read "8h" / "7h 30m", ends past midnight show "+1", and a span over 16h gets a field warning.
+  - The header title is the name (or "Open shift · Swing Patrol"), with "Wed, Feb 18, 2026 · Day watch" as the subtitle; "Editing:" is gone.
+  - Branch's label goes on top.
+- **Employee row** (review item 8):
+  - **Hours** opens a popover with the person's hours (week, period, overtime, bank balances, the source of "16 avail.").
+  - **Crosshair** = Find in schedule (scrolls to the person's row and highlights it).
+  - **Chevron** = a menu of actions: Message, Call, View profile (`EmployeeDetailsModal`), View schedule.
+
+| # | Scenario | Mock trigger (week of Jun 1–7) | Panel | Screenshot |
+| --- | --- | --- | --- | --- |
+| 1 | Blank | Panel toggle, no selection | Hint (exists) | |
+| 2 | Assignment | B. Haddad, Fri Jun 5, PatD (exists) | One block, one segment. Footer Save, Leave, ⋯ | |
+| 3 | Leave | T. Nguyen, Tue Jun 2, Vac (exists) | Leave type, all day or times, approval state. No Activity, Location or Customer. Footer: Cancel leave | |
+| 4 | Open shift | Tue Jun 2, PatS 12–22 (exists) | As today: no employee, "1 of 1 still needed" | `-panel.png` |
+| 4b | Live post | Tue Jun 2, PatD 07–17 live (exists) | Title names the unit ("Special Ops" in the prototype), subtitle "Live post · 2 of 4 still needed". One segment; fields carry the post's values (Special Event, Barclays Center, OT) | `-panel-live.png` |
+| 5 | Partial leave | **new**: E. Rodriguez, Wed Jun 3, PatD 08–16 + Sick 13–16 | Leave segment nested under the base, "5h worked · 3h leave" | |
+| 6 | Multiple blocks | **new** (replaces the curated day): J. Anderson, Wed Jun 3, PatD 08–16 + Spe OT 16–17 (block 1), Spe 18–19 (block 2) | Two blocks, touching segments chained; shows the "doesn't touch" note | `-panel-blocks.png` |
+| 7 | Out of unit | **new**: L. Garcia, Tue Jun 2, PatD for Special Ops | Banner, editable, Unit = Special Ops | |
+| 8 | Out of branch | **new**: D. Patel, Thu Jun 4, at 84th Precinct - Brooklyn | Banner, read-only, "Open in 84th Precinct" | |
+| + | New (empty cell) | Any empty member cell | As today | |
+| + | Bulk | Several cells | Ours: list of cells + "Apply to all" fields. Prototype: a hint line, a Shift `Select` + "Assign to 2", then Load from template, Paste, Delete all. Which one wins is review item 12 | `-panel-bulk.png` |
+
+**Block rules**
+- Touching = the end time equals the next start time. Sort the segments by start, then chain them.
+- A leave segment that overlaps a working segment stays in that block (partial leave).
+- A day can have any number of blocks; they're listed by start time.
+- A segment whose end is before its start runs overnight (20:00–04:00) and gets a "+1 day" mark.
+
+**Validation states to design**
+- End before start where an overnight shift isn't likely. The screenshot shows "20:00–18:00" computed as 22h.
+- Working segments that overlap, inside a block or across blocks.
+- A zero-length segment.
+- Warnings such as the weekly hours cap (see the review doc).
+
+**Model changes for the build**
+- `PanelItem 'assigned'` carries all of the day's chips (`blocks`) and the clicked index, so either grid line opens the same panel.
+- A `leave` kind for cells that are leave only.
+- `Chip` gets optional `unit` (out of unit) and `branch` (out of branch).
+- A pure `groupBlocks(segments)` helper in `workforce/model.ts`, shared by the panel and the mock data.
+- Out of branch needs its own mark in the grid; only out of unit is hatched today (review item).
+
+### Step 1 as built (2026-11-25): panel core
+
+- [x] Editable data: `applyEdits(edits)` + `ScheduleEdits` / `OpenShiftEdit` / `SegmentDetails` / `WorkforceSegment` in `data.ts`; `openShifts(day, edits)`; `useScheduleEdits` (commit, undo, reset, 50 steps). The demo builds the grid from the edited watches; staffing and alerts follow.
+- [x] `groupBlocks` / `flattenDay` / `regroupDay` in `model.ts`. `PanelItem` is now `day` (all blocks + clicked `line` + that line's `chip`) or `open-shift`; the panel is keyed by person and day.
+- [x] Panel split into `workforce/panel/`: `DayEditor`, `OpenShiftEditor`, `BlockCard` (block header, rows, expanded segment), `SegmentFields`, `EmployeeRow`, `parts` (footer, tabs), `options`, `format`.
+- [x] Times are saved when focus leaves the start/end pair (or on Enter), so changing both doesn't save a half-edit.
+- [x] Split/join note ("Doesn't touch …" / "Touches …, so it joins that line.") with Undo. Overlap and zero length aren't saved (field error); > 16h warns ("Longer than 16h. Is that right?").
+- [x] Block ⋯: Move to another day… (DatePicker popover; the block regroups with that day, an overlap refuses the move) and Delete block. Footer Delete deletes the open block.
+- [x] Toolbar Undo works (disabled when there's nothing to undo); Ctrl/⌘+Z outside inputs. Status line copy updated.
+- [x] `useGridSelection` got `fallbackRow` (`model.fallbackRow`): when an edit removes or empties a person's extra line, the selection moves to their first line, so the panel stays.
+- [x] `formatHour` prints real minutes; `formatDuration` ("7h 30m") in `schedule/data.ts`.
+- **Changed after trying it (2026-11-25, user):** the block cards with fields inside the segment were hard to read. Now: **one list** of the day's segments, each block's first segment as the **root** and touching segments **indented** (`CornerDownRight`); a non-touching assignment starts a new root. The root row shows the block total under its times ("12h total · 07:00–19:00") and its ⋯ has Move to another day… / Delete assignment. **One form below the list** for the selected segment: the **Times card is back** (Scheduled = moves the assignment, Start, End, Hours, Set actual), then Shift code, Activity, Location, Customer, Hours modifier + Bank, Unit, Rank. Icons (live, find, cancel) only on the selected row. Files: `panel/SegmentList.tsx`, `panel/TimesCard.tsx` (BlockCard removed). This overrides review items 2 and 4 and the "fields inside the segment" part of item 3.
+- **Typed times** (2026-11-25, user): no time picker and no AM/PM. `panel/TimeField.tsx` is a plain `TextInput` (mono, `inputMode="numeric"`, selects on focus) that accepts 8, 0800, 830, 1730, 8:30, 8.30 and 8h30 (`parseTime` in `panel/format.ts`) and tidies to `HH:MM` on blur. Used for Start/End and the actual times.
+- **Page regrouped** (2026-11-25, user): Desktop, then groups **The grid** (selection, rows, views, sizing), **The details panel** (`panel` "What it shows", `assignments`, `editing`, `times` "Typing times" with a try-it field) and **Reference** (component, tokens, guidelines, figma). Group headings are registry sections with `'group'` (`s()` in `pages.ts`), rendered as `Section size="display"`; the TOC indents the sections under them.
+- Not yet: Branch isn't saved (local state, per day). The employee picker on a day says "Preview only" (reassigning is assign mode, step 3). A collapsed single block isn't reopened automatically after a move.
+
+### Step 2 as built (2026-11-25): scenarios
+
+- [x] `Chip` (`schedule/data.ts`) has `unit` (out of unit) and `branch` (out of branch); `describeChip` names them, `branchShort` gives "84th". `regroupDay` keeps both, and refuses a block that would mix another branch's segments with ours.
+- [x] Mock days (week of Jun 1–7): T. Nguyen Tue Vac all day (3), E. Rodriguez Wed PatD 08–16 + Sick 13–16 (5), J. Anderson Wed PatD 08–16 + Spe OT 16–17 and Spe 18–19 (6), L. Garcia Tue PatD for Special Ops (7), D. Patel Thu PatD at 84th Precinct - Brooklyn (8). Random out-of-unit cells name a unit (Special Ops, K9 Unit, Training). `HOME_BRANCH`/`OTHER_BRANCH` in `data.ts`; `branches` in `panel/options.ts` lists both.
+- [x] Coverage: out-of-branch cells don't count; a partial leave takes its hours off the working segment (`workingSpans`).
+- [x] Grid: out of branch is muted (`--schedule-branch-bg`/`-text`, draft) with "↗ 84th" in ShiftChip, DetailedChip and StackedChip; no OU or OT tag on it. Legend adds Partial leave and Out of branch.
+- [x] Panel: `AssignmentBanner` (parts.tsx) for the selected block. Out of unit: "Working for Special Ops (out of unit)", editable, Unit defaults to the chip's unit. Out of branch: "Working at 84th Precinct. Only 84th Precinct can change this." + "Open in 84th Precinct" (preview), `ReadOnlyFields` (label + value pairs), Branch shows the other precinct read-only, rows have no actions, Delete is off. Each block's root row names where it's worked under its times ("↗ Special Ops", "↗ 84th Precinct").
+- [x] Leave entry (`panel/LeaveEntry.tsx`), from the footer's Leave: type (leave codes), Part of day (from–to, defaults to the selected block; nests as a partial leave) or All day (replaces this branch's blocks with one 00:00–24:00 leave cell, "Replaces … Undo brings it back."). Cancel/Escape close it; Enter adds.
+- [x] A selected leave segment: Times card (no Set actual, no 16h warning) + Leave type only; no live/find/cancel icons. Footer Delete reads "Delete leave" for a leave-only block. 00:00–24:00 shows "All day" (24:00 in the End field; `endValue`, `TimeField` keeps 24:00).
+- [x] Page: new sections `leave` "Adding leave" and `elsewhere` "Out of unit and branch"; scenario days listed under Assignments and segments.
+- Decided without the user (check): All day **replaces** the day's assignments (Undo restores) rather than nesting a 24h leave in each block. Out of unit is a cell flag, so changing a segment's Unit field doesn't make it out of unit, and Branch still isn't saved (changing it to another precinct would lock the day).
+- Not yet: leave approval states (open question); the freed shift after all-day leave doesn't become an open shift.
+
+### Attachments tab (2026-11-25, user)
+
+Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalski). It has three sections, Tags, Assets and Tasks, each with a count and an empty state ("None yet."). **The prototype's free-text inputs are wrong** (user). The correct behavior:
+
+- **Tags**: two dropdowns. Pick a **category** first (e.g. Vehicle), then a **value** from that category (e.g. "Lambo 05"), then Add. The category **Custom** swaps the value dropdown for a text input, for free values like "Courtfile #PKXD393". Added tags show as removable chips ("Vehicle · Lambo 05").
+- **Assets**: the same category → value dropdowns, with **no Custom category** (user). Assets come from a fixed inventory.
+- **Tasks**: "+ Add task" opens the calendar's task modal (`TaskFormModal` in `calendar/CalendarModals.tsx`; screenshot `public/figma/workforce-scheduling-add-task.png`): Task name (required), Start date (the assignment's day by default), All day / Set time, Activity, Recurrence, reminders (Add reminder; Repeats, Every…, Until…) and an optional note, then Cancel / Submit. Added tasks are listed with their time and reminder count. The modal needs a `contained` option to stay inside the demo frame, which it doesn't have yet.
+- **Notes**: the Notes tab moves in here as a fourth section (the user's decision). The tab's count covers all four sections.
+- Mock data to add: tag categories (Vehicle, Radio, Court file, Custom…) and asset categories (Vehicle, Radio, Body camera…), each with 3–6 police/fire values (e.g. "Car 4417", "Engine 12", "Radio R-208").
+
 ## Later (out of scope now, keep room for them)
 
 - Saved filters: actually filter the rows (members need language/certification/OT-list attributes so the counts match).
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
-- Attachments and Notes tabs.
+- Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
+- Details panel scenarios (see that section): **next up; the review is done (2026-11-25)**. Build the editable mock data, `groupBlocks`, the block cards, the leave entry, assign mode, warnings, the out-of-unit/branch banners and grid mark, the validation states, bulk and the Attachments tab.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
@@ -291,11 +430,17 @@ The toolbar's Approvals button opens the Approvals screen on top of the schedule
 
 ## Open questions (ask the user when relevant)
 
+- All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?
+- Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?
+
+- Details panel: the open UI decisions are tracked in `plans/workforce-panel-review.md`, not here. Leave approval states (pending, approved, denied) and how they show in the panel are open too.
+- Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
+
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
 - Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
-- Meaning of the employee-row icons `Crosshair` and `ChevronDown`, and of the "Hours" button (tooltips are guesses for now).
+- ~~Meaning of the employee-row icons~~ Answered 2026-11-25 (review item 8): Hours = hours summary popover, Crosshair = Find in schedule, Chevron = person actions menu.
 - Real values for Customer, Hours modifier and Rank (acting).
-- Where should employee details open now that names select rows? (e.g. the chevron next to the employee picker in the panel)
+- ~~Where should employee details open?~~ The chevron menu's "View profile" (2026-11-25).
 - Naming: the view density "Compact" and the cell layout "Compact" (48–96px columns) share a name. Rename one?
 - Precedence and the rank effective date aren't shown anywhere in the demo, so those sorts look arbitrary. What exactly is "precedence" in InTime, and should either value appear (e.g. in the name tooltip or employee details)?
 - How much of a partly-overtime shift is overtime? The mock data has no hours, so the demo uses the last 2 hours.

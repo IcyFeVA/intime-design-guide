@@ -22,6 +22,10 @@ export interface Chip {
   segments: Segment[]
   /** Working for another unit */
   outOfUnit?: boolean
+  /** The other unit's name, when out of unit (e.g. "Special Ops") */
+  unit?: string
+  /** Working at another branch (precinct). Only that branch can change the cell, and it doesn't count towards this unit's coverage. */
+  branch?: string
   /** Part of the day is this kind without its own code (e.g. leave), shown as a diagonal split */
   partialKind?: ShiftKind
 }
@@ -109,7 +113,18 @@ export const formatMonthDay = (day: number) => monthDay.format(toDate(day))
 export const formatFullDate = (day: number) => fullDate.format(toDate(day))
 export const formatHeader = (day: number) => `${formatWeekday(day)}, ${formatMonthDay(day)}`
 /** 24.5 → "00:30": shifts past midnight wrap around */
-export const formatHour = (hour: number) => `${String(Math.floor(hour) % 24).padStart(2, '0')}:${hour % 1 ? '30' : '00'}`
+export const formatHour = (hour: number) => {
+  const minutes = Math.round(hour * 60)
+  return `${String(Math.floor(minutes / 60) % 24).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+/** 8 → "8h", 7.5 → "7h 30m", 0.25 → "15m" */
+export const formatDuration = (hours: number) => {
+  const minutes = Math.round(hours * 60)
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (!m) return `${h}h`
+  return h ? `${h}h ${m}m` : `${m}m`
+}
 
 /** "Today" in the demos, so the mock data and the Figma frames line up. */
 export const MOCK_TODAY = dayOf(2026, 6, 5)
@@ -221,9 +236,16 @@ export function describeChip(chip: Chip): string {
     const code = shiftCodeMap[segment.code]
     const { start, end } = segmentHours(segment)
     const extras = [segment.overtime === 'full' && 'overtime', segment.overtime === 'partial' && 'partly overtime', segment.cancelled && 'cancelled'].filter(Boolean)
-    return `${segment.label ? `${segment.label}, ` : ''}${code?.label ?? segment.code} ${formatHour(start)}–${formatHour(end)}${extras.length ? ` (${extras.join(', ')})` : ''}`
+    return `${segment.label ? `${segment.label}, ` : ''}${code?.label ?? segment.code} ${formatHours(start, end)}${extras.length ? ` (${extras.join(', ')})` : ''}`
   })
-  return `${parts.join(', ')}${chip.partialKind ? `. Partly ${chip.partialKind}` : ''}${chip.outOfUnit ? '. Out of unit' : ''}`
+  const unit = chip.outOfUnit ? `. Out of unit${chip.unit ? `, for ${chip.unit}` : ''}` : ''
+  return `${parts.join(', ')}${chip.partialKind ? `. Partly ${chip.partialKind}` : ''}${unit}${chip.branch ? `. At ${chip.branch}` : ''}`
+}
+
+/** "84th Precinct - Brooklyn" → "84th", "Engine 12 - Queens" → "Engine 12": the short name on an out-of-branch cell */
+export const branchShort = (branch: string) => {
+  const name = branch.split(' - ')[0]
+  return /^\S+ Precinct$/.test(name) ? name.split(' ')[0] : name
 }
 
 /* ------------------------------------------------------------------ */

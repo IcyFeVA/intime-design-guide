@@ -50,11 +50,13 @@ export default function TableOfContents() {
       <Text size="xs" fw={600} tt="uppercase" lts="0.08em" c="dimmed" mb="sm">
         On this page
       </Text>
-      {page.sections.map((section) => (
+      {page.sections.map((section, index) => (
         <UnstyledButton
           key={section.id}
           className="toc__link"
           data-active={active === section.id || undefined}
+          data-group={section.group || undefined}
+          data-nested={(!section.group && page.sections.slice(0, index).some((item) => item.group)) || undefined}
           onClick={() => navigate(sectionPath(pathname, section.id), { replace: true })}
         >
           {section.title}
