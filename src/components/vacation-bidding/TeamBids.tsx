@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { Modal, Popover, Stack, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
+import { Button, Group, Modal, Popover, Stack, Table, Text, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { Award } from 'lucide-react'
 import { CalendarStepper } from '../calendar/CalendarToolbar'
 import { formatShortDate, formatWeekdayLong, sameMonth, viewDays } from '../calendar/events'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import { dayNumber, MOCK_TODAY } from '../schedule/data'
 import { teamBidStatuses, type TeamBidStatus } from '../../tokens/bidding'
-import { teamBidsFor, type Bid, type TeamBid } from './data'
+import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
+import { signUpsFor, teamBidsFor, type Bid, type TeamBid } from './data'
 import classes from './VacationBidding.module.css'
 
 type TeamView = 'month' | 'week'
@@ -116,6 +117,37 @@ export function TeamBidsModal({ bid, opened, onClose }: { bid: Bid; opened: bool
   return (
     <Modal opened={opened} onClose={onClose} centered size={1320} title="Team Bids" classNames={{ title: classes.modalTitle }}>
       {opened && <TeamBidsCalendar key={bid.id} bid={bid} />}
+    </Modal>
+  )
+}
+
+/**
+ * All at once: who signed up, in the List Organizer's order, with their rank. Nobody knows who is awarded
+ * until the bid closes, so Status stays empty until then.
+ */
+export function ViewSignUpsModal({ bid, opened, onClose }: { bid: Bid; opened: boolean; onClose: () => void }) {
+  const signUps = signUpsFor(bid)
+  return (
+    <Modal opened={opened} onClose={onClose} centered size={600} title="View Sign-Ups" classNames={{ title: classes.modalTitle }}>
+      <Text className={classes.confirmText}>Sign-Ups are sorted based on the List Organizer’s current order.</Text>
+      <Table className={classes.signUps} verticalSpacing={8} horizontalSpacing={0} mt="xl" withRowBorders={false}>
+        <Table.Thead>
+          <Table.Tr><Table.Th>Employee</Table.Th><Table.Th w="32%">Rank</Table.Th><Table.Th w="24%">Status</Table.Th></Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {signUps.map((signUp) => (
+            <Table.Tr key={signUp.name} data-you={signUp.you || undefined}>
+              <Table.Td>{signUp.name}{signUp.you && <Text span c="dimmed" inherit> (you)</Text>}</Table.Td>
+              <Table.Td>{signUp.rank}</Table.Td>
+              <Table.Td>{signUp.awarded && <RequestStatusBadge stateKey="awarded" size="lg" />}</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+      {bid.state !== 'closed' && <Text size="sm" c="dimmed" mt="md">Awarded shows here once the bid closes.</Text>}
+      <Group justify="flex-end" mt="xl">
+        <Button variant="outline" className={classes.confirm} onClick={onClose} data-autofocus>Close</Button>
+      </Group>
     </Modal>
   )
 }

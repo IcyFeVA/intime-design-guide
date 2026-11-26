@@ -159,8 +159,8 @@ export const pages: PageDef[] = [
   {
     path: '/patterns/vacation-bidding', title: 'Vacation Bidding', group: 'Patterns', icon: TreePalm, status: 'confirmed', updated: '2026-11-26',
     description: 'How employees bid for time off: wait for their turn, add leave requests, rank them and submit.',
-    keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once', 'team bids', 'awarded', 'team calendar'],
-    sections: s(['desktop', 'Turn-based bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['team-bids', 'Team Bids'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once', 'team bids', 'awarded', 'team calendar', 'open', 'select shift', 'choice', 'closed', 'expired', 'taken down', 'denied'],
+    sections: s(['desktop', 'Vacation bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['all-at-once', 'Shifts on offer'], ['team-bids', 'Team Bids'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/VacationBidding')),
   },
   {

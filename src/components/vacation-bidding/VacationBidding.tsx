@@ -4,21 +4,28 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import {
-  ArrowDown, ArrowUp, Calendar, CalendarDays, ChevronDown, CircleCheck, Clock, GripVertical, Inbox, Plus, Search, Send, SquarePen, StickyNote, Trash2, TriangleAlert,
+  ArrowDown, ArrowUp, Calendar, CalendarDays, ChevronDown, CircleCheck, Clock, GripVertical, Inbox, MousePointer2, Plus, Search, Send, SquarePen, StickyNote, Trash2, TriangleAlert, Users,
 } from 'lucide-react'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import { formatMonthDay, weekdayIndex } from '../schedule/data'
-import { bidStates, leaveTypeLabel, leaveTypes, type LeaveTypeKey } from '../../tokens/bidding'
+import { bidStates, leaveTypeLabel, leaveTypes, ordinal, type BidMode, type LeaveTypeKey } from '../../tokens/bidding'
 import {
-  FULL_DAY, calendarDayLabel, formatRangeShort, formatSpan, plural, requestTimes, requestWeeks, spanDays, timeBanks, type Bid, type BidRequest,
+  FULL_DAY, calendarDayLabel, formatRangeShort, formatSpan, plural, requestTimes, requestWeeks, signUpsFor, spanDays, timeBanks, type Bid, type BidRequest,
 } from './data'
 import type { BidStatusFilter, VacationBiddingState } from './useVacationBidding'
-import { TeamBidsModal } from './TeamBids'
+import { TeamBidsModal, ViewSignUpsModal } from './TeamBids'
 import classes from './VacationBidding.module.css'
 
 const badgeFor = (bid: Bid) => bidStates.find((item) => item.key === bid.state)!.badge
+/** The window has closed: closed, expired or taken down */
+const isOver = (bid: Bid) => bid.state === 'closed' || bid.state === 'expired' || bid.state === 'taken-down'
+const remainingLabel = (bid: Bid) => (isOver(bid) ? 'Window closed' : `${bid.remaining} remaining`)
+const requestName = (request: BidRequest) => request.title ?? leaveTypeLabel(request.type)
+
+/** What the count in the bid list says, by state */
+const pickedLabel: Partial<Record<Bid['state'], string>> = { 'your-turn': 'Selected', open: 'Requests', pending: 'Signed up for', closed: 'Awarded' }
 
 /* ------------------------------------------------------------------ */
 /* Tabs and filters                                                    */
@@ -45,8 +52,13 @@ export function SignUpTabs({ onOther }: { onOther: (tab: string) => void }) {
 const longDate = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' })
 const formatLong = (day: number) => longDate.format(new Date(day * 86_400_000))
 
-const statusOptions: { key: BidStatusFilter; label: string }[] = [
-  { key: 'all', label: 'All Statuses' }, { key: 'your-turn', label: 'Your Turn' }, { key: 'pending', label: 'Pending' }, { key: 'queued', label: 'Queued' },
+/** The status filter lists the states of the current mode */
+const statusOptions = (mode: BidMode): { key: BidStatusFilter; label: string }[] => [
+  { key: 'all', label: 'All Statuses' },
+  ...(mode === 'turn-based'
+    ? [{ key: 'your-turn', label: 'Your Turn' }, { key: 'queued', label: 'Queued' }] as const
+    : [{ key: 'open', label: 'Open' }] as const),
+  { key: 'pending', label: 'Pending' }, { key: 'closed', label: 'Closed' }, { key: 'expired', label: 'Expired' }, { key: 'taken-down', label: 'Taken Down' },
 ]
 
 /** Search, date range, round and status. Search and status filter the demo; the others are preview only. */
@@ -73,7 +85,7 @@ export function BidFilters({ state }: { state: VacationBiddingState }) {
       />
       <PickerMenu label="Bid round" value={round} onChange={(value) => { setRound(value); state.setHint('Upcoming and closed bids are not part of this demo.') }}
         options={[{ key: 'live', label: 'Live' }, { key: 'upcoming', label: 'Upcoming' }, { key: 'closed', label: 'Closed' }]} />
-      <PickerMenu label="Status" value={state.status} onChange={state.setStatus} options={statusOptions} />
+      <PickerMenu label="Status" value={state.status} onChange={state.setStatus} options={statusOptions(state.mode)} />
     </>
   )
 }
@@ -86,24 +98,25 @@ export const LiveBadge = () => <Badge variant="dot" color="intime" size="md" cla
 
 /** One bid in the list: title, period, time left and how many requests you picked. */
 export function BidListItem({ bid, active, onOpen }: { bid: Bid; active?: boolean; onOpen: (id: string) => void }) {
-  const picked = bid.requests.length
+  const label = pickedLabel[bid.state]
+  const picked = bid.state === 'closed' ? bid.requests.filter((request) => request.outcome === 'awarded').length : bid.requests.length
   return (
     <UnstyledButton className={classes.bidItem} data-active={active || undefined} aria-current={active ? 'true' : undefined} onClick={() => onOpen(bid.id)}>
       <Stack gap={6} className={classes.bidMain}>
         <Text fw={600} className={classes.bidTitle}>{bid.title}</Text>
         <Stack gap={2}>
           <Text size="sm" className="tabular">{formatSpan(...bid.period)}</Text>
-          <Text size="sm" className={`${classes.remaining} tabular`}>{bid.remaining} remaining</Text>
+          <Text size="sm" className={`${classes.remaining} tabular`} data-over={isOver(bid) || undefined}>{remainingLabel(bid)}</Text>
         </Stack>
-        {picked > 0 && bid.state !== 'queued' && (
+        {label && (picked > 0 || bid.state === 'closed') && (
           <Group gap={6} wrap="nowrap" className={classes.picked}>
             <CircleCheck size={16} strokeWidth={1.75} aria-hidden="true" />
-            <Text size="sm" className="tabular">{bid.state === 'pending' ? 'Signed up for' : 'Selected'}: {picked}</Text>
+            <Text size="sm" className="tabular">{label}: {picked}</Text>
           </Group>
         )}
       </Stack>
       <Stack gap={8} align="flex-end" className={classes.bidSide}>
-        <LiveBadge />
+        {!isOver(bid) && <LiveBadge />}
         <RequestStatusBadge stateKey={badgeFor(bid)} size="sm" />
       </Stack>
     </UnstyledButton>
@@ -111,7 +124,7 @@ export function BidListItem({ bid, active, onOpen }: { bid: Bid; active?: boolea
 }
 
 export function BidList({ state }: { state: VacationBiddingState }) {
-  const label = statusOptions.find((option) => option.key === state.status)!.label
+  const label = statusOptions(state.mode).find((option) => option.key === state.status)?.label ?? 'All Statuses'
   return (
     <nav className={classes.listPane} aria-label="Vacation bids">
       <Text size="sm" fw={600} c="dimmed" tt="uppercase" lts="0.06em" className={classes.eyebrow}>{label}</Text>
@@ -142,10 +155,11 @@ export function RankBadge({ rank, label }: { rank: number; label?: string }) {
 const weekdayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 /** The weeks around a request, with the requested days marked. Dashed, because they are not approved yet. */
-export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start' | 'end'> }) {
+export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start' | 'end' | 'startTime' | 'endTime'> }) {
   const weeks = requestWeeks(request)
+  const times = requestTimes(request)
   return (
-    <div className={classes.calendar} role="img" aria-label={`Requested days: ${formatSpan(request.start, request.end)}, ${plural(spanDays(request), 'day')}`}>
+    <div className={classes.calendar} role="img" aria-label={`Requested days: ${formatSpan(request.start, request.end)}, ${plural(spanDays(request), 'day')}${times ? `, ${times}` : ''}`}>
       <div className={classes.calHead} aria-hidden="true">
         {weekdayNames.map((name) => <span key={name}><span className={classes.calLong}>{name}</span><span className={classes.calShort}>{name.slice(0, 3)}</span></span>)}
       </div>
@@ -159,7 +173,7 @@ export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start'
                 {calendarDayLabel(day, row === 0 && index === 0)}
               </span>
             ))}
-            <span className={classes.calBar} style={{ gridColumn: `${weekdayIndex(from) + 1} / ${weekdayIndex(to) + 2}` }}>Leave</span>
+            <span className={classes.calBar} style={{ gridColumn: `${weekdayIndex(from) + 1} / ${weekdayIndex(to) + 2}` }}>{times ?? 'Leave'}</span>
           </div>
         )
       })}
@@ -167,13 +181,15 @@ export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start'
   )
 }
 
-/** Up, down, edit, delete and open. While locked (submitted) only delete and open show. */
-function RowActions({ name, rank, count, editable, ranking, expanded, deleteDisabled, onMove, onEdit, onDelete, onToggle }: {
+/** Up, down, edit, delete and open. While locked (submitted) only delete and open show; after closing, the outcome and open. */
+function RowActions({ name, rank, count, editable, ranking, deletable, outcome, expanded, deleteDisabled, onMove, onEdit, onDelete, onToggle }: {
   name: string
   rank: number
   count: number
   editable: boolean
   ranking: boolean
+  deletable: boolean
+  outcome?: BidRequest['outcome']
   expanded: boolean
   deleteDisabled?: string
   onMove: (to: number) => void
@@ -190,9 +206,12 @@ function RowActions({ name, rank, count, editable, ranking, expanded, deleteDisa
         </>
       )}
       {editable && <Tooltip label="Edit"><ActionIcon variant="default" size={36} aria-label={`Edit ${name}`} onClick={onEdit}><SquarePen size={18} /></ActionIcon></Tooltip>}
-      <Tooltip label={deleteDisabled ?? 'Delete'}>
-        <ActionIcon variant="default" size={36} aria-label={`Delete ${name}`} disabled={!!deleteDisabled} onClick={onDelete}><Trash2 size={18} /></ActionIcon>
-      </Tooltip>
+      {deletable && (
+        <Tooltip label={deleteDisabled ?? 'Delete'}>
+          <ActionIcon variant="default" size={36} aria-label={`Delete ${name}`} disabled={!!deleteDisabled} onClick={onDelete}><Trash2 size={18} /></ActionIcon>
+        </Tooltip>
+      )}
+      {outcome && <RequestStatusBadge stateKey={outcome} size="sm" />}
       <Tooltip label={expanded ? 'Hide details' : 'Show details'}>
         <ActionIcon variant="subtle" color="gray" size={36} aria-label={`${expanded ? 'Hide' : 'Show'} details for ${name}`} aria-expanded={expanded} onClick={onToggle}>
           <ChevronDown size={20} className={classes.chevron} data-open={expanded || undefined} />
@@ -206,10 +225,12 @@ function RowActions({ name, rank, count, editable, ranking, expanded, deleteDisa
  * The ranked requests. `ranking` adds drag handles and arrows (your turn, or Edit on a submitted bid);
  * `editable` adds the pencil and note Edit link (your turn only).
  */
-export function RequestList({ state, ranking, editable, onEdit, onDelete }: {
+export function RequestList({ state, ranking, editable, deletable = true, onEdit, onDelete }: {
   state: VacationBiddingState
   ranking: boolean
   editable: boolean
+  /** Shows Delete. All at once hides it on a submitted bid until Edit */
+  deletable?: boolean
   onEdit: (request: BidRequest) => void
   onDelete: (request: BidRequest) => void
 }) {
@@ -243,7 +264,7 @@ export function RequestList({ state, ranking, editable, onEdit, onDelete }: {
       </div>
       <ol className={classes.rows} aria-label="Your requests, in ranked order">
         {requests.map((request, index) => {
-          const name = leaveTypeLabel(request.type)
+          const name = requestName(request)
           const open = expanded.includes(request.id)
           return (
             <li
@@ -284,6 +305,8 @@ export function RequestList({ state, ranking, editable, onEdit, onDelete }: {
                   count={requests.length}
                   editable={editable}
                   ranking={ranking}
+                  deletable={deletable && !request.outcome}
+                  outcome={request.outcome}
                   expanded={open}
                   deleteDisabled={locked && requests.length === 1 ? 'A submitted bid needs at least one request' : undefined}
                   onMove={(to) => state.reorder(index, to)}
@@ -458,11 +481,20 @@ export function ConfirmDialog({ opened, title, confirmLabel = 'Confirm', destruc
 }
 
 /** Before submitting: after this, no requests can be added. */
-export function SubmitBidModal({ opened, onClose, onConfirm }: { opened: boolean; onClose: () => void; onConfirm: () => void }) {
+export function SubmitBidModal({ opened, mode = 'turn-based', onClose, onConfirm }: { opened: boolean; mode?: BidMode; onClose: () => void; onConfirm: () => void }) {
   return (
     <ConfirmDialog opened={opened} title="Submit Bid" onClose={onClose} onConfirm={onConfirm}>
-      <Text inherit>By clicking “Confirm” you will be submitting these leave requests as part of your Vacation Bid to a Scheduler.</Text>
-      <Text inherit><strong>You will no longer be able to add more leave requests</strong> to your bid. You can still make edits to leaves with status pending.</Text>
+      {mode === 'turn-based' ? (
+        <>
+          <Text inherit>By clicking “Confirm” you will be submitting these leave requests as part of your Vacation Bid to a Scheduler.</Text>
+          <Text inherit><strong>You will no longer be able to add more leave requests</strong> to your bid. You can still make edits to leaves with status pending.</Text>
+        </>
+      ) : (
+        <>
+          <Text inherit>By clicking “Confirm” you will be submitting these shifts as part of your Vacation Bid to a Scheduler.</Text>
+          <Text inherit><strong>You can still make changes until the bid closes:</strong> select more shifts, remove them and change their ranking.</Text>
+        </>
+      )}
       <Text inherit>Do you want to proceed with your submission?</Text>
     </ConfirmDialog>
   )
@@ -487,6 +519,61 @@ export function DeleteRequestModal({ request, onClose, onConfirm }: { request: B
 }
 
 /* ------------------------------------------------------------------ */
+/* All at once: shifts on offer                                        */
+/* ------------------------------------------------------------------ */
+
+/** The shifts the agency offers. Select Shift adds one as your next choice; selected ones say which choice they are. */
+export function OfferedShifts({ state }: { state: VacationBiddingState }) {
+  const [expanded, setExpanded] = useState<string[]>([])
+  const ranks = new Map(state.requests.map((request, index) => [request.shiftId, index + 1]))
+  const toggle = (id: string) => setExpanded((list) => (list.includes(id) ? list.filter((item) => item !== id) : [...list, id]))
+  return (
+    <section className={`${classes.card} ${classes.offers}`} aria-label="Shifts on offer">
+      <ul className={classes.offerList}>
+        {state.offered.map((shift) => {
+          const rank = ranks.get(shift.id)
+          const open = expanded.includes(shift.id)
+          const note = state.shiftNotes[shift.id]
+          const times = requestTimes(shift)
+          return (
+            <li key={shift.id} className={classes.offer}>
+              <div className={classes.offerMain}>
+                <Text fw={600} className={classes.offerTitle}>{shift.title}</Text>
+                <Text className={`${classes.offerDates} tabular`}>{formatSpan(shift.start, shift.end)}{times && <Text span c="dimmed" inherit> · {times}</Text>}</Text>
+                <div className={classes.offerAction}>
+                  {rank ? (
+                    <Text className={classes.choice}>{ordinal(rank)} Choice</Text>
+                  ) : (
+                    <Button variant="subtle" fw={600} className={classes.teamBids} rightSection={<MousePointer2 size={18} aria-hidden="true" />} aria-label={`Select ${shift.title}`} onClick={() => state.select(shift)}>
+                      Select Shift
+                    </Button>
+                  )}
+                </div>
+                <Tooltip label={open ? 'Hide details' : 'Show details'}>
+                  <ActionIcon variant="subtle" color="gray" size={36} aria-label={`${open ? 'Hide' : 'Show'} details for ${shift.title}`} aria-expanded={open} onClick={() => toggle(shift.id)}>
+                    <ChevronDown size={20} className={classes.chevron} data-open={open || undefined} />
+                  </ActionIcon>
+                </Tooltip>
+              </div>
+              <Collapse expanded={open} transitionDuration={220} transitionTimingFunction="cubic-bezier(0.2, 0, 0, 1)">
+                <div className={classes.offerDetails}>
+                  {note === undefined ? (
+                    <Button variant="subtle" fw={600} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => state.setShiftNote(shift.id, '')} className={classes.addNoteLink}>Add a note</Button>
+                  ) : (
+                    <Textarea label="Note" autosize minRows={2} maxLength={300} value={note} onChange={(event) => state.setShiftNote(shift.id, event.currentTarget.value)} placeholder="Anything the scheduler should know" autoFocus={note === ''} />
+                  )}
+                  <RequestCalendar request={shift} />
+                </div>
+              </Collapse>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /* Open bid                                                            */
 /* ------------------------------------------------------------------ */
 
@@ -500,9 +587,9 @@ function BidHeader({ bid }: { bid: Bid }) {
       <Group gap={6} justify="flex-end" wrap="nowrap" className={classes.period}>
         <Text className="tabular">{formatSpan(...bid.period)}</Text>
         <Text c="dimmed" aria-hidden="true">·</Text>
-        <Group gap={6} wrap="nowrap" className={classes.remaining}>
+        <Group gap={6} wrap="nowrap" className={classes.remaining} data-over={isOver(bid) || undefined}>
           <Clock size={18} strokeWidth={1.75} aria-hidden="true" />
-          <Text className="tabular" inherit>{bid.remaining} remaining</Text>
+          <Text className="tabular" inherit>{remainingLabel(bid)}</Text>
         </Group>
       </Group>
     </div>
@@ -537,62 +624,116 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
   }
 
   const count = bid.requests.length
+  const allAtOnce = bid.mode === 'all-at-once'
+  const draft = bid.state === 'your-turn' || bid.state === 'open'
   const yourTurn = bid.state === 'your-turn'
   const pending = bid.state === 'pending'
-  const ranking = yourTurn || state.editingRanks
+  const ranking = draft || state.editingRanks
+  const signUpCount = allAtOnce ? signUpsFor(bid).length : 0
   const teamBids = (
-    <Button variant="subtle" color="intime" fw={600} className={classes.teamBids} rightSection={<CalendarDays size={18} aria-hidden="true" />} onClick={() => setTeamOpen(true)}>
-      View Team Bids
+    <Button
+      variant="subtle"
+      color="intime"
+      fw={600}
+      className={classes.teamBids}
+      rightSection={allAtOnce ? <Users size={18} aria-hidden="true" /> : <CalendarDays size={18} aria-hidden="true" />}
+      aria-label={allAtOnce ? `View Team Bids, ${signUpCount} signed up` : undefined}
+      onClick={() => setTeamOpen(true)}
+    >
+      {allAtOnce ? `View Team Bids (${signUpCount})` : 'View Team Bids'}
     </Button>
   )
+  const awarded = bid.requests.filter((request) => request.outcome === 'awarded').length
+  const showList = draft || pending || bid.state === 'closed'
 
   return (
     <div className={classes.detailPane}>
       <div className={classes.detailScroll}>
         <BidHeader bid={bid} />
-        <Card title="Turn-Based Bid Submission">
+        <Card title={allAtOnce ? 'All-at-once Bid Submission' : 'Turn-Based Bid Submission'}>
           {bid.state === 'queued' && (
             <Text className={classes.lead}>
               You are currently in the queue. There {bid.ahead === 1 ? 'is' : 'are'} <RankBadge rank={bid.ahead} /> {bid.ahead === 1 ? 'employee' : 'employees'} ahead of you.<br />
               You will be notified once it is your turn.
             </Text>
           )}
-          {yourTurn && (
+          {draft && (
             <>
               <Text className={classes.lead}>
                 Add your leave requests, set their priority, and click <strong>Submit</strong> once you’re ready. You can make changes for as long as your requests are pending.
               </Text>
               <Group justify="flex-end" gap="lg" mt="lg">
                 {teamBids}
-                <Button variant={count ? 'default' : 'filled'} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => setForm({ opened: true })}>Add Request</Button>
+                {yourTurn && <Button variant={count ? 'default' : 'filled'} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => setForm({ opened: true })}>Add Request</Button>}
               </Group>
             </>
           )}
           {pending && (
             <>
               <Text className={classes.lead}>
-                Your selection is locked in. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />
-                While the bid is pending, you can change the ranking, but you can’t add new requests.
+                {allAtOnce ? (
+                  <>Your bid is submitted. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />Until the bid closes, you can add or remove shifts and change their ranking.</>
+                ) : (
+                  <>Your selection is locked in. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />While the bid is pending, you can change the ranking, but you can’t add new requests.</>
+                )}
               </Text>
               <Group justify="flex-end" mt="lg">{teamBids}</Group>
             </>
           )}
-          {bid.state !== 'queued' && (count ? (
+          {bid.state === 'closed' && (
             <>
-              <RequestList state={state} ranking={ranking} editable={yourTurn} onEdit={(request) => setForm({ opened: true, request })} onDelete={setRemoving} />
+              <Text className={classes.lead}>
+                Bidding is closed. You were awarded <RankBadge rank={awarded} /> of {plural(count, 'shift')}.<br />
+                The agency awards leave by its own rules, usually seniority.
+              </Text>
+              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+            </>
+          )}
+          {bid.state === 'expired' && (
+            <>
+              <Text className={classes.lead}>The bid closed before you submitted, so nothing was sent.</Text>
+              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+            </>
+          )}
+          {bid.state === 'taken-down' && (
+            <>
+              <Text className={classes.lead}>A scheduler took this bid down. Your requests are canceled.</Text>
+              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+            </>
+          )}
+          {showList && (count ? (
+            <>
+              <RequestList
+                state={state}
+                ranking={ranking && bid.state !== 'closed'}
+                editable={yourTurn}
+                deletable={!allAtOnce || ranking}
+                onEdit={(request) => setForm({ opened: true, request })}
+                onDelete={setRemoving}
+              />
               {ranking && count > 1 && <Text size="sm" className={classes.tip}>Tip: Drag and drop, or use the arrow buttons, to set your preferred priority.</Text>}
             </>
           ) : (
             <div className={classes.empty}>
-              <Text c="dimmed">No requests yet.</Text>
-              <Text c="dimmed">Click “+ Add Request” to get started.</Text>
+              {allAtOnce ? (
+                <>
+                  <Text c="dimmed">Your selected shifts will appear here.</Text>
+                  <Text c="dimmed">Once they are here, use drag and drop to reorder and set their priority.</Text>
+                </>
+              ) : (
+                <>
+                  <Text c="dimmed">No requests yet.</Text>
+                  <Text c="dimmed">Click “+ Add Request” to get started.</Text>
+                </>
+              )}
             </div>
           ))}
         </Card>
+        {allAtOnce && (draft || pending) && <OfferedShifts state={state} />}
       </div>
-      {yourTurn && (
+      {draft && (
         <div className={classes.footer}>
-          <Tooltip label="Add a request first" disabled={count > 0}>
+          <Tooltip label={allAtOnce ? 'Select a shift first' : 'Add a request first'} disabled={count > 0}>
             <Button
               data-disabled={!count || undefined}
               aria-disabled={!count || undefined}
@@ -625,8 +766,10 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
       )}
       <RequestFormModal opened={form.opened} bid={bid} request={form.request} onClose={() => setForm((value) => ({ ...value, opened: false }))} onSave={state.save} />
       <DeleteRequestModal request={removing} onClose={() => setRemoving(null)} onConfirm={() => { if (removing) state.remove(removing.id); setRemoving(null) }} />
-      <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />
-      <SubmitBidModal opened={submitting} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
+      {allAtOnce
+        ? <ViewSignUpsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />
+        : <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />}
+      <SubmitBidModal opened={submitting} mode={bid.mode} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
       <LeaveBidModal count={state.unsubmitted} opened={!!state.leaving} onClose={state.cancelLeave} onConfirm={state.confirmLeave} />
     </div>
   )

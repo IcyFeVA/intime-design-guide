@@ -12,6 +12,31 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: all-at-once bidding approved. All at once, its states (Open, Closed, Expired, Taken Down), the Open, Awarded and Denied request states and every --bidding-* variable are confirmed.',
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: all-at-once bids open View Sign-Ups instead of the Team Bids calendar. Closed, Expired and Taken Down now apply to both modes.',
+    changes: [
+      'View Sign-Ups lists everyone who signed up in the List Organizer’s order, with their rank. Awarded shows only after the bid closes.',
+      'Both modes list one bid per state: Closed (Winter, with Awarded and Denied), Expired (Fall) and Taken Down (Holiday) replace the second open bid.',
+      'The Awarded badge uses the award ribbon icon.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: all-at-once bids, from the Figma frames. A switch in the demo bar changes between turn-based and all at once.',
+    changes: [
+      'Shifts on offer: Select Shift adds one as your next choice; selected ones show “1st Choice”, “2nd Choice”…',
+      'States Open, Pending, Closed (each shift Awarded or Denied), Expired and Taken Down. “Close window” and “Take down” in the demo bar show them.',
+      'New request states Open, Awarded and Denied, and --bidding-offer-divider and --bidding-choice-text.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/vacation-bidding',
     summary: 'Vacation Bidding: turn-based bidding approved. The page, the Queued, Your Turn and Pending states and the --bidding-* variables are confirmed.',
   },
   {

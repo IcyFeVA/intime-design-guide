@@ -1,10 +1,12 @@
 import type { LucideIcon } from 'lucide-react'
 import {
   ArrowRight,
+  Award,
   BadgeCheck,
   Ban,
   CalendarClock,
   CalendarX,
+  CircleArrowRight,
   CircleCheck,
   CircleSlash,
   CircleX,
@@ -69,7 +71,10 @@ export const requestStates: RequestState[] = [
   { key: 'approved', label: 'Approved', tone: 'success', icon: CircleCheck, group: 'Positive', meaning: 'Request was accepted.', status: 'confirmed' },
   { key: 'your-turn', label: 'Your Turn', tone: 'success', icon: ArrowRight, group: 'Positive', meaning: 'The member can now act, for example pick a shift.', status: 'confirmed' },
   { key: 'available', label: 'Available', tone: 'success', icon: CircleCheck, group: 'Positive', meaning: 'Open for sign-up.', status: 'confirmed' },
+  { key: 'open', label: 'Open', tone: 'success', icon: CircleArrowRight, group: 'Positive', meaning: 'The bid window is open and everyone can bid.', status: 'confirmed' },
+  { key: 'awarded', label: 'Awarded', tone: 'success', icon: Award, group: 'Positive', meaning: 'The leave was granted when the bid closed. Uses the award ribbon, as in Team Bids.', status: 'confirmed' },
   { key: 'rejected', label: 'Rejected', tone: 'error', icon: CircleX, group: 'Negative', meaning: 'Request was declined.', status: 'confirmed' },
+  { key: 'denied', label: 'Denied', tone: 'error', icon: CircleX, group: 'Negative', meaning: 'Someone else got the leave when the bid closed, e.g. by seniority.', status: 'confirmed' },
   { key: 'expired', label: 'Expired', tone: 'error', icon: TimerOff, group: 'Negative', meaning: 'The deadline passed before action was taken.', status: 'confirmed' },
   { key: 'missed', label: 'Missed', tone: 'error', icon: CalendarX, group: 'Negative', meaning: 'The member did not pick before the window closed.', status: 'confirmed' },
   { key: 'taken-down', label: 'Taken Down', tone: 'error', icon: Ban, group: 'Negative', meaning: 'Posting was withdrawn by a manager.', status: 'confirmed' },

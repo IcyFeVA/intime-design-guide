@@ -1,8 +1,10 @@
 import { useState } from 'react'
-import type { BidState } from '../../tokens/bidding'
-import { leaveTypeLabel } from '../../tokens/bidding'
+import type { BidMode, BidState } from '../../tokens/bidding'
+import { leaveTypeLabel, ordinal } from '../../tokens/bidding'
 import { dayOf } from '../schedule/data'
-import { SUBMITTED_ON, formatSpan, initialBids, move, plural, type Bid, type BidRequest } from './data'
+import {
+  SUBMITTED_ON, formatSpan, initialBids, move, offeredShiftsFor, plural, requestForShift, type Bid, type BidRequest, type OfferedShift,
+} from './data'
 
 export type BidStatusFilter = 'all' | BidState
 
@@ -14,11 +16,17 @@ export interface VacationBiddingOptions {
   setup?: (bids: Bid[]) => Bid[]
   /** The bid that is open at first */
   activeId?: string
+  /** Turn-based (default) or all at once */
+  mode?: BidMode
 }
 
+/** Bids you can still change before submitting */
+const isDraft = (bid: Bid | null) => bid?.state === 'your-turn' || bid?.state === 'open'
+
 /** State for the vacation bidding demo: the bids, the open one, filters and every action on requests. */
-export function useVacationBidding({ setup = (bids) => bids, activeId: initialActive = 'summer' }: VacationBiddingOptions = {}) {
-  const [bids, setBids] = useState<Bid[]>(() => setup(initialBids()))
+export function useVacationBidding({ setup = (bids) => bids, activeId: initialActive = 'summer', mode: initialMode = 'turn-based' }: VacationBiddingOptions = {}) {
+  const [mode, setModeState] = useState<BidMode>(initialMode)
+  const [bids, setBids] = useState<Bid[]>(() => setup(initialBids(initialMode)))
   const [activeId, setActiveId] = useState(initialActive)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<BidStatusFilter>('all')
@@ -28,18 +36,24 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
   const [rankDraft, setRankDraft] = useState<BidRequest[] | null>(null)
   /** Leaving a bid with unsubmitted requests waits for the Warning dialog */
   const [leaving, setLeaving] = useState<LeaveTarget | null>(null)
+  /** All at once: notes on shifts on offer, by shift id. A selected shift's request shows the same note. */
+  const [shiftNotes, setShiftNotes] = useState<Record<string, string>>({})
 
   const active = bids.find((bid) => bid.id === activeId) ?? null
   const items = bids.filter((bid) =>
     (status === 'all' || bid.state === status) && bid.title.toLowerCase().includes(search.trim().toLowerCase()))
 
   const update = (patch: (bid: Bid) => Bid) => setBids((list) => list.map((bid) => (bid.id === activeId ? patch(bid) : bid)))
-  const describe = (request: BidRequest) => `${leaveTypeLabel(request.type)}, ${formatSpan(request.start, request.end)}`
+  const nameOf = (request: BidRequest) => request.title ?? leaveTypeLabel(request.type)
+  const describe = (request: BidRequest) => `${nameOf(request)}, ${formatSpan(request.start, request.end)}`
+  const withNote = (request: BidRequest) => (request.shiftId && shiftNotes[request.shiftId] !== undefined ? { ...request, note: shiftNotes[request.shiftId] || undefined } : request)
 
   /** Requests in their current order: the draft while changing the ranking of a submitted bid */
-  const requests = rankDraft ?? active?.requests ?? []
-  /** Requests added during your turn that are not submitted yet */
-  const unsubmitted = active?.state === 'your-turn' ? active.requests.length : 0
+  const requests = (rankDraft ?? active?.requests ?? []).map(withNote)
+  /** Requests added that are not submitted yet */
+  const unsubmitted = isDraft(active) ? active!.requests.length : 0
+  /** All at once: the shifts on offer in the open bid */
+  const offered: OfferedShift[] = active?.mode === 'all-at-once' ? offeredShiftsFor(active) : []
 
   const open = (id: string) => {
     setActiveId(id)
@@ -47,10 +61,25 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
     setHint(null)
   }
   const go = (target: LeaveTarget) => (target.kind === 'bid' ? open(target.id) : setHint(`${target.tab} are not part of this guide yet.`))
+  const reset = (nextMode: BidMode) => {
+    setBids(setup(initialBids(nextMode)))
+    setActiveId(initialActive)
+    setSearch('')
+    setStatus('all')
+    setRankDraft(null)
+    setLeaving(null)
+    setShiftNotes({})
+    setHint(null)
+  }
 
   return {
-    bids, items, active, requests, search, status, dateRange, hint, editingRanks: rankDraft !== null, unsubmitted, leaving,
+    mode, bids, items, active, requests, offered, search, status, dateRange, hint, editingRanks: rankDraft !== null, unsubmitted, leaving,
     setSearch, setStatus, setDateRange, setHint,
+    /** Switches the demo between turn-based and all at once, starting over */
+    setMode(next: BidMode) {
+      setModeState(next)
+      reset(next)
+    },
     open,
     /** Opens another bid or tab, but asks first when the open bid has unsubmitted requests */
     leave(target: LeaveTarget) {
@@ -76,8 +105,20 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
       })
       setHint(`Saved: ${describe(request)}.`)
     },
+    /** All at once: adds a shift on offer as the next choice (to the draft while editing the ranking) */
+    select(shift: OfferedShift) {
+      const request = requestForShift(shift)
+      const count = requests.length + 1
+      if (rankDraft) setRankDraft([...rankDraft, request])
+      else update((bid) => ({ ...bid, requests: [...bid.requests, request] }))
+      setHint(`${shift.title} added as your ${ordinal(count)} choice.`)
+    },
+    shiftNotes,
+    setShiftNote(shiftId: string, note: string) {
+      setShiftNotes((notes) => ({ ...notes, [shiftId]: note }))
+    },
     remove(id: string) {
-      const request = active?.requests.find((item) => item.id === id)
+      const request = requests.find((item) => item.id === id)
       update((bid) => ({ ...bid, requests: bid.requests.filter((item) => item.id !== id) }))
       setRankDraft((draft) => draft?.filter((item) => item.id !== id) ?? null)
       if (request) setHint(`Removed: ${describe(request)}.`)
@@ -88,11 +129,13 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
       const request = requests[from]
       if (rankDraft) setRankDraft(move(rankDraft, from, to))
       else update((bid) => ({ ...bid, requests: move(bid.requests, from, to) }))
-      setHint(`${leaveTypeLabel(request.type)} moved to rank ${to + 1} of ${requests.length}.`)
+      setHint(`${nameOf(request)} moved to rank ${to + 1} of ${requests.length}.`)
     },
     submit() {
       update((bid) => ({ ...bid, state: 'pending', submittedOn: SUBMITTED_ON }))
-      setHint('Submitted. Your selection is locked in; you can still change the ranking.')
+      setHint(active?.mode === 'all-at-once'
+        ? 'Submitted. Until the window closes you can still add shifts, remove them and change the ranking.'
+        : 'Submitted. Your selection is locked in; you can still change the ranking.')
     },
     startEditRanks() {
       setRankDraft(active?.requests ?? [])
@@ -116,13 +159,7 @@ export function useVacationBidding({ setup = (bids) => bids, activeId: initialAc
       setHint(active && active.ahead <= 1 ? 'It’s your turn. In the app you get a notification now.' : 'One employee finished bidding.')
     },
     reset() {
-      setBids(setup(initialBids()))
-      setActiveId(initialActive)
-      setSearch('')
-      setStatus('all')
-      setRankDraft(null)
-      setLeaving(null)
-      setHint(null)
+      reset(mode)
     },
   }
 }
