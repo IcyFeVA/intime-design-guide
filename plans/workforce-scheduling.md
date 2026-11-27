@@ -9,7 +9,7 @@
 The decisions there are final unless the user changes them; ask only about the open questions a step lists.
 
 Done: 1. panel core · 2. scenarios (leave, out of unit/branch) · 3. assign mode · 4. warnings, plus locked
-court dates, out of branch editable and the always-visible employee search · 5. bulk panel · 6. attachments tab. Details in the "Step N as built"
+court dates, out of branch editable and the always-visible employee search · 5. bulk panel · 6. attachments tab · 7. employee row. Details in the "Step N as built"
 sections and the 2026-11-26 sections below.
 
 - [x] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
@@ -24,10 +24,10 @@ sections and the 2026-11-26 sections below.
   - [x] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
   - [x] ~~Notes: add and list notes~~ **One note per assignment** (user, 2026-11-27): just a textarea with a placeholder, saved when the scheduler leaves it; no adding or removing notes. It also shows read-only at the end of the Details tab.
   - ~~Open question~~ Answered 2026-11-27 (user): attachments belong to the **block** (one grid cell); the same asset on two people at once is **allowed, no warning**.
-- [ ] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
-  - [ ] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
-  - [ ] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
-  - [ ] Chevron menu: Message, Call, View profile (opens `EmployeeDetailsModal` with `workforceProfile`, `contained`), View schedule.
+- [x] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
+  - [x] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
+  - [x] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
+  - [x] Chevron menu: Message, Call, View profile (opens `EmployeeDetailsModal` with `workforceProfile`, `contained`), View schedule.
 - [ ] **8. Smaller gaps** (from the "Not yet" lines of steps 1–3):
   - [ ] Picking another employee in the panel moves the assignment to them (today "Preview only").
   - [ ] Save the Branch field.
@@ -495,6 +495,16 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - OT/OU tags (user, 2026-11-27, "for now"): icons only, no "OT"/"OU" text in Work Scheduling (`SHOW_TAG_LABELS` in `src/tokens/workforce.ts` → `ShiftChip tagLabels`, `DetailedChip`). Team View and Location View unchanged. The legend popover is capped to the space left (`middlewares.size`, padding 16) and its list scrolls.
 - Follow-up (user, 2026-11-27): no "None yet." in empty sections (the count says it); "Add …" text buttons (Add task, Add segment, Set actual, and the task form's Add reminder / Add note) use the primary color with the primary-light hover. Fixed globally by mapping Mantine's `--mantine-color-intime-light*` vars to the theme tokens (`mantineAliases`).
 
+### Step 7 as built (2026-11-27): employee row
+
+- [x] `workforce/hours.ts`: `hoursSummary(member, day)` → `week` (Monday–Sunday) and `period` (the grid's 7-day schedule period, `periodStartOf` / `PERIOD_DAYS` now exported from `schedule/data.ts`), each `{ from, to, scheduled, overtime, leave }`, plus `cap` (`WEEKLY_HOURS_CAP`) and `banks` (`{ bank, balance, available }`). Scheduled = `workedHours` (work minus leave, as the cap counts it); overtime = the overtime parts of `chipParts` (whole OT assignments and the last 2h of partly-OT ones); leave = leave segments, a whole day counting as the person's watch length (PatD 10h). Bank `available` is `bankAvailable` (the "16 avail."); `balance` is mock, per person.
+- [x] Hours: a `Popover` (300px) from the Hours button: "Hours · B. Haddad", a table (This week / This period with their dates × Scheduled, Overtime, Leave; "–" for none), a progress bar "50h of 60h weekly cap" (warning fill and "· 10h over" past the cap), then Time banks (Balance, Can bank). No explanation line under it (user, 2026-11-27). The tooltip hides while it's open; Escape on the button closes just the popover (`aria-expanded` keeps the panel's Escape away).
+- [x] Find in schedule: `WorkforcePanel` takes `people` (`panel/people.ts`: `member(id)` = the edited person, `onFind`), provided to the editors through a context so `OpenShiftEditor`'s picked employee gets edited hours too. The demo opens the person's watch if collapsed and sets `found`; `WorkforceGrid`'s `found` centers the person's first line in the scroller (smooth unless reduced motion) and puts `data-found` on their labels and cells: a primary-light tint (registered `--found-tint`, layered over the cell's own background, so active/selected headers keep theirs) that holds then fades over 2.4s; the demo clears it after `FOUND_MS` (2.6s). Pressing it again flashes again. Status line: "B. Haddad is in the Day watch. Their row is highlighted."
+- [x] Chevron menu: the person's name as a label, Message, Call (shows the mobile number), View profile (`EmployeeDetailsModal` with `workforceProfile`, `contained`, rendered in the employee row), View schedule. Only View profile is built.
+- [x] Page: the panel's "What it shows" section describes the employee row; changelog.
+- Decided without the user (check): "this period" is the grid's 7-day schedule period (the vertical lines, starting Tuesdays), so it's one day off the week; leave days count as the watch length; balances are invented per person; Find doesn't change the selection (the panel stays on what it shows); the flash fades instead of staying.
+- Not yet: Message, Call and View schedule are preview only; Find in schedule doesn't change the range when the person's row is in another unit (every mock person is in Patrol).
+
 ### Locked assignments; out of branch editable (2026-11-26, user)
 
 - **Out of branch is editable** (user: the scheduler can change another precinct's assignment). It keeps its grid look (muted, "↗ 84th") and still doesn't count towards staffing. Banner: "Working at 84th Precinct (out of branch)" + "Open in 84th Precinct" (preview). This overrides "Out of branch: read-only" in the 2026-11-25 decisions and step 2.
@@ -543,6 +553,8 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
 - Bulk panel: should Delete all skip open shifts, as Assign to N does?
+- Hours popover (step 7): what is "this period" in InTime: the grid's 7-day schedule period, or a pay period (14 or 28 days, e.g. the FLSA 7(k) 28-day period)? Real bank balances and caps per bank; how a leave day counts (watch length or a fixed 8h)?
+- Employee menu: what Message and View schedule open (a chat? the person's Calendar?), and whether Call should just show the number on desktop.
 - Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
 - ~~Meaning of the employee-row icons~~ Answered 2026-11-25 (review item 8): Hours = hours summary popover, Crosshair = Find in schedule, Chevron = person actions menu.
 - Real values for Customer, Hours modifier and Rank (acting).

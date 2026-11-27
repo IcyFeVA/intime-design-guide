@@ -1203,3 +1203,48 @@
 @media (prefers-reduced-motion: reduce) {
   .overnightTip::after { transition: none; }
 }
+
+/* ---------- Find in schedule ---------- */
+
+/* The person's row flashes, then fades back to how it was: a tint layered over each cell's own background.
+   The demo removes data-found once the flash is over (FOUND_MS in WorkforceDemo). */
+@property --found-tint {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+.label[data-found],
+.cell[data-found] {
+  background-image: linear-gradient(var(--found-tint), var(--found-tint));
+  animation: found 2400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.label[data-found]:is([data-active], [data-selected]) {
+  background-image:
+    linear-gradient(var(--found-tint), var(--found-tint)),
+    linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg));
+}
+
+.label[data-found] {
+  box-shadow: inset 3px 0 0 var(--workforce-header-active-text);
+}
+
+@keyframes found {
+  0%,
+  50% {
+    --found-tint: var(--background-primary-light);
+  }
+
+  100% {
+    --found-tint: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label[data-found],
+  .cell[data-found] {
+    --found-tint: var(--background-primary-light);
+    animation: none;
+  }
+}

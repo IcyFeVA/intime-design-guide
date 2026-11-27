@@ -441,8 +441,9 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
+          <Text size="sm"><strong>The employee row</strong> comes first in Details. <strong>Hours</strong> shows the person’s scheduled, overtime and leave hours for the week and the schedule period, how close the week is to the weekly cap, and their time bank balances. <strong>Find in schedule</strong> (crosshair) scrolls the grid to their row and highlights it, opening their watch if it’s collapsed. The <strong>menu</strong> beside it has Message, Call, View profile (employee details) and View schedule.</Text>
           <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments holds the assignment’s tags, assets, tasks and note (see Attachments below); the note also shows at the end of Details.</Text>
-          <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
+          <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live, Find an employee, and Message, Call and View schedule in the employee menu say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
 

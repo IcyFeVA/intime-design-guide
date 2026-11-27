@@ -43,7 +43,7 @@ export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }
 
   const body = (
     <div className={classes.body}>
-      <EmployeeRow value={employee} onChange={setEmployee} onPreview={onPreview} />
+      <EmployeeRow value={employee} day={shift.day} onChange={setEmployee} onPreview={onPreview} />
       <BranchSelect value={branch} onChange={setBranch} />
       <SegmentList blocks={[[segment]]} selectedId="open" onSelect={() => {}} handlers={handlers} />
       <TimesCard

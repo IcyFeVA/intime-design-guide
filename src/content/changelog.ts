@@ -12,6 +12,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
     page: '/patterns/workforce-scheduling',
+    summary: 'The details panel’s employee row now works: Hours, Find in schedule and the person menu.',
+    changes: [
+      'Hours opens a summary: scheduled, overtime and leave hours for this week and this schedule period, the week against the 60h cap, and each time bank’s balance and what it can still take this period.',
+      'Find in schedule scrolls the grid to the person’s row and highlights it for a moment, opening their watch if it’s collapsed.',
+      'The menu’s View profile opens employee details. Message, Call (with the mobile number) and View schedule are preview only.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
     summary: 'With several cells selected, “Change fields” has the same fields as one cell and starts open.',
     changes: [
       'Times, actual times, shift code, customer, Bank this time and acting rank join activity, location, hours modifier and unit. Differing values show “Mixed”.',

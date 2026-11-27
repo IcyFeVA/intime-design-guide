@@ -8,6 +8,7 @@ import type { EditCommit } from './useScheduleEdits'
 import { DayEditor } from './panel/DayEditor'
 import { OpenShiftEditor } from './panel/OpenShiftEditor'
 import { BulkEditor } from './panel/BulkEditor'
+import { PanelPeopleContext, type PanelPeople } from './panel/people'
 import classes from './WorkforcePanel.module.css'
 
 /* ------------------------------------------------------------------ */
@@ -20,7 +21,7 @@ type Preview = (action: string) => void
  * Docked panel beside the grid. One cell: tabs with the day's details. Several cells: one shift or field for all of
  * them. Nothing: a hint. Every change saves at once and the grid follows.
  */
-export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, focusTick = 0, style }: {
+export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, people, focusTick = 0, style }: {
   content: PanelContent
   /** Save a change (autosave). The grid updates from the edited schedule. */
   onEdit: (commit: EditCommit) => void
@@ -39,6 +40,8 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
   onClose: () => void
   /** A control that is not built yet was used. Show it in the demo's status line. */
   onPreview: Preview
+  /** People as edited (the employee row's hours) and Find in schedule. Missing: the mock people, Find is preview only. */
+  people?: PanelPeople
   /** Changes when the panel should take focus, e.g. after Enter on a cell */
   focusTick?: number
   style?: CSSProperties
@@ -52,6 +55,17 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
 
   const { title, subtitle } = heading(content)
   const contentKey = content.mode === 'single' ? itemKey(content) : content.mode
+
+  const editors = (
+    <>
+      {content.mode === 'single' && content.kind === 'day' && <DayEditor item={content} onEdit={onEdit} onUndo={onUndo} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
+      {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
+
+      {content.mode === 'bulk' && (
+        <BulkEditor items={content.items} onEdit={onEdit} onPreview={onPreview} onStatus={onStatus} assigning={assigning} onAssign={onAssign} key={content.items.map((item) => item.key).join()} />
+      )}
+    </>
+  )
 
   return (
     <aside
@@ -103,12 +117,7 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
         </div>
       )}
 
-      {content.mode === 'single' && content.kind === 'day' && <DayEditor item={content} onEdit={onEdit} onUndo={onUndo} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
-      {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
-
-      {content.mode === 'bulk' && (
-        <BulkEditor items={content.items} onEdit={onEdit} onPreview={onPreview} onStatus={onStatus} assigning={assigning} onAssign={onAssign} key={content.items.map((item) => item.key).join()} />
-      )}
+      {people ? <PanelPeopleContext.Provider value={people}>{editors}</PanelPeopleContext.Provider> : editors}
     </aside>
   )
 }

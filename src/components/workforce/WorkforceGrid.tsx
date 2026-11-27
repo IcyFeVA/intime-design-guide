@@ -1,5 +1,5 @@
-import { memo, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react'
-import { useElementSize } from '@mantine/hooks'
+import { memo, useEffect, useRef, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react'
+import { useElementSize, useMergedRef, useReducedMotion } from '@mantine/hooks'
 import { Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
@@ -36,6 +36,8 @@ export interface WorkforceGridProps {
   assigning?: boolean
   /** Overnight overlap (proposal): a shift that ends after midnight stays on its start day and points into the next day's cell */
   overnight?: boolean
+  /** Find in schedule: this person's row scrolls into view and flashes. Set it again (after null) to flash again. */
+  found?: string | null
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -130,7 +132,7 @@ function OvernightChip({ chip, lastDay, attached, children }: { chip: Chip; last
   )
 }
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, overnight, lastDay, ...state }: CellState & {
+const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, overnight, lastDay, found, ...state }: CellState & {
   chip: Chip | null
   name: string
   overflow: boolean
@@ -138,6 +140,8 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
   /** Show the overnight tip when the chip ends after midnight */
   overnight: boolean
   lastDay: boolean
+  /** Find in schedule flashes the person's row */
+  found: boolean
 }) {
   const context = `${name}, ${formatHeader(state.day)}`
   const late = chip && overnight ? overnightSegment(chip) : undefined
@@ -152,6 +156,7 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
+      data-found={found || undefined}
       aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}${attached ? `. Attached: ${attached}` : ''}`}
     >
       {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
@@ -236,10 +241,12 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false, overnight = false,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false, overnight = false, found = null,
 }: WorkforceGridProps) {
   const { days } = model
-  const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
+  const { ref: sizeRef, width } = useElementSize<HTMLDivElement>()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollerRef = useMergedRef(sizeRef, scrollRef)
   // One day: the grid is at most DAY_MAX_WIDTH wide and centered, so fit the columns to that
   const single = days.length === 1
   const { narrowLabel, layout: density } = fitColumns(single ? Math.min(width, DAY_MAX_WIDTH) : width, days.length)
@@ -249,6 +256,18 @@ export default function WorkforceGrid({
   const active = selection.active
   const activeRow = active ? model.byKey.get(active.row) : undefined
   const activeDay = activeRow && (activeRow.kind === 'member' || activeRow.kind === 'open') ? active?.day ?? null : null
+  const reduceMotion = useReducedMotion()
+  const foundRow = found ? model.rows.find((row) => row.kind === 'member' && row.line === 0 && row.member.id === found)?.key : undefined
+
+  // Find in schedule: center the person's first line in the scroller (below the pinned header rows)
+  useEffect(() => {
+    const scroller = scrollRef.current
+    const label = foundRow && scroller?.querySelector<HTMLElement>(`[data-row="${CSS.escape(foundRow)}"][data-day="label"]`)
+    if (!scroller || !label) return
+    const offset = label.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+    scroller.scrollTo({ top: scroller.scrollTop + offset - (scroller.clientHeight - label.offsetHeight) / 2, behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [foundRow, reduceMotion])
+
   const style = { gridTemplateColumns: `var(--workforce-label-width) repeat(${days.length}, minmax(0, 1fr))` } as CSSProperties
 
   const esc = selection.escapeProps
@@ -370,6 +389,7 @@ export default function WorkforceGrid({
         const name = shortName(member)
         const rowActive = active?.row === row.key && activeDay !== null
         const rowSelected = selection.isRowSelected(row.key)
+        const isFound = member.id === found || undefined
         return (
           <div role="row" className={classes.row} key={row.key}>
             {row.line === 0 ? (
@@ -379,6 +399,7 @@ export default function WorkforceGrid({
                 data-row-header=""
                 data-active={rowActive || undefined}
                 data-selected={rowSelected || undefined}
+                data-found={isFound}
                 data-row={row.key}
                 data-day="label"
                 {...esc}
@@ -401,6 +422,7 @@ export default function WorkforceGrid({
                 data-row-header=""
                 data-active={rowActive || undefined}
                 data-selected={rowSelected || undefined}
+                data-found={isFound}
                 data-row={row.key}
                 data-day="label"
                 {...esc}
@@ -418,6 +440,7 @@ export default function WorkforceGrid({
                 warning={row.warnings[index]}
                 overnight={overnight}
                 lastDay={index === days.length - 1}
+                found={!!isFound}
                 {...cellState(row.key, days[index], index)}
               />
             ))}

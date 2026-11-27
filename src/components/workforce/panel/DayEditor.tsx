@@ -215,7 +215,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
   const details = (
     <div className={classes.body}>
       <AssignmentBanner chip={selectedChip} />
-      <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
+      <EmployeeRow value={member.id} day={day} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
       <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
       <BranchSelect value={selectedChip?.branch ?? branch} onChange={setBranch} readOnly={readOnly} />
       <Stack gap={4}>

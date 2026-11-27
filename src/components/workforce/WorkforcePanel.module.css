@@ -123,6 +123,60 @@
   font-weight: 500;
 }
 
+/* Hours popover */
+.hours {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hoursTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.hoursTable th,
+.hoursTable td {
+  padding: 3px 0;
+  text-align: end;
+}
+
+.hoursTable th[scope='row'],
+.hoursTable .hoursGroup {
+  font-weight: 400;
+  text-align: start;
+}
+
+.hoursTable thead th {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--text-dimmed);
+  vertical-align: bottom;
+}
+
+.hoursTable thead th span {
+  display: block;
+  font-weight: 400;
+}
+
+.hoursTable tbody tr:first-child > * {
+  padding-top: 6px;
+}
+
+.hoursTable .hoursGroup {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hoursCap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .noEmployee {
   display: grid;
   flex: none;

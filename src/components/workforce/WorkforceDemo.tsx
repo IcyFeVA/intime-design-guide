@@ -14,7 +14,7 @@ import type { SortDirection } from '../schedule/FilterSheet'
 import { MOCK_TODAY, formatHeader, rangeDays, type Chip } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
 import {
-  applyEdits, dayKey, findUnit, openShifts, shortName, stillNeeded, watches, type Watch, type WatchId, type WorkforceMember, type WorkforceSort,
+  applyEdits, dayKey, findUnit, findWatch, openShifts, shortName, stillNeeded, watches, type Watch, type WatchId, type WorkforceMember, type WorkforceSort,
 } from './data'
 import { HEADER_ROW, assignDay, buildGridModel, panelContent, type AssignSource } from './model'
 import { useGridSelection, type CellRef, type GridActivation, type GridContextTarget } from './useGridSelection'
@@ -24,6 +24,7 @@ import WorkforcePanel from './WorkforcePanel'
 import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
 import { AssignBar } from './AssignBar'
 import { chipSpanLabel } from './panel/format'
+import type { PanelPeople } from './panel/people'
 import classes from './WorkforceDemo.module.css'
 
 const sortFields: SortField<WorkforceSort>[] = [
@@ -50,6 +51,8 @@ const APPROVALS_STATUS = 'Preview only. Approvals opens on top of the schedule, 
 const OVERNIGHT_ON = 'Overnight overlap on. Shifts that end the next morning stay on their start day, and a tip points into the next day. Examples in the Night watch: D. Murphy Tue and Wed (22:00–08:00), A. Rossi Thu (23:00–07:00).'
 const OVERNIGHT_OFF = 'Overnight overlap off. The same shifts show as plain cells on their start day, as today.'
 const DEFAULT_STAFFING: ReadonlySet<WatchId> = new Set(['swing'])
+/** How long Find in schedule highlights a row (the CSS flash is a bit shorter) */
+const FOUND_MS = 2600
 
 /** The Workforce Scheduling desktop demo: toolbar, grid, details panel, coverage drawer and employee details. */
 export default function WorkforceDemo() {
@@ -70,9 +73,11 @@ export default function WorkforceDemo() {
   const [menuTarget, setMenuTarget] = useState<GridContextTarget | null>(null)
   const [assign, setAssign] = useState<AssignSource | null>(null)
   const [overnight, setOvernight] = useState(true)
+  const [found, setFound] = useState<string | null>(null)
   const approvals = useApprovals({ kind: 'activity' })
   const schedule = useScheduleEdits()
   const edited = useMemo(() => applyEdits(schedule.edits), [schedule.edits])
+  const members = useMemo(() => new Map(edited.flatMap((watch) => watch.members).map((member) => [member.id, member])), [edited])
   const approvalsButton = useRef<HTMLButtonElement>(null)
   const pendingApprovals = approvalKinds.reduce((sum, item) => sum + openCount(approvals.requests, item.key), 0)
   const closeApprovals = () => {
@@ -204,6 +209,25 @@ export default function WorkforceDemo() {
     setFocusTick(0)
     selection.focusActive()
   }
+  // Find in schedule: open the person's watch if it's collapsed, then scroll to their row and flash it
+  useEffect(() => {
+    if (!found) return
+    const timer = window.setTimeout(() => setFound(null), FOUND_MS)
+    return () => window.clearTimeout(timer)
+  }, [found])
+  const people: PanelPeople = {
+    member: (id) => members.get(id),
+    onFind: (id) => {
+      const member = members.get(id)
+      if (!member) return
+      if (collapsed.has(member.watch)) setCollapsed((set) => toggle(set, member.watch))
+      setFound(null)
+      // Next frame, so a second Find on the same person flashes the row again
+      requestAnimationFrame(() => setFound(id))
+      setHint(`${shortName(member)} is in the ${findWatch(member.watch).title} watch. Their row is highlighted.`)
+    },
+  }
+
   const preview = (action: string) => setHint(`Preview only: “${action}” isn’t built in this demo yet.`)
   const toggle = (set: ReadonlySet<WatchId>, id: WatchId) => {
     const next = new Set(set)
@@ -215,7 +239,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); setMenuTarget(null); setAssign(null); setOvernight(true); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
+    setCoverage(null); setMenuTarget(null); setAssign(null); setOvernight(true); setFound(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
   }
 
   return (
@@ -314,6 +338,7 @@ export default function WorkforceDemo() {
               contextMenu={{ title: menuTitle, onPreview: preview }}
               assigning={!!assign}
               overnight={overnight}
+              found={found}
             />
           )}
           {assign && !placeholder && <AssignBar source={assign} onDone={() => startAssign(null)} />}
@@ -331,6 +356,7 @@ export default function WorkforceDemo() {
               onAssign={startAssign}
               onClose={closePanel}
               onPreview={preview}
+              people={people}
               focusTick={focusTick}
             />
           )}

@@ -132,7 +132,11 @@ export const formatDuration = (hours: number) => {
 export const MOCK_TODAY = dayOf(2026, 6, 5)
 /** A new schedule period starts every 7 days from this date (vertical line in the grid). */
 const PERIOD_ANCHOR = dayOf(2026, 6, 2)
-export const isPeriodStart = (day: number) => (((day - PERIOD_ANCHOR) % 7) + 7) % 7 === 0
+/** Days in a schedule period */
+export const PERIOD_DAYS = 7
+export const isPeriodStart = (day: number) => (((day - PERIOD_ANCHOR) % PERIOD_DAYS) + PERIOD_DAYS) % PERIOD_DAYS === 0
+/** First day of the schedule period that holds `day` */
+export const periodStartOf = (day: number) => day - ((((day - PERIOD_ANCHOR) % PERIOD_DAYS) + PERIOD_DAYS) % PERIOD_DAYS)
 
 export const startOfWeek = (day: number) => day - weekdayIndex(day)
 const startOfMonth = (day: number) => { const d = toDate(day); return dayOf(d.getUTCFullYear(), d.getUTCMonth() + 1, 1) }
