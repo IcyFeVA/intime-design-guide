@@ -1,27 +1,21 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { Button, Collapse, Group, Menu, Select, SimpleGrid, Text, UnstyledButton } from '@mantine/core'
+import { Button, Collapse, Group, Menu, Select, Text, UnstyledButton } from '@mantine/core'
 import { ChevronRight, ClipboardPaste, LayoutTemplate } from 'lucide-react'
-import { segmentHours, segmentKind, type Chip } from '../../schedule/data'
+import { formatHeader, formatHour, segmentHours, segmentKind, type Chip } from '../../schedule/data'
 import { shiftCodeMap } from '../../../tokens/schedule'
 import type { AssignSource, PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { PanelFooter } from './parts'
 import { LeaveEntry, type LeaveRequest } from './LeaveEntry'
-import { activities, locations, modifiers, units, workingCodeOptions } from './options'
+import { workingCodeOptions } from './options'
+import { BulkFields } from './BulkFields'
 import {
-  addLeave, assignCode, assignableDays, bulkSelection, lockedCount, ownChips, changeField, commonValue, deletableCount, deleteAll, fieldValues, plural, type BulkField, type BulkResult,
+  addLeave, assignCode, assignableDays, bulkSegments, bulkSelection, changeSegments, changeTimes, moveCells, commonValue, deletableCount, deleteAll, lockedCount, ownChips, plural, type BulkResult, type SegmentChange,
 } from './bulk'
 import { chipSpanLabel } from './format'
 import classes from '../WorkforcePanel.module.css'
 
 type Preview = (action: string) => void
-
-const fields: { key: BulkField; label: string; data: string[] }[] = [
-  { key: 'activity', label: 'Activity', data: activities.filter((activity) => activity !== 'Leave') },
-  { key: 'location', label: 'Location', data: locations },
-  { key: 'modifier', label: 'Hours modifier', data: modifiers },
-  { key: 'unit', label: 'Unit', data: units },
-]
 
 /** " Locked cells and open shifts are skipped." for what Assign to N leaves alone */
 const skippedNote = (locked: number, open: number) => {
@@ -54,9 +48,11 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
   const own = ownChips(selection)
   const working = own.map((chip) => chip.segments[0]).filter((segment) => segmentKind(segment) !== 'leave')
   const [code, setCode] = useState<string | null>(() => commonValue(working.map((segment) => segment.code)) ?? selection.days[0]?.watch.code ?? 'PatD')
-  const [fieldsOpen, setFieldsOpen] = useState(false)
+  const [fieldsOpen, setFieldsOpen] = useState(true)
   const [mode, setMode] = useState<'leave' | 'delete' | null>(null)
+  const [leaveOpen, setLeaveOpen] = useState(true)
   const fieldsId = useId()
+  const leaveId = useId()
   const deletable = deletableCount(selection)
 
   /** Save one action and say what it did */
@@ -76,15 +72,35 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
     run(assignCode(selection, code), (count) => `Assigned ${code} ${chipSpanLabel(shiftChip(code))} to ${count}.`)
   }
 
-  const setField = (field: BulkField, label: string, value: string) => {
-    run(changeField(selection, { [field]: value }), (count) => `${label} set to ${value} on ${count}.`)
+  const change = (segmentChange: SegmentChange, what: string) => {
+    run(changeSegments(selection, segmentChange), (count) => `${what} ${count}.`)
+  }
+
+  const setTimes = (times: { start?: number; end?: number }) => {
+    const what = [times.start !== undefined && `start ${formatHour(times.start)}`, times.end !== undefined && `end ${formatHour(times.end)}`].filter(Boolean).join(', ')
+    run(changeTimes(selection, times), (count) => `Set ${what} on ${count}.`)
+  }
+
+  const moveDay = (to: number) => {
+    run(moveCells(selection, to), (count) => `Moved ${count} to ${formatHeader(to)}.`)
+  }
+
+  /** Leave gets its own section and Change fields folds away, so the leave form is in view */
+  const openLeave = () => {
+    setMode('leave')
+    setLeaveOpen(true)
+    setFieldsOpen(false)
+  }
+  const closeLeave = () => {
+    setMode(null)
+    setFieldsOpen(true)
   }
 
   const leave = (request: LeaveRequest): string | null => {
     const result = addLeave(selection, request)
     if (!result.changed) return result.skipped.length ? `None of the days can take it: ${result.skipped.join('; ')}` : 'Nothing to add'
     run(result, (count) => `Added ${request.code} to ${count.replace('cell', 'day')}.`)
-    setMode(null)
+    closeLeave()
     return null
   }
 
@@ -133,38 +149,32 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
             </UnstyledButton>
             <Collapse expanded={fieldsOpen} id={fieldsId}>
               <div className={classes.bulkFields}>
-                <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
-                  {fields.map((field) => {
-                    const values = fieldValues(selection, field.key)
-                    const value = commonValue(values)
-                    return (
-                      <Select
-                        key={field.key}
-                        label={field.label}
-                        data={field.data}
-                        value={value}
-                        placeholder={values.length ? 'Mixed' : 'None'}
-                        disabled={!values.length}
-                        allowDeselect={false}
-                        onChange={(next) => next && next !== value && setField(field.key, field.label, next)}
-                      />
-                    )
-                  })}
-                </SimpleGrid>
+                <BulkFields segments={bulkSegments(selection)} onTimes={setTimes} onMoveDay={moveDay} onChange={change} />
               </div>
             </Collapse>
           </div>
 
           {mode === 'leave' && (
-            <LeaveEntry
-              title={`Add leave to ${plural(people, 'day')}`}
-              span={leaveSpan}
-              replaces={selection.days.some((day) => day.blocks.some((chip) => !chip.locked)) ? 'their assignments on those days' : null}
-              defaultCode="Vac"
-              defaultAllDay
-              onAdd={leave}
-              onCancel={() => setMode(null)}
-            />
+            <div className={classes.bulkSection}>
+              <UnstyledButton className={classes.bulkToggle} onClick={() => setLeaveOpen((open) => !open)} aria-expanded={leaveOpen} aria-controls={leaveId}>
+                <Text size="sm" fw={600} c="var(--text-default)" className={classes.grow}>Add leave to {plural(people, 'day')}</Text>
+                <ChevronRight size={16} className={classes.warningsChevron} data-open={leaveOpen || undefined} aria-hidden="true" />
+              </UnstyledButton>
+              <Collapse expanded={leaveOpen} id={leaveId}>
+                <div className={classes.bulkFields}>
+                  <LeaveEntry
+                    title={`Add leave to ${plural(people, 'day')}`}
+                    framed={false}
+                    span={leaveSpan}
+                    replaces={selection.days.some((day) => day.blocks.some((chip) => !chip.locked)) ? 'their assignments on those days' : null}
+                    defaultCode="Vac"
+                    defaultAllDay
+                    onAdd={leave}
+                    onCancel={closeLeave}
+                  />
+                </div>
+              </Collapse>
+            </div>
           )}
           {mode === 'delete' && (
             <DeleteConfirm
@@ -183,7 +193,7 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
         assigning={assigning}
         onAssign={assigning ? () => onAssign(null) : startAssign}
         canAssign={!!code}
-        onLeave={() => setMode('leave')}
+        onLeave={openLeave}
         canLeave={people > 0 && mode !== 'leave'}
         deleteLabel="Delete all…"
         onDelete={deletable ? () => setMode('delete') : undefined}

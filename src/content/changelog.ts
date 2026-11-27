@@ -12,6 +12,17 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
     page: '/patterns/workforce-scheduling',
+    summary: 'With several cells selected, “Change fields” has the same fields as one cell and starts open.',
+    changes: [
+      'Times, actual times, shift code, customer, Bank this time and acting rank join activity, location, hours modifier and unit. Differing values show “Mixed”.',
+      'Typing only a start keeps each cell’s own end, and the other way round. Assignments split into several segments keep their times.',
+      'Leave opens in its own section and folds “Change fields” away, so the leave form is in view.',
+      'Picking a scheduled date moves every selected cell to that day. Picking an actual date sets it on all of them.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
     summary: 'Overtime and out-of-unit cells show only their icon (clock, arrow), without the “OT” and “OU” text. The legend now scrolls on small screens.',
     changes: [
       'Applies to the grid, the legend and the page’s examples in every view density. Team View and Location View keep the text.',

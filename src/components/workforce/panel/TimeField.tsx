@@ -7,7 +7,7 @@ import classes from '../WorkforcePanel.module.css'
  * Leaving the field tidies a valid time to "08:30"; anything else stays as typed so the form can say what's wrong.
  * Focus selects the whole value, so typing replaces it.
  */
-export function TimeField({ value, onChange, onBlur, ...props }: Omit<TextInputProps, 'value' | 'onChange'> & { value: string; onChange: (value: string) => void }) {
+export function TimeField({ value, onChange, onBlur, placeholder = 'HH:MM', ...props }: Omit<TextInputProps, 'value' | 'onChange'> & { value: string; onChange: (value: string) => void }) {
   return (
     <TextInput
       size="sm"
@@ -21,7 +21,7 @@ export function TimeField({ value, onChange, onBlur, ...props }: Omit<TextInputP
         if (tidy !== value) onChange(tidy)
         onBlur?.(event)
       }}
-      placeholder="HH:MM"
+      placeholder={placeholder}
       inputMode="numeric"
       autoComplete="off"
       spellCheck={false}

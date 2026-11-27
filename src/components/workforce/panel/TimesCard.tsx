@@ -128,7 +128,7 @@ function ActualTimes({ actual, day, onChange, readOnly }: { actual: NonNullable<
 }
 
 /** Hours a start/end pair adds up to: a value, not a field. "+1" when it ends the next day. */
-function Hours({ span }: { span: { start: number; end: number } | null }) {
+export function Hours({ span }: { span: { start: number; end: number } | null }) {
   return (
     <Text size="sm" c="var(--text-info)" className="tabular">
       {span ? formatDuration(span.end - span.start) : '–'}
