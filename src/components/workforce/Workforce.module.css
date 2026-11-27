@@ -1098,3 +1098,62 @@
   min-width: 0;
   margin: 0;
 }
+
+/* ---------- Overnight overlap (proposal) ---------- */
+
+/*
+ * A shift that ends after midnight stays on its start day, and its chip gets a tip that reaches into the next day's cell
+ * (over its padding and the edge of the next chip). The tip is decorative and lets clicks through, so the next cell stays
+ * fully clickable. On the last day of the range it stays inside the cell, so the grid never scrolls sideways.
+ */
+.overnight {
+  --overnight-tip: 20px;
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.cell[data-density='compact'] .overnight { --overnight-tip: 12px; }
+.cell[data-density='mini'] .overnight { --overnight-tip: 8px; }
+
+.overnight[data-last-day] {
+  width: calc(100% - var(--overnight-tip));
+}
+
+/* The chip's right side runs straight into the tip */
+.overnight > *,
+.overnight .part,
+.overnight .bar {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.overnightTip {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  z-index: 2;
+  width: var(--overnight-tip);
+  pointer-events: none;
+  /* A 1px edge in the page color, so the tip stays readable where it overlaps the next chip */
+  filter: drop-shadow(1px 0 0 var(--mantine-color-body));
+}
+
+.overnightTip::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--overnight-fill);
+  clip-path: polygon(0 0, 35% 0, 100% 50%, 35% 100%, 0 100%);
+  transition: filter 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.cell:hover .overnightTip::after {
+  filter: brightness(1.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overnightTip::after { transition: none; }
+}

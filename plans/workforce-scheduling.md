@@ -515,6 +515,8 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 
 ## Open questions (ask the user when relevant)
 
+- Overnight overlap (proposal, 2026-11-26): some supervisors want a graveyard shift (22:00–08:00) to show on the day with most of its hours. The demo instead keeps it on its start day and adds a tip over the next day's cell (switch in the demo bar, 3 examples in the Night watch). Do stakeholders accept it? If yes: make it the default and drop the switch; decide whether the panel and Day view say "+1" too.
+
 - Warnings (step 4): the real hours cap and rest minimum, and whether they vary by rank or contract. Should a warning ask for a reason (override) before saving? Which certifications exist, per activity?
 - Assign mode (step 3): should a name or date header assign the whole row or day while assigning? Should picking another employee in the panel move the assignment to them?
 - All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?

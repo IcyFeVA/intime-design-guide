@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Text, Transition } from '@mantine/core'
+import { Badge, Button, Switch, Text, Tooltip, Transition } from '@mantine/core'
 import { useReducedMotion } from '@mantine/hooks'
 import { CalendarClock } from 'lucide-react'
 import { DesktopDemoFrame, FramePage } from '../schedule/ScheduleChrome'
@@ -46,6 +46,8 @@ const panelSlide = {
 
 const DEFAULT_STATUS = '“Today” is Friday, June 5, 2026 in this demo. Click, Shift-click, Ctrl/⌘-click or drag to select cells. Changes in the panel save as you go; Undo reverts them and Reset demo restores the schedule.'
 const APPROVALS_STATUS = 'Preview only. Approvals opens on top of the schedule, so going back is instant and keeps your place.'
+const OVERNIGHT_ON = 'Overnight overlap on. Shifts that end the next morning stay on their start day, and a tip points into the next day. Examples in the Night watch: D. Murphy Tue and Wed (22:00–08:00), A. Rossi Thu (23:00–07:00).'
+const OVERNIGHT_OFF = 'Overnight overlap off. The same shifts show as plain cells on their start day, as today.'
 const DEFAULT_STAFFING: ReadonlySet<WatchId> = new Set(['swing'])
 
 /** The Workforce Scheduling desktop demo: toolbar, grid, details panel, coverage drawer and employee details. */
@@ -66,6 +68,7 @@ export default function WorkforceDemo() {
   const [approvalsOpen, setApprovalsOpen] = useState(false)
   const [menuTarget, setMenuTarget] = useState<GridContextTarget | null>(null)
   const [assign, setAssign] = useState<AssignSource | null>(null)
+  const [overnight, setOvernight] = useState(true)
   const approvals = useApprovals({ kind: 'activity' })
   const schedule = useScheduleEdits()
   const edited = useMemo(() => applyEdits(schedule.edits), [schedule.edits])
@@ -211,7 +214,7 @@ export default function WorkforceDemo() {
   const reset = () => {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
-    setCoverage(null); setMenuTarget(null); setAssign(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
+    setCoverage(null); setMenuTarget(null); setAssign(null); setOvernight(true); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
   }
 
   return (
@@ -220,6 +223,23 @@ export default function WorkforceDemo() {
       status={approvalsOpen ? approvals.hint ?? APPROVALS_STATUS : hint ?? DEFAULT_STATUS}
       onReset={reset}
       targetWidth={TARGET_WIDTH}
+      controls={(
+        <Tooltip label="Proposal: a shift that ends after midnight stays on its start day and points into the next day" multiline w={260}>
+          <div className={classes.proposal}>
+            <Badge size="xs" variant="filled" color="intime">Proposal</Badge>
+            <Switch
+              size="xs"
+              label="Overnight overlap"
+              checked={overnight}
+              onChange={(event) => {
+                const on = event.currentTarget.checked
+                setOvernight(on)
+                setHint(on ? OVERNIGHT_ON : OVERNIGHT_OFF)
+              }}
+            />
+          </div>
+        </Tooltip>
+      )}
       overlayOpen={approvalsOpen}
       overlay={(
         <FramePage
@@ -292,6 +312,7 @@ export default function WorkforceDemo() {
               onCoverageClick={(watch: Watch, day: number) => setCoverage({ title: `${watch.title} watch`, day, coverage: watch.coverage(day) })}
               contextMenu={{ title: menuTitle, onPreview: preview }}
               assigning={!!assign}
+              overnight={overnight}
             />
           )}
           {assign && !placeholder && <AssignBar source={assign} onDone={() => startAssign(null)} />}

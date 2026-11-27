@@ -76,6 +76,16 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
+    summary: 'Proposal: overnight shifts can point into the next day. A shift that ends after midnight stays on its start day, and its cell gets a tip over the next day’s cell.',
+    changes: [
+      'A highlighted “Overnight overlap” switch above the demo turns it on and off (on by default). Off shows the same shifts as plain cells, as today.',
+      'Three examples in the Night watch: D. Murphy Tue and Wed (22:00–08:00) and A. Rossi Thu (23:00–07:00).',
+      'Works in Compact, Detailed and Stacked. The tip lets clicks through to the next cell, and on the last day it stays inside the cell.',
+    ],
+  },
+  {
+    date: '2026-11-26',
+    page: '/patterns/workforce-scheduling',
     summary: 'Several selected cells can now be changed at once: assign one shift to all of them, change a field, add leave or delete them.',
     changes: [
       'A shift picker with “Assign to N” gives every selected person-day the shift in one save. Locked cells and open shifts are skipped, and the status line says why.',

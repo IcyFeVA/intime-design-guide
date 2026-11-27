@@ -127,7 +127,7 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   /** Navigation setup. Defaults to a scheduler on Team View. */
   nav?: Partial<Pick<AppNavProps, 'roles' | 'defaultRole' | 'defaultActive' | 'withTooltips'>>
   status: ReactNode
-  /** Extra demo buttons in the demo bar, before Full screen, e.g. to move a queue along */
+  /** Extra demo controls in the demo bar, before Target resolution and Full screen, e.g. to move a queue along or toggle a proposed design */
   controls?: ReactNode
   onReset: () => void
   toolbar: ReactNode
@@ -183,7 +183,7 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
     <>
       <Group justify="space-between" px="md" py="xs" className={classes.demoBar} wrap="nowrap">
         <Text size="xs" c="dimmed" role="status">{status}</Text>
-        <Group gap={4} wrap="nowrap">
+        <Group gap={4} wrap="nowrap" style={{ flex: 'none' }}>
           {controls}
           {targetWidth && (
             <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Laptop size={14} />} onClick={() => setScreen('target')}>Target resolution</Button>
