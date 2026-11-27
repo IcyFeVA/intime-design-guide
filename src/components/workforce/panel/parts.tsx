@@ -1,7 +1,8 @@
-import { ActionIcon, Alert, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
-import { ArrowUpRight, Check, Ellipsis, History, Lock, Paperclip, PlaneTakeoff, Plus, Trash2 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ActionIcon, Alert, Anchor, Button, Menu, Tabs, Text, Tooltip } from '@mantine/core'
+import { ArrowUpRight, Check, Ellipsis, History, Lock, PlaneTakeoff, Plus, StickyNote, Trash2 } from 'lucide-react'
+import { useRef, useState, type ReactNode } from 'react'
 import type { Chip } from '../../schedule/data'
+import { NoteText } from './AttachmentsTab'
 import classes from '../WorkforcePanel.module.css'
 
 type Preview = (action: string) => void
@@ -52,26 +53,45 @@ export function PanelFooter({ onPreview, onAssign, canAssign = true, assigning =
   )
 }
 
-/** Details and Attachments. Notes will live in Attachments, with tags, assets and tasks. */
-export function PanelTabs({ details }: { details: ReactNode }) {
+/**
+ * Details and Attachments (tags, assets, tasks and the note; `count` covers all four). The note also shows,
+ * read-only, at the end of Details, with a link to edit it.
+ */
+export function PanelTabs({ details, attachments, count, note }: {
+  details: ReactNode
+  attachments: ReactNode
+  count: number
+  note?: string
+}) {
+  const [tab, setTab] = useState<string | null>('details')
+  const root = useRef<HTMLDivElement>(null)
+  /** Edit: open Attachments and put the cursor in the note */
+  const editNote = () => {
+    setTab('attachments')
+    requestAnimationFrame(() => root.current?.querySelector<HTMLTextAreaElement>('textarea[data-note]')?.focus())
+  }
   return (
-    <Tabs defaultValue="details" classNames={{ root: classes.tabs, list: classes.tabList, panel: classes.tabPanel }}>
+    <Tabs ref={root} value={tab} onChange={setTab} classNames={{ root: classes.tabs, list: classes.tabList, panel: classes.tabPanel }}>
       <Tabs.List>
         <Tabs.Tab value="details">Details</Tabs.Tab>
-        <Tabs.Tab value="attachments">Attachments <Text span c="dimmed" inherit>(0)</Text></Tabs.Tab>
+        <Tabs.Tab value="attachments">Attachments <Text span c="dimmed" inherit className="tabular">({count})</Text></Tabs.Tab>
       </Tabs.List>
-      <Tabs.Panel value="details">{details}</Tabs.Panel>
-      <Tabs.Panel value="attachments">
-        <div className={classes.empty}>
-          <Paperclip size={28} strokeWidth={1.5} aria-hidden="true" />
-          <Text size="sm" fw={600} c="var(--text-default)">No attachments</Text>
-          <Text size="sm">Tags, assets, tasks and notes for this activity are coming.</Text>
-        </div>
+      <Tabs.Panel value="details">
+        {details}
+        {note?.trim() && (
+          <section className={classes.latestNote} aria-label="Note">
+            <div className={classes.latestNoteHeading}>
+              <h5 className={classes.attachHeading}><StickyNote size={14} aria-hidden="true" />Note</h5>
+              <Anchor component="button" type="button" size="xs" aria-label="Edit note" onClick={editNote}>Edit</Anchor>
+            </div>
+            <NoteText text={note} />
+          </section>
+        )}
       </Tabs.Panel>
+      <Tabs.Panel value="attachments">{attachments}</Tabs.Panel>
     </Tabs>
   )
 }
-
 
 /**
  * About the selected assignment. Locked (set outside scheduling, e.g. a court date): read-only. Out of branch (another

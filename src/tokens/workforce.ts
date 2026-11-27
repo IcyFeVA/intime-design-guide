@@ -30,8 +30,11 @@ export const workforceRanges: WorkforceRangeDef[] = [
 
 export type CellLayout = 'comfortable' | 'compact' | 'mini'
 
+/** OT and OU tags show their text ("OT", "OU") next to the icon. Off for now (user, 2026-11-27): icons only. */
+export const SHOW_TAG_LABELS = false
+
 export const cellLayouts: { key: CellLayout; label: string; minWidth: number; shows: string; status: TokenStatus }[] = [
-  { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT and OU tags with labels. Usually one week.', status: 'confirmed' },
+  { key: 'comfortable', label: 'Full', minWidth: 96, shows: 'Full codes, dividers between assignments, OT (clock) and OU (arrow) icons. Usually one week.', status: 'confirmed' },
   { key: 'compact', label: 'Compact', minWidth: 48, shows: 'Up to two codes stacked, OU as an icon. Usually two or three weeks.', status: 'confirmed' },
   { key: 'mini', label: 'Mini', minWidth: 0, shows: 'Shorter 32px cells with no codes: the fill, out-of-unit stripes and arrow, a clock for overtime (color alone isn’t enough) and a bar for cancelled. Codes are in the tooltip and the panel. Usually one month.', status: 'confirmed' },
 ]
@@ -71,20 +74,21 @@ export const viewDensities: { key: ViewDensity; label: string; description: stri
 /* Legend: what each kind of cell means (the title row's Legend button) */
 /* ------------------------------------------------------------------ */
 
-export type LegendKey = 'scheduled' | 'several' | 'overtime' | 'partialOvertime' | 'leave' | 'partialLeave' | 'outOfUnit' | 'outOfBranch' | 'locked' | 'warning' | 'open' | 'live'
+export type LegendKey = 'scheduled' | 'several' | 'overtime' | 'partialOvertime' | 'leave' | 'partialLeave' | 'outOfUnit' | 'outOfBranch' | 'locked' | 'warning' | 'attachments' | 'open' | 'live'
 
 /** Only cells the grid shows today. The legend draws each with the real cell for the current view density. */
 export const legendItems: { key: LegendKey; label: string; meaning: string; status: TokenStatus }[] = [
   { key: 'scheduled', label: 'Scheduled shift', meaning: 'Colored by kind. Shows the shift code, or the activity and times in Detailed.', status: 'draft' },
   { key: 'several', label: 'Two or more assignments', meaning: 'Share one cell. A separate assignment on the same day goes on an extra line.', status: 'draft' },
-  { key: 'overtime', label: 'Overtime', meaning: 'Red, with an OT tag where there is room.', status: 'draft' },
-  { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'Split diagonally in Compact. Detailed and Stacked show the overtime part on its own.', status: 'draft' },
+  { key: 'overtime', label: 'Overtime', meaning: 'Red, with a clock where there is room.', status: 'draft' },
+  { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'A regular segment and a touching overtime one. Split diagonally in Compact; Detailed and Stacked show the overtime part on its own. A cell that is all overtime is solid red.', status: 'draft' },
   { key: 'leave', label: 'Leave', meaning: 'Sick, PTO or vacation.', status: 'draft' },
   { key: 'partialLeave', label: 'Partial leave', meaning: 'Leave for part of a shift, in the same cell. Split diagonally in Compact.', status: 'draft' },
-  { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit in this precinct: striped, with an OU tag where there is room. You can still change it.', status: 'draft' },
+  { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit in this precinct: striped, with an arrow where there is room. You can still change it.', status: 'draft' },
   { key: 'outOfBranch', label: 'Out of branch', meaning: 'Working at another precinct: muted, with an arrow. You can still change it, but it doesn’t count towards staffing.', status: 'draft' },
   { key: 'locked', label: 'Locked', meaning: 'Set outside scheduling, such as a court date: muted, with a lock. You can’t change it here.', status: 'draft' },
   { key: 'warning', label: 'Warning', meaning: 'Over the weekly hours cap, too little rest, not certified, or double booked. Select the cell to see it in the panel. It never blocks a change.', status: 'draft' },
+  { key: 'attachments', label: 'Attachments', meaning: 'A folded corner, bottom right: the assignment has tags, assets, tasks or a note. Select the cell to see them in the panel’s Attachments tab.', status: 'draft' },
   { key: 'open', label: 'Open shift', meaning: 'Nobody holds it yet: dashed outline, no fill.', status: 'draft' },
   { key: 'live', label: 'Live shift', meaning: 'Posted to employees, who can sign up.', status: 'draft' },
 ]
@@ -130,6 +134,9 @@ export const workforceTokens: WorkforceToken[] = [
   t('--workforce-header-active-bg', 'var(--background-primary-light)', 'color', 'Name and date headers of the active cell.'),
   t('--workforce-header-active-text', 'var(--text-primary-default)', 'color', 'Text and underline of the active cell’s headers.'),
   t('--workforce-add-icon', 'var(--text-dimmed)', 'color', 'Plus shown on an empty cell on hover.'),
+  t('--workforce-attachment-size', '10px', 'size', 'Folded corner that marks a cell with attachments (tags, assets, tasks or a note).'),
+  t('--workforce-attachment-size-mini', '9px', 'size', 'The attachments corner in the Mini layout (e.g. a month).'),
+  t('--workforce-attachment-color', 'var(--text-default)', 'color', 'The attachments corner. High contrast on every shift color, and unlike the warning’s amber.'),
   t('--workforce-open-border', 'var(--border-default)', 'color', 'Dashed outline of an open or live shift.'),
 ]
 

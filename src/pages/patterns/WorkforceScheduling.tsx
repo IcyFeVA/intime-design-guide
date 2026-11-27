@@ -18,7 +18,7 @@ import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, formatDuration, type Chip } from '.
 import { TimeField } from '../../components/workforce/panel/TimeField'
 import { formatSpan, normalizeEnd, parseTime } from '../../components/workforce/panel/format'
 import {
-  DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
+  DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, SHOW_TAG_LABELS, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import classes from './WorkforceScheduling.module.css'
@@ -31,7 +31,7 @@ const mouse: [string, string][] = [
   ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
   ['Right-click', 'Opens a menu for a name, a date or a selected cell: Copy, Paste, Load from template, Pre-fill, Leave, Post, Fill, Add new ruler and History. Paste is available after Copy. Anything not yet selected is selected first, so a selection of rows or days stays as it is. The Menu key or Shift+F10 opens it from the keyboard.'],
   ['Click Open shifts', 'Selects all open shifts.'],
-  ['Type in “Search employees”', 'The search sits above the names, always ready. X or Escape clears it. Filtering the rows isn’t built yet.'],
+  ['Type in “Filter employees”', 'The search sits above the names, always ready. X or Escape clears it. Filtering the rows isn’t built yet.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
   ['Hover an empty cell', 'Shows a plus. Click to add an activity for that person and day.'],
 ]
@@ -53,7 +53,7 @@ const keyboard: { keys: string[]; action: string }[] = [
 const modes: { mode: string; when: string; shows: string; footer: string }[] = [
   { mode: 'A person’s day', when: 'Any cell in a person’s row, on any of their lines', shows: 'The name and date, every segment of that day in one list (each assignment’s first segment as the root, touching segments indented), and one form for the selected segment: times, then its fields. An empty day says so and offers Add segment. Another unit’s or precinct’s assignment adds a banner; a locked one (e.g. a court date) is read-only.', footer: 'Assign, Leave, more (History, Delete assignment or leave)' },
   { mode: 'Open shift', when: 'An open or live shift in the top row', shows: '“Open shift · Swing Patrol” or “Live post · …”, no employee yet, and the shift as one block.', footer: 'Assign, more (History, Delete open shift)' },
-  { mode: 'Several cells', when: 'Two or more cells', shows: '“9 cells selected”, how many people and empty cells, a shift picker with “Assign to N”, and a collapsed “Change fields” section. The grid shows which cells are selected, so the panel doesn’t list them.', footer: 'Assign, Leave, more (Load from template, Paste, History, Delete all)' },
+  { mode: 'Several cells', when: 'Two or more cells', shows: '“9 cells selected”, how many people and empty cells, a shift picker with “Assign to N”, and a “Change fields” section with the same fields as one cell. The grid shows which cells are selected, so the panel doesn’t list them.', footer: 'Assign, Leave, more (Load from template, Paste, History, Delete all)' },
   { mode: 'Nothing', when: 'The panel is opened from the toolbar with nothing selected', shows: 'A hint to select a cell, and how to select several.', footer: 'None' },
 ]
 
@@ -63,7 +63,7 @@ const assignmentCases: [string, string, string, string][] = [
   ['Partial leave', 'PatD 08:00–16:00, with Sick 13:00–16:00', 'One cell, split diagonally', 'The leave indented under PatD: 5h worked · 3h leave.'],
   ['Overnight', 'PatN 20:00–04:00', 'One cell, on the day it starts', '20:00–04:00 +1, 8h.'],
   ['All-day leave', 'Sick, all day', 'One leave cell', 'Sick, All day, 24h. The form shows only its times and leave type.'],
-  ['Out of unit', 'PatD for Special Ops', 'Striped, with an OU tag', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
+  ['Out of unit', 'PatD for Special Ops', 'Striped, with an arrow', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
   ['Out of branch', 'PatD at 84th Precinct', 'Muted, with “↗”', 'A banner, “Working out of branch”. Still editable.'],
   ['Locked', 'Court 13:00–17:00, set by Kings County Court', 'Muted, with a lock', 'A banner, “Set by Kings County Court. You can’t change it here.”, and its values as plain text. Nothing can be changed.'],
 ]
@@ -80,7 +80,7 @@ const scenarioDays: [string, string][] = [
 
 const elsewhereRows: [string, string, string, string][] = [
   ['Example', 'L. Garcia works PatD for Special Ops.', 'D. Patel works PatD at the 84th Precinct.', 'S. Kowalski is due in court, set by Kings County Court.'],
-  ['In the grid', 'Striped, with an OU tag where there is room.', 'Muted, with an arrow (“↗”).', 'Muted, with a lock.'],
+  ['In the grid', 'Striped, with an arrow where there is room.', 'Muted, with an arrow (“↗”).', 'Muted, with a lock.'],
   ['Banner', '“Working for Special Ops (out of unit)”', '“Working out of branch”', '“Set by Kings County Court. You can’t change it here.”'],
   ['In the panel', 'Editable as usual. Unit shows Special Ops.', 'Editable as usual. Branch shows 84th Precinct.', 'Read-only: the values as plain text, no form. Assign and Delete are off, and assign mode skips it.'],
   ['Staffing', 'Not counted: they are on the other unit’s street.', 'Not counted: they are at the other precinct.', 'Counted, like any assignment.'],
@@ -124,7 +124,7 @@ function TimeEntryDemo() {
 
 const layoutSpecimens: Chip[] = [
   { segments: [{ code: 'PatD' }] },
-  { segments: [{ code: 'PatD', overtime: 'partial' }] },
+  { segments: [{ code: 'PatD', end: 15 }, { code: 'PatD', start: 15, overtime: 'full' }] },
   { segments: [{ code: 'Train' }], outOfUnit: true },
   { segments: [{ code: 'Vac' }] },
 ]
@@ -156,7 +156,7 @@ const layoutDetails: [string, string, string, string][] = [
 /** Detailed view cells, with what each one shows */
 const detailedSpecimens: { chip: Chip; label: string }[] = [
   { chip: { segments: [{ code: 'PatD' }] }, label: 'One assignment' },
-  { chip: { segments: [{ code: 'PatD', overtime: 'partial' }] }, label: 'Runs into overtime: the overtime is split out' },
+  { chip: { segments: [{ code: 'PatD', end: 15 }, { code: 'PatD', start: 15, overtime: 'full' }] }, label: 'Runs into overtime: a regular and an overtime segment' },
   { chip: { segments: [{ code: 'ExP', overtime: 'full' }] }, label: 'Overtime' },
   { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }] }, label: 'Two assignments in one cell' },
   { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }, { code: 'ExP', overtime: 'full' }] }, label: 'Three assignments: the row gets taller' },
@@ -277,7 +277,7 @@ export default function WorkforceScheduling() {
         </Stack>
         <Text size="sm" mt="md"><strong>One day</strong> is a single centered column, at most {DAY_MAX_WIDTH}px wide with the names, as in the calendar’s day view. Its header gives the full date. All three densities work.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>
-        <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with an OT tag, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
+        <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with a clock, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
         <Preview title="Detailed cells" align="start">
           <div className={classes.detailedSpecimens}>
             {detailedSpecimens.map(({ chip, label }) => (
@@ -294,9 +294,9 @@ export default function WorkforceScheduling() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Only where it fits.</strong> Detailed needs days at least {cellLayouts[0].minWidth}px wide (the Full layout below), usually one week. Narrower days show Compact cells, and switch back when there is room again, e.g. when the panel closes.</Text>
-          <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names and the OT and OU tags keep only their icons. Under about 165px, a single assignment’s tags do the same. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
+          <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
           <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times. A cell with three or more containers makes its row taller still; nothing is hidden.</Text>
-          <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
+          <Text size="sm"><strong>Runs into overtime:</strong> a regular segment and a touching overtime one (in this demo, the last {PARTIAL_OVERTIME_HOURS} hours). One segment set to overtime is solid red, without the split.</Text>
         </Stack>
         <Text size="sm" fw={600} mb="xs" mt="lg">Stacked cells</Text>
         <Text size="sm" mb="sm">Stacked shows the same assignments as Detailed, as plain colored bars: no names, times, codes, tags or icons. Every assignment is a 16px bar, so a row with one assignment is 28px high and fits the most people on screen. A cell with more assignments makes its row taller. A separate assignment on the same day still goes on the extra line.</Text>
@@ -331,7 +331,7 @@ export default function WorkforceScheduling() {
                   <Table.Td><Text size="sm" className="tabular">{index === 0 ? `${layout.minWidth}px and wider` : `${layout.minWidth ? `${layout.minWidth}–` : 'Under '}${cellLayouts[index - 1].minWidth}px`}</Text></Table.Td>
                   <Table.Td>
                     <div className={classes.layoutSpecimens} data-layout={layout.key}>
-                      {layoutSpecimens.map((chip, chipIndex) => <ShiftChip key={chipIndex} chip={chip} density={layout.key} context="Specimen" />)}
+                      {layoutSpecimens.map((chip, chipIndex) => <ShiftChip key={chipIndex} chip={chip} density={layout.key} context="Specimen" tagLabels={SHOW_TAG_LABELS} />)}
                     </div>
                   </Table.Td>
                   <Table.Td><Text size="sm">{layout.shows}</Text></Table.Td>
@@ -441,8 +441,9 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
-          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming.</Text>
-          <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
+          <Text size="sm"><strong>The employee row</strong> comes first in Details. <strong>Hours</strong> shows the person’s scheduled, overtime and leave hours for the week and the schedule period, how close the week is to the weekly cap, and their time bank balances. <strong>Find in schedule</strong> (crosshair) scrolls the grid to their row and highlights it, opening their watch if it’s collapsed. The <strong>menu</strong> beside it has Message, Call, View profile (employee details) and View schedule.</Text>
+          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments holds the assignment’s tags, assets, tasks and note (see Attachments below); the note also shows at the end of Details.</Text>
+          <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live, Find an employee, and Message, Call and View schedule in the employee menu say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
 
@@ -478,7 +479,9 @@ export default function WorkforceScheduling() {
         <Stack gap="xs">
           <Text size="sm"><strong>One form for the selected segment.</strong> Its times come first (Scheduled, Start, End, Hours and actual times), then shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own values.</Text>
           <Text size="sm"><strong>Bank this time</strong> adds a time bank (Overtime, Comp Time or Holiday) and the hours to bank, with how many that bank can still take.</Text>
-          <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live, Find an employee and Cancel segment. The other rows show only their menu.</Text>
+          <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live and Find an employee. Every row’s ⋯ menu has History, Cancel segment (Restore once cancelled) and Delete segment.</Text>
+          <Text size="sm"><strong>Moving an assignment.</strong> Pick another employee at the top to move the selected assignment to them on the same day, or use its ⋯ › Move to another day. It joins what’s there and never overlaps it: the panel says what’s in the way instead. Then the panel follows the assignment to its new cell, and the person’s row flashes. Undo moves it back.</Text>
+          <Text size="sm"><strong>Branch</strong> belongs to the selected assignment. Another branch makes it out of branch: muted in the grid and not counted in staffing.</Text>
           <Text size="sm"><strong>Saving.</strong> A field saves when you pick a value or leave it. The grid and staffing update at once, and the title says “Saved”. There is no Save button.</Text>
           <Text size="sm"><strong>Undo.</strong> Undo in the toolbar, or Ctrl/⌘ Z outside a field, reverts the last change. Reset demo restores the whole schedule.</Text>
           <Text size="sm"><strong>What isn’t saved.</strong> Times that overlap another segment, or that start and end together. The card says why, and the last saved times stay. Spans over 16h are saved but ask: “Longer than 16h. Is that right?”</Text>
@@ -530,11 +533,21 @@ export default function WorkforceScheduling() {
         </Stack>
       </Section>
 
+      <Section id="copy-fill" title="Copy, paste and fill" description="Right-click the grid for Copy, Paste and Fill. Copy and paste work like a spreadsheet; Fill gives an open shift to someone picked from a list of candidates.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Copy</strong> (Ctrl/⌘ C in the grid) copies the selected cells. Open shifts and locked cells, like court dates, aren’t copied.</Text>
+          <Text size="sm"><strong>Paste</strong> (Ctrl/⌘ V, or More › Paste in the panel with several cells selected) puts them into the selection. One copied cell goes into every selected cell. Several keep their shape from the selection’s top-left cell, across people and days. A pasted cell replaces what it overlaps, as Assign does; empty copied cells change nothing, and a day with a locked assignment in the way is skipped. One paste is one Undo.</Text>
+          <Text size="sm"><strong>Fill</strong> works on an open shift or live post (right-click it, or ⋯ › Fill… and the Find an employee icon in the panel). It lists everyone: available first, then those it would warn about (minimum rest, hours cap, certification), then, folded away, who works or is on leave at that time and why. Each row shows their hours this week and their other work that day. A find list sets the order (Best match, Fewest hours, Precedence), and Auto Fill picks the first available people for every place still needed. Once the shift is filled, the panel follows the person who got it.</Text>
+          <Text size="sm"><strong>Picking someone in the open shift’s employee field</strong> gives them one place straight away, without the list.</Text>
+          <Text size="sm" c="dimmed">Try it: right-click the Swing open shift on Tue, Jun 2, choose Fill, then Auto Fill. Or select B. Haddad Mon to Wed, press Ctrl/⌘ C, select another person’s Monday and press Ctrl/⌘ V.</Text>
+        </Stack>
+      </Section>
+
       <Section id="bulk" title="Editing several cells" description="With several cells selected, the panel changes all of them at once. Each action is one save, so one Undo reverts all of it.">
         <Stack gap="xs">
           <Text size="sm"><strong>Assign to N</strong> gives every selected person-day the shift from the picker, with that code’s usual hours (PatD 07:00–17:00). It replaces what the selected cells hold, like assign mode. N counts the days that can take it: locked cells (e.g. a court date) and open shifts are skipped.</Text>
-          <Text size="sm"><strong>Change fields</strong> (collapsed) sets Activity, Location, Hours modifier or Unit on every selected assignment as soon as you pick a value. A field shows the shared value, or “Mixed” when the cells differ. Leave and locked cells stay as they are; open shifts take the value too.</Text>
-          <Text size="sm"><strong>Leave</strong> adds leave to every selected day, All day by default (it replaces the day’s assignments, as for one cell). Part of the day nests inside an assignment it overlaps; a day where it would clash is skipped.</Text>
+          <Text size="sm"><strong>Change fields</strong> (open at first) has the same fields as one cell: times, actual times, shift code, activity, location, customer, hours modifier, Bank this time, unit and acting rank. A field shows the shared value, or “Mixed” when the cells differ, and a change saves on every selected assignment. Typing only a start keeps each cell’s own end. Picking a scheduled date moves every selected cell to that day; a person whose cells would clash there keeps them where they are. Leave and locked cells stay as they are; open shifts take the value too. Times skip assignments split into several segments.</Text>
+          <Text size="sm"><strong>Leave</strong> opens its own section and folds Change fields away, so the leave form is in view. It adds leave to every selected day, All day by default (it replaces the day’s assignments, as for one cell). Part of the day nests inside an assignment it overlaps; a day where it would clash is skipped.</Text>
           <Text size="sm"><strong>More</strong> holds Load from template, Paste, History and Delete all. Delete all asks first, then removes every selected assignment, leave and open shift. Locked cells stay.</Text>
           <Text size="sm"><strong>Assign in the footer</strong> starts assign mode with the picked shift, to give it to more cells by clicking them.</Text>
           <Text size="sm">After each action, the status line says how many cells changed and which were skipped, and why.</Text>
@@ -583,6 +596,19 @@ export default function WorkforceScheduling() {
         <Text size="sm" mt="md">On a day with assignments in both places, the banner follows the selected assignment, and each assignment’s first row names where it is worked.</Text>
       </Section>
 
+      <Section id="attachments" title="Attachments" description="The Attachments tab holds an assignment’s tags, assets, tasks and note. Each assignment has its own: a second assignment on the same day starts empty. The tab’s count covers all four.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Tags and assets</strong> are picked from one searchable list, grouped by category. Typing “lambo” finds Vehicle › Lambo 05; in Assets, “radio 2” lists the radios. Tags end with Custom…, which turns the field into a text box for anything else, like a police file number. Assets come from the inventory only. Added items show as chips; ✕ removes one.</Text>
+          <Text size="sm"><strong>Tasks</strong> open the same task form as the Calendar: a name, the day (the assignment’s by default), a time, recurrence, reminders and a note. Each task lists its time, recurrence and number of reminders; select one to edit or delete it.</Text>
+          <Text size="sm"><strong>Note</strong>: each assignment has one note, a plain text box that saves when you leave it. It also shows at the end of the Details tab, so a change like “Covering Sector C until 10:00” is seen without switching tabs; Edit there jumps to the text box.</Text>
+          <Text size="sm"><strong>In the grid</strong>, a cell with attachments gets a folded corner on its bottom right, like a comment in a spreadsheet. It shows in every view density and on a month, and stays clear of the ⚠ (top left) and the OT, OU and lock tags (top right). Its label lists what’s attached for screen readers (“Attached: 2 tags, 1 task and a note”).</Text>
+          <Text size="sm"><strong>On a day with several assignments</strong>, an Assignment field at the top says which one the tab shows, and switches it.</Text>
+          <Text size="sm"><strong>Locked assignments</strong> (a court date) show the court’s file and note read-only.</Text>
+          <Text size="sm">Every change saves at once and is one Undo step. When an assignment is split or joined, its attachments stay with its first segment’s line; joined lines keep both sets. Joined lines keep both notes, one after the other. Copies made with Assign don’t take attachments along.</Text>
+          <Text size="sm" c="dimmed">Try it: B. Haddad, Fri, Jun 5 has tags, assets, a task and a note. S. Kowalski, Tue, Jun 2 has a court date.</Text>
+        </Stack>
+      </Section>
+
       <Section id="reference" title="Reference" size="display" description="The components behind the demo, its CSS variables and guidelines." />
 
       <Section id="component" title="Using the components" description="The demo is built from the components in src/components/workforce, on top of the schedule components.">
@@ -616,7 +642,17 @@ export default function WorkforceScheduling() {
           { prop: 'onClose', type: '() => void', description: 'The close button.' },
           { prop: 'onPreview', type: '(action: string) => void', description: 'A control that isn’t built yet was used.' },
           { prop: 'focusTick', type: 'number', description: 'Change it to move focus to the panel’s heading, e.g. after Enter.' },
+          { prop: 'onPaste', type: '() => void', description: 'Pastes copied cells into the selection (the bulk panel’s More › Paste). Missing: Paste is disabled.' },
+          { prop: 'people', type: 'PanelPeople', description: 'People as edited, plus onFind (Find in schedule), onFill and onFindFill (open shifts) and onMoved (select an assignment’s new cell after a move). Missing: preview only.' },
         ]} />
+        <Text size="sm" fw={600} mb="xs" mt="lg">FillModal</Text>
+        <PropsTable rows={[
+          { prop: 'shift', type: 'OpenShift | null', description: 'The open shift to fill; null closes it.' },
+          { prop: 'people', type: 'WorkforceMember[]', description: 'Everyone who could take it, as edited. fillCandidates (workforce/fill.ts) sorts them into available, with warnings and busy.' },
+          { prop: 'onFill', type: '(shift, ids) => void', description: 'Assign was selected. fillOpenShift(shift, people) gives back the days to save and the new filled count.' },
+          { prop: 'contained', type: 'boolean', description: 'Keeps it inside a demo frame.' },
+        ]} />
+        <Text size="sm" c="dimmed" mt="sm">Copy and paste are copyCells and pasteCells in workforce/clipboard.ts: pure functions of the grid model and the selected cells. GridContextMenu takes onCopy, onPaste and onFill; a missing handler disables the item.</Text>
       </Section>
 
       <Section id="tokens" title="CSS variables" description="Sizes for the grid and panel, and selection colors. All point at theme tokens, so they follow dark and light.">

@@ -1,9 +1,10 @@
 import { CircleDashed, Radio } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  coverageLevel, formatHour, dayOf, formatHeader, rand, segmentHours, segmentKind, weekdayIndex, type Chip, type DayCoverage, type Segment,
+  PARTIAL_OVERTIME_HOURS, coverageLevel, formatHour, dayOf, formatHeader, rand, segmentHours, segmentKind, weekdayIndex, type Chip, type DayCoverage, type Segment,
 } from '../schedule/data'
 import type { EmployeeProfile } from '../schedule/profiles'
+import { courtDate, haddadFriday, type Attachments, type WorkforceChip } from './attachments'
 
 /* ------------------------------------------------------------------ */
 /* Workforce Scheduling mock data: one patrol unit in three watches.   */
@@ -66,6 +67,10 @@ export interface OpenShift {
   location: string
   /** Fields set in the details panel (activity, customer…); defaults apply when missing */
   details?: SegmentDetails
+  /** Tags, assets, tasks and a note on the shift */
+  attachments?: Attachments
+  /** Set in the panel when the shift is worked at another branch; missing = `HOME_BRANCH` */
+  branch?: string
 }
 
 /* ------------------------------------------------------------------ */
@@ -84,15 +89,18 @@ export interface SegmentDetails {
   customer: string
   unit: string
   acting: string
-  /** Actual start and end (hours, end past 24 = next day), when they differ from the schedule */
-  actual: { start: number; end: number } | null
+  /**
+   * Actual start and end (hours, end past 24 = next day), when they differ from the schedule. `day` is the actual
+   * date when it was changed (day number); missing means the scheduled day.
+   */
+  actual: { start: number; end: number; day?: number } | null
 }
 
 /** A segment as the panel edits it: a stable id and its fields. Unedited mock segments have neither. */
 export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
 
 /** Changes to an open shift. `deleted` takes it off the schedule. */
-export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled'>> & { deleted?: boolean }
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled' | 'attachments' | 'branch'>> & { deleted?: boolean }
 
 /** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
 export interface ScheduleEdits {
@@ -114,11 +122,20 @@ export const shortName = (member: Pick<WorkforceMember, 'first' | 'last'>) => `$
 /* ------------------------------------------------------------------ */
 
 const c = (code: string, extra: Partial<Segment> = {}): Segment => ({ code, ...extra })
+/**
+ * A shift that runs into overtime: the regular segment, then a touching overtime segment for its last
+ * PARTIAL_OVERTIME_HOURS. Two segments, so the cell is split diagonally; one overtime segment alone is solid red.
+ */
+const holdover = (code: string, extra: Partial<Segment> = {}): Segment[] => {
+  const { start, end } = segmentHours({ code, ...extra })
+  const split = end - PARTIAL_OVERTIME_HOURS
+  return [c(code, { ...extra, start, end: split }), c(code, { ...extra, start: split, end, overtime: 'full' })]
+}
 const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}): Chip => ({ segments, ...extra })
 /** Working for another unit in the same precinct */
 const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
 /** A court date: the court sets it, so the scheduler can't change it */
-const court = (start: number, end: number): Chip => cell([c('Court', { start, end })], { locked: COURT })
+const court = (start: number, end: number, file: string, note: string): WorkforceChip => ({ ...cell([c('Court', { start, end })], { locked: COURT }), attachments: courtDate(file, note) })
 const COURT = 'Kings County Court'
 
 /** The precinct the demo's unit belongs to, and another one people are sometimes lent to */
@@ -146,7 +163,7 @@ function rotation(seed: number, watch: WatchId, offset: number) {
     else if (r < 0.08) main = cell([c('PTO')])
     else if (r < 0.1) main = cell([c('Vac')])
     else if (r < 0.15) main = r2 < 0.3 ? ou([c('Train')], 'Training') : cell([c('Train')])
-    else if (r < 0.19) main = cell([c(base, { overtime: 'partial' })])
+    else if (r < 0.19) main = cell(holdover(base))
     else if (r < 0.22) main = ou([c(base)], lendingUnits[Math.floor(r2 * lendingUnits.length)])
     else if (r < 0.27) main = cell(split)
     else if (r < 0.29) main = cell([c('Spe')])
@@ -181,12 +198,12 @@ type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offse
 const specs: Record<WatchId, Spec[]> = {
   day: [
     // Scenario 3, leave: on vacation all day Tue. Locked court dates (set by the court): Nguyen Wed, Kowalski Tue, Garcia Fri
-    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12)] }],
-    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17)] }],
+    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12, '#PKXD393', 'Testifying in People v. Marsh, Part 14. Bring the arrest report.')] }],
+    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17, '#PKXD402', 'Grand jury, room 512. Wear the dress uniform.')] }],
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
     // Scenario 7, out of unit: lent to Special Ops on Tue
-    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17)] }],
+    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17, '#QRTB118', 'Suppression hearing, Part 3. The ADA will call by 12:00.')] }],
     ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
     // Scenario 6, two assignments on Wed: PatD + Spe OT that touch (one cell), then Spe after a gap (a second line)
     // Also a warning: not certified for special details
@@ -200,17 +217,17 @@ const specs: Record<WatchId, Spec[]> = {
     ['patel', 'Dev', 'Patel', 'PO', 1, { 3: [cell([c('PatD')], { branch: OTHER_BRANCH })] }],
     // Warning, on leave: scheduled on Fri, but on vacation for all of it
     ['lee', 'Christine', 'Lee', 'PO', 2, { 4: [cell([c('PatD'), c('Vac', { start: 7, end: 17 })])] }],
-    ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [cell([c('PatD')])], 5: [], 6: [] }],
+    ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [{ ...cell([c('PatD')]), attachments: haddadFriday } as WorkforceChip], 5: [], 6: [] }],
     // Warning, double booked: the 84th Precinct has him on a detail during Wed's patrol
     ['johnson', 'Aaron', 'Johnson', 'PO', 4, { 2: [cell([c('PatD')]), cell([c('Spe', { start: 15, end: 19 })], { branch: OTHER_BRANCH })] }],
   ],
   swing: [
     ['russo', 'Vincent', 'Russo', 'PO', 5],
     ['thompson', 'Sarah', 'Thompson', 'Cpl', 6],
-    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), c('PatS', { start: 16, overtime: 'partial' })])] }],
+    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), ...holdover('PatS', { start: 16 })])] }],
     // Two warnings on Tue: a 06:00 event at Barclays Center 7h after Monday's late swing, and not certified for special events
     ['petrov', 'Oksana', 'Petrov', 'PO', 1, {
-      0: [cell([c('PatS', { end: 23, overtime: 'partial' })])],
+      0: [cell(holdover('PatS', { end: 23 }))],
       1: [cell([barclaysEvent]), cell([c('PatS')])],
     }, ['Special event']],
     ['abara', 'Nnamdi', 'Abara', 'PO', 2],
@@ -337,6 +354,29 @@ export const watches: Watch[] = [
 ]
 
 /** The watches with the panel's edits applied: changed days replace the mock cells, and coverage is counted again. */
+/** Hours modifiers that make a segment overtime */
+export const isOvertimeModifier = (modifier: string) => modifier.startsWith('Overtime')
+
+/**
+ * Once a segment has fields, its hours modifier decides overtime: an Overtime modifier makes the segment overtime
+ * (red, with the clock), any other clears it. Run on every saved day, so the grid follows the panel.
+ */
+export function syncOvertime(chips: Chip[]): Chip[] {
+  return chips.map((chip) => {
+    let changed = false
+    const segments = chip.segments.map((segment: WorkforceSegment) => {
+      if (!segment.details) return segment
+      const overtime = isOvertimeModifier(segment.details.modifier) ? segment.overtime ?? 'full' : undefined
+      if (overtime === segment.overtime) return segment
+      changed = true
+      const next = { ...segment, overtime }
+      if (!overtime) delete next.overtime
+      return next
+    })
+    return changed ? { ...chip, segments } : chip
+  })
+}
+
 export function applyEdits(edits: ScheduleEdits): Watch[] {
   if (!edits.days.size) return watches
   return watches.map((base) => {

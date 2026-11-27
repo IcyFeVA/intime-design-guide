@@ -171,6 +171,10 @@ export const mantineAliases: [cssVar: string, token: string][] = [
   ['--mantine-color-default', 'background-default'],
   ['--mantine-color-default-hover', 'background-default-hover'],
   ['--mantine-color-default-border', 'border-default'],
+  // Mantine's light and subtle variants of the primary color (light buttons, badges, subtle "Add …" buttons)
+  ['--mantine-color-intime-light', 'background-primary-light'],
+  ['--mantine-color-intime-light-hover', 'background-primary-light-hover'],
+  ['--mantine-color-intime-light-color', 'text-primary-default'],
   ['--intime-surface', 'background-default'],
   ['--intime-surface-raised', 'background-default-hover'],
   ['--intime-border', 'border-default'],

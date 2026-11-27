@@ -285,7 +285,8 @@
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: 'title tags' 'time time';
   align-content: center;
-  column-gap: 6px;
+  /* Room between the name and its times */
+  gap: 3px 6px;
   min-width: 0;
   padding: 3px 8px;
   overflow: hidden;
@@ -802,6 +803,35 @@
   fill: var(--background-warning-filled);
 }
 
+/*
+ * The assignment has attachments (tags, assets, tasks or a note): a folded corner on the shift's bottom right, like
+ * a spreadsheet's comment mark, clear of the ⚠ (top left) and the OT, OU and lock tags (top right). In every density and layout, so it shows on a month too.
+ */
+.attached {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+.attachMark {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: var(--workforce-attachment-size);
+  height: var(--workforce-attachment-size);
+  pointer-events: none;
+  background: var(--workforce-attachment-color);
+  border-bottom-right-radius: var(--mantine-radius-sm);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+}
+
+.cell[data-density='mini'] .attachMark {
+  width: var(--workforce-attachment-size-mini);
+  height: var(--workforce-attachment-size-mini);
+}
+
 /* The legend's warning specimen: a cell with the mark in its corner */
 .legendWarning {
   position: relative;
@@ -1063,7 +1093,23 @@
 }
 
 /* Legend popover: the real cell on the left (Full layout), its name and meaning on the right */
+/* The legend fits the screen (the popover's size middleware caps its height to the space left): its list scrolls, the title stays */
+.legendDropdown {
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 32px);
+  max-height: min(720px, calc(100dvh - 32px));
+}
+
+.legendDropdown > .alertsHeader {
+  flex: none;
+}
+
 .legendList {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin: 0;
   padding: 4px 16px 16px;
   display: flex;
@@ -1156,4 +1202,49 @@
 
 @media (prefers-reduced-motion: reduce) {
   .overnightTip::after { transition: none; }
+}
+
+/* ---------- Find in schedule ---------- */
+
+/* The person's row flashes, then fades back to how it was: a tint layered over each cell's own background.
+   The demo removes data-found once the flash is over (FOUND_MS in WorkforceDemo). */
+@property --found-tint {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+
+.label[data-found],
+.cell[data-found] {
+  background-image: linear-gradient(var(--found-tint), var(--found-tint));
+  animation: found 2400ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.label[data-found]:is([data-active], [data-selected]) {
+  background-image:
+    linear-gradient(var(--found-tint), var(--found-tint)),
+    linear-gradient(var(--workforce-header-active-bg), var(--workforce-header-active-bg));
+}
+
+.label[data-found] {
+  box-shadow: inset 3px 0 0 var(--workforce-header-active-text);
+}
+
+@keyframes found {
+  0%,
+  50% {
+    --found-tint: var(--background-primary-light);
+  }
+
+  100% {
+    --found-tint: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .label[data-found],
+  .cell[data-found] {
+    --found-tint: var(--background-primary-light);
+    animation: none;
+  }
 }

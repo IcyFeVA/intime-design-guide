@@ -146,3 +146,8 @@
 .link {
   color: var(--text-primary-default);
 }
+
+/* Inside a demo frame: the overlay fills the frame, not the window */
+.containedInner {
+  left: 0;
+}

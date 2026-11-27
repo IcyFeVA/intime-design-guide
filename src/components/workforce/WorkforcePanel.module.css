@@ -123,6 +123,60 @@
   font-weight: 500;
 }
 
+/* Hours popover */
+.hours {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hoursTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.hoursTable th,
+.hoursTable td {
+  padding: 3px 0;
+  text-align: end;
+}
+
+.hoursTable th[scope='row'],
+.hoursTable .hoursGroup {
+  font-weight: 400;
+  text-align: start;
+}
+
+.hoursTable thead th {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--text-dimmed);
+  vertical-align: bottom;
+}
+
+.hoursTable thead th span {
+  display: block;
+  font-weight: 400;
+}
+
+.hoursTable tbody tr:first-child > * {
+  padding-top: 6px;
+}
+
+.hoursTable .hoursGroup {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hoursCap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .noEmployee {
   display: grid;
   flex: none;
@@ -290,6 +344,17 @@
   align-self: flex-start;
 }
 
+/* Hours: a value, not a field, centered on the inputs beside it */
+.hoursValue {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  height: 36px;
+  padding-left: 4px;
+}
+
 /* ---------- Out of unit / branch ---------- */
 
 .banner {
@@ -425,6 +490,131 @@ button.warningRow:hover,
 
 @media (prefers-reduced-motion: reduce) {
   .warningsChevron {
+    transition: none;
+  }
+}
+
+/* ---------- Branch select ---------- */
+
+.branchOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding-inline-start: calc(var(--branch-depth, 0) * 14px);
+}
+
+.branchCount {
+  color: var(--text-dimmed);
+  font-weight: 400;
+}
+
+.branchCheck {
+  margin-inline-start: auto;
+  flex: none;
+}
+
+/* ---------- Attachments ---------- */
+
+.body[data-gap='lg'] {
+  gap: 22px;
+}
+
+.attachSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attachHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-default);
+}
+
+.attachHeading svg {
+  color: var(--text-dimmed);
+}
+
+.attachCount {
+  font-weight: 500;
+  color: var(--text-dimmed);
+}
+
+.pick {
+  background: var(--background-default);
+  color: var(--text-default);
+}
+
+.taskRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--mantine-radius-sm);
+  text-align: start;
+  transition: background-color 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+button.taskRow:hover {
+  background: var(--background-default-hover);
+}
+
+.taskTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-default);
+}
+
+.taskMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  font-size: 12px;
+  color: var(--text-dimmed);
+}
+
+.taskMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.noteCard {
+  padding: 8px 10px;
+  border-inline-start: 3px solid var(--border-default);
+  border-radius: var(--mantine-radius-xs);
+  background: var(--background-body-alt);
+  color: var(--text-default);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* The note, at the end of the Details tab */
+.latestNote {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 16px 16px;
+}
+
+.latestNoteHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taskRow {
     transition: none;
   }
 }

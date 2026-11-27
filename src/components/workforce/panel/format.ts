@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { formatHour, segmentHours, segmentKind, type Chip } from '../../schedule/data'
+import { formatHour, formatMonthDay, segmentHours, segmentKind, type Chip } from '../../schedule/data'
 
 /**
  * A typed time → hours, or null when it isn't one. Schedulers type fast, so all of these work:
@@ -32,6 +32,10 @@ export const formatEnd = (end: number) => (end > 24 ? `${formatHour(end)} +1` : 
 
 /** "08:00–17:00", "20:00–04:00 +1", or "All day" for 00:00–24:00 */
 export const formatSpan = (start: number, end: number) => (start === 0 && end === 24 ? 'All day' : `${formatHour(start)}–${formatEnd(end)}`)
+
+/** Actual times for lists: "08:00–19:00", with the date first when it isn't the scheduled day ("Jun 5, 08:00–19:00") */
+export const formatActual = (actual: { start: number; end: number; day?: number }) =>
+  (actual.day === undefined ? '' : `${formatMonthDay(actual.day)}, `) + formatSpan(actual.start, actual.end)
 
 /** An end time's input value: 24:00 for a whole day, so it doesn't read as 00:00–00:00 */
 export const endValue = (start: number, end: number) => (start === 0 && end === 24 ? '24:00' : timeValue(end))

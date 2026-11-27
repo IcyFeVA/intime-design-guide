@@ -25,7 +25,7 @@ export function LeaveTypeField({ code, onCode, label = 'Leave type' }: { code: s
  * Inline leave entry, opened by the footer's Leave button. Part of the day starts on the selected assignment's
  * times and goes inside it (a partial leave); All day replaces the day's assignments, which Undo brings back.
  */
-export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sick', defaultAllDay = !replaces, title = 'Add leave' }: {
+export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sick', defaultAllDay = !replaces, title = 'Add leave', framed = true }: {
   /** Where part-of-the-day leave starts: the selected assignment, or the watch's hours on an empty day */
   span: { start: number; end: number }
   /** What All day replaces ("PatD 08:00–16:00"), or null when the day has nothing to replace */
@@ -37,6 +37,8 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sic
   /** Starts on All day. Default: when the day has nothing to replace. */
   defaultAllDay?: boolean
   title?: string
+  /** Off: no card or title, for a section that has its own (the bulk panel) */
+  framed?: boolean
 }) {
   const titleId = useId()
   const ref = useRef<HTMLDivElement>(null)
@@ -64,10 +66,11 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sic
 
   return (
     <div
-      className={classes.times}
+      className={framed ? classes.times : undefined}
       ref={ref}
       role="group"
-      aria-labelledby={titleId}
+      aria-labelledby={framed ? titleId : undefined}
+      aria-label={framed ? undefined : title}
       onKeyDown={(event) => {
         if (event.key === 'Escape' && !(event.target as HTMLElement).closest('[aria-expanded="true"]')) {
           event.stopPropagation()
@@ -76,7 +79,7 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sic
         if (event.key === 'Enter' && (event.target as HTMLElement).tagName === 'INPUT' && !(event.target as HTMLElement).closest('[aria-expanded="true"]')) add()
       }}
     >
-      <Text id={titleId} size="sm" fw={600} mb={10}>{title}</Text>
+      {framed && <Text id={titleId} size="sm" fw={600} mb={10}>{title}</Text>}
       <SimpleGrid cols={2} spacing={8} verticalSpacing={10}>
         <LeaveTypeField code={code} onCode={setCode} />
         <div>
@@ -98,7 +101,6 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sic
         )}
       </SimpleGrid>
       {allDay && replaces && <Text size="xs" c="dimmed" mt={8}>Replaces {replaces}. Undo brings it back.</Text>}
-      {!allDay && <Text size="xs" c="dimmed" mt={8}>Leave inside an assignment stays in its cell, as a partial leave.</Text>}
       {error && <Text size="xs" mt={6} c="var(--text-error-default)" role="alert">{error}. Not saved.</Text>}
       <Group gap={8} mt={12} justify="flex-end">
         <Button variant="default" size="xs" onClick={onCancel}>Cancel</Button>

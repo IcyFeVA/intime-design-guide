@@ -1,7 +1,7 @@
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { formatDuration, segmentHours, segmentKind } from '../../schedule/data'
 import { formatLongDay, type SegmentDetails, type WorkforceSegment } from '../data'
-import { formatSpan } from './format'
+import { formatActual, formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
 
 /** The selected segment as plain label and value pairs: a locked assignment (e.g. a court date), set outside scheduling. */
@@ -17,7 +17,7 @@ export function ReadOnlyFields({ segment, details, day }: { segment: WorkforceSe
     ? [['Leave type', name], ...times]
     : [
       ...times,
-      ...(details.actual ? [['Actual', formatSpan(details.actual.start, details.actual.end)] as [string, string]] : []),
+      ...(details.actual ? [['Actual', formatActual(details.actual)] as [string, string]] : []),
       ['Shift code', `${segment.code} · ${name}`],
       ['Activity', details.activity],
       ['Location', details.location ?? 'None'],

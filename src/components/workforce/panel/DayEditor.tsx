@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Button, Select, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
 import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
-import { dayKey, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
+import { dayKey, HOME_BRANCH, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
+import { usePanelPeople } from './people'
 import { flattenDay, regroupDay, type AssignSource, type DaySegment, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { SegmentList, type BlockInfo, type PanelSegment, type SegmentHandlers } from './SegmentList'
@@ -14,8 +15,11 @@ import { LeaveEntry, LeaveTypeField, type LeaveRequest } from './LeaveEntry'
 import { ReadOnlyFields } from './ReadOnlyFields'
 import { WarningStack } from './Warnings'
 import { dayWarnings } from '../warnings'
-import { branches, segmentDetails } from './options'
+import { segmentDetails } from './options'
+import { BranchSelect } from './BranchSelect'
 import { formatSpan } from './format'
+import { AttachmentsTab, NoAttachments } from './AttachmentsTab'
+import { attachmentCount, attachmentsOf, type Attachments } from '../attachments'
 import classes from '../WorkforcePanel.module.css'
 
 type DayItem = Extract<PanelItem, { kind: 'day' }>
@@ -61,10 +65,10 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
   const items = flattenDay(item.blocks)
   const blocks = item.blocks.map((_, index) => items.filter((entry) => entry.from === index).map((entry) => entry.segment))
   const key = dayKey(member.id, day)
+  const people = usePanelPeople()
 
   const [selectedId, setSelectedId] = useState<string | null>((blocks[item.line] ?? blocks[0])?.[0]?.id ?? null)
   const [note, setNote] = useState<{ id: string; text: string; undo: boolean } | null>(null)
-  const [branch, setBranch] = useState<string | null>(branches[0])
   const [leaveOpen, setLeaveOpen] = useState(false)
 
   const selected = items.find((entry) => entry.segment.id === selectedId)?.segment ?? items[0]?.segment ?? null
@@ -118,17 +122,47 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     onEdit({ days: [[key, item.blocks.filter((_, b) => b !== index)]] })
   }
 
-  const moveBlock = (index: number, to: number) => {
-    if (to === day) return
-    const target = member.chips(to)
+  /**
+   * Moves an assignment to another day, or to another person on this day. It joins what's there (touching
+   * segments make one block) and refuses to overlap. The panel then follows it to its new cell.
+   */
+  const moveBlock = (index: number, to: number, toMember = member) => {
+    if (to === day && toMember.id === member.id) return
+    const target = toMember.chips(to)
     const moved = item.blocks[index].segments.map((segment) => ({ segment: { ...segment, id: newId('m') }, from: target.length }))
     const result = regroupDay([...target, item.blocks[index]], [...flattenDay(target), ...moved])
+    const where = toMember.id === member.id ? formatHeader(to) : shortName(toMember)
     if (result.error) {
-      setNote({ id: blocks[index][0].id, text: `Can’t move: on that day it ${result.error.toLowerCase()}.`, undo: false })
+      const error = result.error[0].toLowerCase() + result.error.slice(1)
+      setNote({ id: blocks[index][0].id, text: `Can’t move to ${where}: ${toMember.id === member.id ? 'on that day ' : ''}it ${error}.`, undo: false })
       return
     }
     setNote(null)
-    onEdit({ days: [[key, item.blocks.filter((_, b) => b !== index)], [dayKey(member.id, to), result.chips]] })
+    onEdit({ days: [[key, item.blocks.filter((_, b) => b !== index)], [dayKey(toMember.id, to), result.chips]] })
+    people.onMoved?.(
+      { member: toMember.id, day: to, segment: moved[0].segment.id },
+      `Moved ${blocks[index][0].code} ${spanOf(blocks[index])} to ${toMember.id === member.id ? formatHeader(to) : `${shortName(toMember)}, ${formatHeader(to)}`}. Undo reverts it.`,
+    )
+  }
+
+  /** Picking another employee moves the selected assignment to them, on this day */
+  const reassign = (id: string | null) => {
+    const to = id ? people.member(id) : undefined
+    if (to && selectedBlock >= 0) moveBlock(selectedBlock, day, to)
+  }
+
+  /** Branch belongs to the assignment: another branch makes it out of branch (muted, not counted in staffing) */
+  const setBranch = (value: string | null) => {
+    if (!value || selectedBlock < 0) return
+    onEdit({
+      days: [[key, item.blocks.map((chip, index) => {
+        if (index !== selectedBlock) return chip
+        const next = { ...chip }
+        if (value === HOME_BRANCH) delete next.branch
+        else next.branch = value
+        return next
+      })]],
+    })
   }
 
   const blockOf = (id: string | undefined) => blocks.findIndex((segments) => segments.some((segment) => segment.id === id))
@@ -212,9 +246,16 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
   const details = (
     <div className={classes.body}>
       <AssignmentBanner chip={selectedChip} />
-      <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
+      <EmployeeRow
+        value={member.id}
+        day={day}
+        onChange={reassign}
+        readOnly={readOnly || selectedBlock < 0}
+        hint={readOnly || selectedBlock < 0 ? undefined : 'Pick someone else to move this assignment to them'}
+        onPreview={onPreview}
+      />
       <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
-      <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />
+      <BranchSelect value={selectedChip?.branch ?? HOME_BRANCH} onChange={setBranch} readOnly={readOnly || selectedBlock < 0} />
       <Stack gap={4}>
         {blocks.length
           ? (
@@ -229,7 +270,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
             />
           )
           : <Text size="sm" c="dimmed">No assignment on this day yet.</Text>}
-        <Button variant="subtle" color="gray" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={addSegment}>
+        <Button variant="subtle" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={addSegment}>
           Add segment
         </Button>
       </Stack>
@@ -239,9 +280,41 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     </div>
   )
 
+  /* Attachments belong to the selected assignment (block) */
+  const attachments = attachmentsOf(selectedChip)
+  const setAttachments = (next: Attachments) => {
+    onEdit({ days: [[key, item.blocks.map((chip, index) => (index === selectedBlock ? { ...chip, attachments: next } : chip))]] })
+  }
+  const attachmentsTab = selectedBlock < 0
+    ? <NoAttachments />
+    : (
+      <AttachmentsTab
+        value={attachments}
+        onChange={setAttachments}
+        day={day}
+        readOnly={readOnly}
+        header={(
+          <>
+            {readOnly && <AssignmentBanner chip={selectedChip} />}
+            {blocks.length > 1 && (
+              <Select
+                label="Assignment"
+                description="Each assignment on this day has its own."
+                data={blocks.map((segments, index) => ({ value: String(index), label: `${segments[0].code} ${spanOf(segments)}` }))}
+                value={String(selectedBlock)}
+                onChange={(value) => { if (value !== null) setSelectedId(blocks[Number(value)][0].id) }}
+                allowDeselect={false}
+                classNames={{ input: 'tabular' }}
+              />
+            )}
+          </>
+        )}
+      />
+    )
+
   return (
     <>
-      <PanelTabs details={details} />
+      <PanelTabs details={details} attachments={attachmentsTab} count={attachmentCount(attachments)} note={attachments.note} />
       <PanelFooter
         onPreview={onPreview}
         onAssign={assigning ? () => onAssign(null) : startAssign}

@@ -9,7 +9,7 @@
 The decisions there are final unless the user changes them; ask only about the open questions a step lists.
 
 Done: 1. panel core · 2. scenarios (leave, out of unit/branch) · 3. assign mode · 4. warnings, plus locked
-court dates, out of branch editable and the always-visible employee search · 5. bulk panel. Details in the "Step N as built"
+court dates, out of branch editable and the always-visible employee search · 5. bulk panel · 6. attachments tab · 7. employee row · 8. smaller gaps (reassign, Branch, copy/paste, Fill, follow a move). Details in the "Step N as built"
 sections and the 2026-11-26 sections below.
 
 - [x] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
@@ -17,22 +17,24 @@ sections and the 2026-11-26 sections below.
   - [x] A shift code picker + "Assign to N": gives every selected person-day the shift in one save (reuse `assignDay`; locked cells and open shifts are skipped, the status line says why).
   - [x] A collapsed "Change fields" section (Activity, Location, Hours modifier, Unit…) that autosaves to every selected cell's segments.
   - [x] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
-- [ ] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
-  - [ ] Tabs "Details · Attachments (n)", n = all four sections.
-  - [ ] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
-  - [ ] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
-  - [ ] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
-  - [ ] Notes: add and list notes; the latest note also shows read-only at the end of the Details tab.
-  - Open question to ask: do attachments belong to the whole day, an assignment or a segment? Can one asset be on two people at once (warn)?
-- [ ] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
-  - [ ] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
-  - [ ] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
-  - [ ] Chevron menu: Message, Call, View profile (opens `EmployeeDetailsModal` with `workforceProfile`, `contained`), View schedule.
-- [ ] **8. Smaller gaps** (from the "Not yet" lines of steps 1–3):
-  - [ ] Picking another employee in the panel moves the assignment to them (today "Preview only").
-  - [ ] Save the Branch field.
-  - [ ] Context menu: Copy/Paste and Fill (could reuse assign mode); the others stay preview.
-  - [ ] Reopen a moved single assignment in the panel after "Move to another day".
+- [x] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
+  - [x] Tabs "Details · Attachments (n)", n = all four sections.
+  - [x] Four sections, always shown with their count (~~"None yet."~~ dropped 2026-11-27): Tags, Assets, Tasks, Note.
+  - [x] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
+  - [x] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
+  - [x] ~~Notes: add and list notes~~ **One note per assignment** (user, 2026-11-27): just a textarea with a placeholder, saved when the scheduler leaves it; no adding or removing notes. It also shows read-only at the end of the Details tab.
+  - ~~Open question~~ Answered 2026-11-27 (user): attachments belong to the **block** (one grid cell); the same asset on two people at once is **allowed, no warning**.
+- [x] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
+  - [x] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
+  - [x] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
+  - [x] Chevron menu: Message, Call, View profile (opens `EmployeeDetailsModal` with `workforceProfile`, `contained`), View schedule.
+- [x] **8. Smaller gaps** (from the "Not yet" lines of steps 1–3; see "Step 8 as built"):
+  - [x] Picking another employee in the panel moves the assignment to them (today "Preview only").
+  - [x] Save the Branch field.
+  - [x] Context menu: Copy/Paste and Fill ~~(could reuse assign mode)~~ (Fill = pick a candidate for an open shift, user 2026-11-27); the others stay preview.
+  - [x] Reopen a moved single assignment in the panel after "Move to another day".
+
+All steps are done. Next: ask the user, or pick from "Later" and "Open questions".
 
 **After each step:** `npx tsc -b` and `npx eslint src` print nothing; check it in the browser (dark and light,
 see CLAUDE.md); tick it here; add a "Step N as built" section (what changed, decisions made without the user,
@@ -428,7 +430,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - **Changed after trying it (2026-11-25, user):** the block cards with fields inside the segment were hard to read. Now: **one list** of the day's segments, each block's first segment as the **root** and touching segments **indented** (`CornerDownRight`); a non-touching assignment starts a new root. The root row shows the block total under its times ("12h total · 07:00–19:00") and its ⋯ has Move to another day… / Delete assignment. **One form below the list** for the selected segment: the **Times card is back** (Scheduled = moves the assignment, Start, End, Hours, Set actual), then Shift code, Activity, Location, Customer, Hours modifier + Bank, Unit, Rank. Icons (live, find, cancel) only on the selected row. Files: `panel/SegmentList.tsx`, `panel/TimesCard.tsx` (BlockCard removed). This overrides review items 2 and 4 and the "fields inside the segment" part of item 3.
 - **Typed times** (2026-11-25, user): no time picker and no AM/PM. `panel/TimeField.tsx` is a plain `TextInput` (mono, `inputMode="numeric"`, selects on focus) that accepts 8, 0800, 830, 1730, 8:30, 8.30 and 8h30 (`parseTime` in `panel/format.ts`) and tidies to `HH:MM` on blur. Used for Start/End and the actual times.
 - **Page regrouped** (2026-11-25, user): Desktop, then groups **The grid** (selection, rows, views, sizing), **The details panel** (`panel` "What it shows", `assignments`, `editing`, `times` "Typing times" with a try-it field) and **Reference** (component, tokens, guidelines, figma). Group headings are registry sections with `'group'` (`s()` in `pages.ts`), rendered as `Section size="display"`; the TOC indents the sections under them.
-- Not yet: Branch isn't saved (local state, per day). The employee picker on a day says "Preview only" (reassigning is assign mode, step 3). A collapsed single block isn't reopened automatically after a move.
+- Not yet: Branch isn't saved (local state, per day). The employee picker on a day says "Preview only" (reassigning is assign mode, step 3). A collapsed single block isn't reopened automatically after a move. (All done in step 8.)
 
 ### Step 2 as built (2026-11-25): scenarios
 
@@ -454,7 +456,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] The status line reports each assign ("Assigned PatD 07:00–17:00 to B. Haddad, Sat, Jun 6. Undo reverts it.", or "to 4 cells") and why cells were skipped.
 - [x] Page: new section `assigning` "Assigning a shift" (The details panel group); changelog.
 - Decided without the user (check): clicking any person's cell while assigning gives it the shift, so you stop to look around; name/date headers don't assign a whole row or day; an empty day's Assign uses the watch's regular shift rather than asking for a code.
-- Not yet: the employee picker in the panel (reassigning a day, or picking who gets an open shift) is still preview only; the context menu's Fill/Paste don't use assign mode; bulk Assign (code picker + "Assign to N") is the bulk step.
+- Not yet: the employee picker in the panel (reassigning a day, or picking who gets an open shift) is still preview only; the context menu's Fill/Paste don't use assign mode; bulk Assign (code picker + "Assign to N") is the bulk step. (Picker, Fill and Paste done in step 8.)
 
 ### Step 4 as built (2026-11-26): warnings
 
@@ -473,12 +475,52 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] Header: "9 cells selected", subtitle "3 people · 7 filled, 2 empty". No list of cells.
 - [x] **Shift** `Select` (working codes only, `workingCodeOptions` in `options.ts`; searchable, "PatD · Day patrol" in the list) + **Assign to N**. N = person-days that can take it (`assignableDays`: not the days where only locked cells are selected). It gives each day a copy with the code's default hours (`shiftCodeMap`) via `assignDay` on the day's selected, unlocked lines. A help line under it: "Day patrol · 07:00–17:00. Replaces what the selected cells hold. Locked cells are skipped." The picker starts on the selected cells' shared working code, else the first person's watch code.
 - [x] **Change fields** (collapsed card, `.bulkSection`/`.bulkToggle`): Activity (no Leave), Location, Hours modifier, Unit. Each shows the shared value or "Mixed" (`fieldValues` + `commonValue`) and saves on pick (`changeField`) to every working segment of the selected unlocked cells, and to selected open shifts' `details`. Leave segments and locked cells stay; empty cells are skipped (said in the status line). Segment ids are filled in as `s{block}.{index}`, as `flattenDay` does, so the single-cell form keeps the same mock defaults.
+- [x] **Change fields, full form** (2026-11-27): the card starts open and holds the single-cell form for all selected working segments (`panel/BulkFields.tsx`): a times card (Scheduled: picking a date moves every selected unlocked cell there with `moveCells`, a person whose cells would clash keeps them, open shifts stay; Start, End, hours; Set actual / actual row with Mixed, an actual date picker and remove) and `SegmentFields` with its new `mixed` prop (empty + "Mixed"; Bank this time indeterminate; time bank and amount Mixed), working codes only and no Leave activity. `bulkSegments` lists the segments, `changeSegments(selection, change)` applies any per-segment change (one commit), `changeTimes` sets start and/or end (the other stays each cell's own, `applyTimes`), regrouping each day and skipping split assignments and clashing days. Bank on gives cells without a bank one; a type or amount change keeps each cell's other value. Footer Leave opens its own collapsible section ("Add leave to N days", `LeaveEntry framed={false}`) and folds Change fields; Cancel or Add leave reopens it.
 - [x] **Footer** = `PanelFooter` with a new `moreItems` prop: Assign starts assign mode with the picked shift ("From the shift picker"); Leave opens `LeaveEntry` ("Add leave to 9 days", new props `title`, `defaultCode` Vac, `defaultAllDay`) and `addLeave` applies it to every person-day (All day replaces the day's unlocked cells; part of the day nests or skips days where it clashes); ⋯ = Load from template (preview), Paste (disabled), History (preview), **Delete all…** (red) → an inline confirm card in the panel ("Delete 9 cells? … Locked cells stay. Undo brings them back.", Cancel focused, Escape cancels) → `deleteAll` (open shifts get `deleted`).
 - [x] Blank empty state: "Shift-click or drag selects a range, Ctrl/⌘-click adds or removes cells. Right-click for more."
 - [x] Page: new section `bulk` "Editing several cells" (The details panel group); the panel modes table updated; changelog.
-- Decided without the user (check): the shift picker lists working codes only (leave has the Leave button); Assign to N uses the code's default hours, not the person's watch hours; Delete all also deletes selected open shifts, while Assign to N skips them; Change fields applies to open shifts too; the footer's Assign starts assign mode with the picked shift (so it differs from Assign to N); the delete confirm is inline in the panel, not a modal; "Change fields" closes again when the selection changes.
+- Decided without the user (check): the shift picker lists working codes only (leave has the Leave button); Assign to N uses the code's default hours, not the person's watch hours; Delete all also deletes selected open shifts, while Assign to N skips them; Change fields applies to open shifts too; the footer's Assign starts assign mode with the picked shift (so it differs from Assign to N); the delete confirm is inline in the panel, not a modal; "Change fields" opens again when the selection changes.
 - Not yet: Load from template and History are preview only; Paste is disabled until copy/paste exists (step 8).
 - **Times and fields in Assign to N: not now** (2026-11-26, user). Assign to N keeps the code's default hours and no fields. For other hours or fields, set up one cell as wanted, then use the footer's Assign (assign mode) to copy it to other cells.
+
+### Step 6 as built (2026-11-27): attachments tab
+
+- [x] Data: `workforce/attachments.ts`: `Attachments` (tags, assets, tasks, `note: string`), `WorkforceChip = Chip & { attachments? }`, `OpenShift.attachments` (saved through `OpenShiftEdit`), `attachmentCount` (the note counts 1 when filled), `mergeAttachments`, mock `tagCategories` / `assetCategories`. Mock: B. Haddad Fri Jun 5 (2 tags, 3 assets, 1 task, a note); each court date has its court file tag and the court's note.
+- [x] `regroupDay`: a block's attachments go to the new block holding its first segment (a split segment leaves them behind); blocks that join merge them (notes joined with a blank line). `assignDay` copies drop them. All-day leave replaces the day, attachments included.
+- [x] `panel/AttachmentsTab.tsx`: four sections (icon, uppercase title, count). Tags/assets: one searchable `Select` grouped by category, picking adds at once (words match the category or the value; taken values are hidden). Tags end with "Custom…", which turns the field into a text input carrying over what was typed (Enter adds, Escape goes back). Chips are Mantine `Pill`s with ✕. Tasks: rows (title; date if not the day, time or All day, recurrence, reminders) that open `TaskFormModal` to edit/delete; "Add task" opens it empty. Note: one textarea with a placeholder, saved on blur (user, 2026-11-27: one note per assignment, nothing to add or remove). Every save is one commit (one Undo step).
+- [x] `PanelTabs` (`panel/parts.tsx`) takes `attachments`, `count`, `note`: the note shows read-only at the end of Details with "Edit", which opens Attachments and focuses the textarea.
+- [x] `DayEditor`: the tab follows the selected segment's block; with several blocks, an "Assignment" select at the top switches it. Empty day: "No assignment yet" empty state. Locked: gray banner, everything read-only (the note as text). `OpenShiftEditor`: same tab, saved on the open shift.
+- [x] `TaskFormModal` takes `contained` (no portal, no scroll lock, overlay `inner` at `left: 0`). For it to cover the demo frame from inside the panel, the panel's slide-in now ends on `transform: none` (a transform would make the panel the modal's containing block). The panel ignores Escape from inside a dialog.
+- Decisions made without the user: asset values drop the category word ("Radio · R-208", court files "#PKXD402"); the Assignment select (not tabs) for several blocks; recurrence shown on the task row; the note has no author or time.
+- Not yet: assign copies and bulk actions don't touch attachments; no asset availability.
+- Grid mark (user asked, 2026-11-27): a cell with attachments gets a folded corner on its chip's bottom right (moved from top right at the user's request, clear of the lock/OT/OU tags), like a spreadsheet comment (`AttachmentMark.tsx`, `.attachMark`, `--workforce-attachment-size` 10px / `-size-mini` 9px / `-color` = `--text-default`). Every density and layout, people's cells and open shifts, inside the overnight wrapper too. The cell's aria-label adds "Attached: 2 tags, 1 task and a note" (`attachmentSummary`). Legend row `attachments`. Rejected: a paperclip beside the ⚠ (a second 16px icon would cover a Mini chip).
+- OT/OU tags (user, 2026-11-27, "for now"): icons only, no "OT"/"OU" text in Work Scheduling (`SHOW_TAG_LABELS` in `src/tokens/workforce.ts` → `ShiftChip tagLabels`, `DetailedChip`). Team View and Location View unchanged. The legend popover is capped to the space left (`middlewares.size`, padding 16) and its list scrolls.
+- Follow-up (user, 2026-11-27): no "None yet." in empty sections (the count says it); "Add …" text buttons (Add task, Add segment, Set actual, and the task form's Add reminder / Add note) use the primary color with the primary-light hover. Fixed globally by mapping Mantine's `--mantine-color-intime-light*` vars to the theme tokens (`mantineAliases`).
+
+### Step 7 as built (2026-11-27): employee row
+
+- [x] `workforce/hours.ts`: `hoursSummary(member, day)` → `week` (Monday–Sunday) and `period` (the grid's 7-day schedule period, `periodStartOf` / `PERIOD_DAYS` now exported from `schedule/data.ts`), each `{ from, to, scheduled, overtime, leave }`, plus `cap` (`WEEKLY_HOURS_CAP`) and `banks` (`{ bank, balance, available }`). Scheduled = `workedHours` (work minus leave, as the cap counts it); overtime = the overtime parts of `chipParts` (whole OT assignments and the last 2h of partly-OT ones); leave = leave segments, a whole day counting as the person's watch length (PatD 10h). Bank `available` is `bankAvailable` (the "16 avail."); `balance` is mock, per person.
+- [x] Hours: a `Popover` (300px) from the Hours button: "Hours · B. Haddad", a table (This week / This period with their dates × Scheduled, Overtime, Leave; "–" for none), a progress bar "50h of 60h weekly cap" (warning fill and "· 10h over" past the cap), then Time banks (Balance, Can bank). No explanation line under it (user, 2026-11-27). The tooltip hides while it's open; Escape on the button closes just the popover (`aria-expanded` keeps the panel's Escape away).
+- [x] Find in schedule: `WorkforcePanel` takes `people` (`panel/people.ts`: `member(id)` = the edited person, `onFind`), provided to the editors through a context so `OpenShiftEditor`'s picked employee gets edited hours too. The demo opens the person's watch if collapsed and sets `found`; `WorkforceGrid`'s `found` centers the person's first line in the scroller (smooth unless reduced motion) and puts `data-found` on their labels and cells: a primary-light tint (registered `--found-tint`, layered over the cell's own background, so active/selected headers keep theirs) that holds then fades over 2.4s; the demo clears it after `FOUND_MS` (2.6s). Pressing it again flashes again. Status line: "B. Haddad is in the Day watch. Their row is highlighted."
+- [x] Chevron menu: the person's name as a label, Message, Call (shows the mobile number), View profile (`EmployeeDetailsModal` with `workforceProfile`, `contained`, rendered in the employee row), View schedule. Only View profile is built.
+- [x] Page: the panel's "What it shows" section describes the employee row; changelog.
+- Decided without the user (check): "this period" is the grid's 7-day schedule period (the vertical lines, starting Tuesdays), so it's one day off the week; leave days count as the watch length; balances are invented per person; Find doesn't change the selection (the panel stays on what it shows); the flash fades instead of staying.
+- Not yet: Message, Call and View schedule are preview only; Find in schedule doesn't change the range when the person's row is in another unit (every mock person is in Patrol).
+
+### Step 8 as built (2026-11-27): smaller gaps
+
+**Fill** (user, 2026-11-27): "Fill" assigns an employee to an existing open (unfilled) shift. The scheduler picks from candidates based on availability, qualifications and operational needs; Find Lists and Auto Fill help choose, but Fill's core is giving the shift to a suitable person.
+
+- [x] `workforce/FillModal.tsx` (`contained`): "Fill open shift", a summary card (code, time, date, unit, location, "1 of 1 still needed"), search, a **Find list** `Select` (Best match = same watch, then fewest hours this week; Fewest hours; Precedence) and **Auto Fill** (picks the first available people for every place still needed). The list has three groups: Available, Available with warnings (what filling it would warn about: rest, hours cap, certification, from `dayWarnings` on the day as it would be), and Not available (works, is on leave or has a locked assignment at that time, with the reason), folded away behind "Show N not available". Each row: radio (1 needed) or checkboxes (up to the places left), avatar, name, rank, watch ("other watch" when it isn't the shift's), hours this week, and "Day off" or their other work that day. Footer: who's picked, Cancel, Assign / Assign N people.
+- [x] Logic in `workforce/fill.ts`: `openShiftChip` (the shift's segment with its fields and branch), `fillCandidates`, `sortCandidates`, `findLists`, `autoFill`, `fillOpenShift` (one save; skips busy people; returns the new `filled` count).
+- [x] Entry points: right-click › Fill (enabled when the selection has an open shift; the first one), the open-shift panel's ⋯ › Fill… and its Find an employee icon (`SegmentHandlers.onFind`). Picking someone in the open shift's employee field gives them a place at once (`PanelPeople.onFill`). Once the shift is filled, the panel follows the first person who got it.
+- [x] **Copy / Paste** (`workforce/clipboard.ts`, demo clipboard, not the system one): right-click › Copy / Paste, Ctrl/⌘ C / V while focus is in the grid, and the bulk panel's More › Paste. Copy skips open shifts and locked cells. One copied person-day pastes into every selected cell (its selected lines replaced); a larger area keeps its shape from the selection's top-left person-day, rows = people in grid order, and what falls outside the grid is skipped. Each pasted cell goes through `assignDay` (replaces what it overlaps; a locked clash skips the day). One commit = one Undo.
+- [x] **Reassign**: the day editor's employee picker moves the selected assignment to the picked person on the same day (`moveBlock(index, day, toMember)`, which "Move to another day" uses too). Overlaps are refused with the inline note ("Can't move to E. Rodriguez: it overlaps PatD 07:00–17:00."). Read-only on an empty day or a locked assignment. Attachments and cell flags go along.
+- [x] **Follow a move**: after a reassign or Move to another day, `PanelPeople.onMoved` says so in the status line and the demo selects the new cell (`useGridSelection().select`, done during render once the model has the change), changes the date if the day is out of range, opens a collapsed watch, flashes the row and focuses the panel heading.
+- [x] **Branch saves** per assignment (`Chip.branch`; `HOME_BRANCH` clears it), so another branch makes it out of branch (muted, not counted). Open shifts save it as `OpenShift.branch` and fills carry it.
+- [x] Fixed: `assignDay` and Move errors lowercased the whole message ("overlaps patd"); now only the first letter.
+- Decided without the user (check): Copy skips locked cells and open shifts; empty copied cells change nothing (a spreadsheet would clear them); Paste replaces what it overlaps, like assign mode. Reassign and Move refuse an overlap rather than replace. Fill's "not available" = any cell at the same time, including leave. Auto Fill only picks people without warnings. The panel follows a moved assignment every time, not only when it was the day's only one.
+- Not yet: Find lists are sort orders (the real ones are configured lists, e.g. an OT rotation); Auto Fill doesn't weigh overtime cost; Load from template, Pre-fill, Leave, Post, Add new ruler and History in the context menu stay preview; no multi-cell Fill (several open shifts at once).
 
 ### Locked assignments; out of branch editable (2026-11-26, user)
 
@@ -504,12 +546,13 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
-- Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
 - Details panel scenarios: steps 1–5 built. What's left is tracked in **"Start here: remaining steps"** at the top.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
-- Keyboard shortcuts scope in `src/tokens/shortcuts.ts`; copy/paste of cells; resizable panel.
+- Attachments: real tag and asset categories from settings; asset availability (who has Car 4417 now); tasks shown on the employee's Calendar; bulk Change fields for tags/assets.
+- Keyboard shortcuts scope in `src/tokens/shortcuts.ts` (Ctrl/⌘ C and V in the grid are hard-coded for now); resizable panel.
+- Fill: several open shifts at once; the coverage alerts' Find-Fill could open the Fill dialog with a new open shift for the gap.
 - Mobile layout.
 - Panel as a drawer over the grid (built, hidden): bring back the pin in the panel header and document it.
 
@@ -518,16 +561,21 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Overnight overlap (proposal, 2026-11-26): some supervisors want a graveyard shift (22:00–08:00) to show on the day with most of its hours. The demo instead keeps it on its start day and adds a tip over the next day's cell (switch in the demo bar, 3 examples in the Night watch). Do stakeholders accept it? If yes: make it the default and drop the switch; decide whether the panel and Day view say "+1" too.
 
 - Warnings (step 4): the real hours cap and rest minimum, and whether they vary by rank or contract. Should a warning ask for a reason (override) before saving? Which certifications exist, per activity?
-- Assign mode (step 3): should a name or date header assign the whole row or day while assigning? Should picking another employee in the panel move the assignment to them?
+- Assign mode (step 3): should a name or date header assign the whole row or day while assigning? ~~Should picking another employee in the panel move the assignment to them?~~ Built in step 8 (moves it).
 - All-day leave replaces the day's assignments (step 2). Should the freed shift become an open shift, or should the assignment stay, marked as on leave?
 - Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?
 
 - Details panel: the open UI decisions are tracked in `plans/workforce-panel-review.md`, not here. Leave approval states (pending, approved, denied) and how they show in the panel are open too.
-- Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
+- ~~Attachments: whole day, block or segment? Same asset on two people?~~ Answered 2026-11-27: per block; shared assets are fine, no warning.
+- Attachments: do a court date's file and note come from the court system? Should Assign copies take tags or assets along (today they take none)? Does the note need an author and time?
 
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
 - Bulk panel: should Delete all skip open shifts, as Assign to N does?
-- Context menu: what do Load from template, Pre-fill, Leave, Post, Fill and History open? (Probably the panel's modes and the Find-Fill flow.)
+- Hours popover (step 7): what is "this period" in InTime: the grid's 7-day schedule period, or a pay period (14 or 28 days, e.g. the FLSA 7(k) 28-day period)? Real bank balances and caps per bank; how a leave day counts (watch length or a fixed 8h)?
+- Employee menu: what Message and View schedule open (a chat? the person's Calendar?), and whether Call should just show the number on desktop.
+- Context menu: what do Load from template, Pre-fill, Leave, Post and History open? ~~Fill~~ answered 2026-11-27 (pick a candidate for an open shift; built in step 8).
+- Fill (step 8): what are InTime's real Find Lists (OT rotation, seniority, volunteers) and what does Auto Fill weigh (overtime cost, hours, rank)? Can a candidate with a warning be auto-filled? Should a reassign or a move that overlaps replace the other assignment instead of refusing?
+- Paste (step 8): should empty copied cells clear the target cells, as in a spreadsheet?
 - ~~Meaning of the employee-row icons~~ Answered 2026-11-25 (review item 8): Hours = hours summary popover, Crosshair = Find in schedule, Chevron = person actions menu.
 - Real values for Customer, Hours modifier and Rank (acting).
 - ~~Where should employee details open?~~ The chevron menu's "View profile" (2026-11-25).

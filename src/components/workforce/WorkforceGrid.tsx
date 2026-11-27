@@ -1,5 +1,5 @@
-import { memo, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react'
-import { useElementSize } from '@mantine/hooks'
+import { memo, useEffect, useRef, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react'
+import { useElementSize, useMergedRef, useReducedMotion } from '@mantine/hooks'
 import { Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
@@ -7,12 +7,14 @@ import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import {
   chipFills, coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatHour, formatWeekday, isPeriodStart, segmentHours, type Chip, type DayCoverage,
 } from '../schedule/data'
-import { DAY_MAX_WIDTH, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
-import GridContextMenu from './GridContextMenu'
+import { DAY_MAX_WIDTH, SHOW_TAG_LABELS, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
+import GridContextMenu, { type GridMenuActions } from './GridContextMenu'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
 import { describeOpenShift, overnightSegment, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
+import { attachmentSummary, attachmentsOf } from './attachments'
+import { AttachmentMark, WithAttachmentMark } from './AttachmentMark'
 import { HEADER_ROW, staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
@@ -29,11 +31,13 @@ export interface WorkforceGridProps {
   onToggleStaffing: (watch: WatchId) => void
   onCoverageClick: (watch: Watch, day: number) => void
   /** Adds the right-click menu (see `GridContextMenu`). Pass `onContextMenu` to `useGridSelection` too. */
-  contextMenu?: { title: string; onPreview: (action: string) => void }
+  contextMenu?: GridMenuActions
   /** Assign mode is on: people's cells show a copy cursor and a dashed outline on hover */
   assigning?: boolean
   /** Overnight overlap (proposal): a shift that ends after midnight stays on its start day and points into the next day's cell */
   overnight?: boolean
+  /** Find in schedule: this person's row scrolls into view and flashes. Set it again (after null) to flash again. */
+  found?: string | null
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -54,8 +58,8 @@ function EmployeeSearch() {
       className={classes.cornerSearch}
       classNames={{ input: classes.cornerSearchInput }}
       size="sm"
-      aria-label="Search employees"
-      placeholder="Search employees…"
+      aria-label="Filter employees"
+      placeholder="Filter employees…"
       value={query}
       onChange={(event) => setQuery(event.currentTarget.value)}
       leftSection={<Search size={16} strokeWidth={1.75} aria-hidden="true" />}
@@ -116,18 +120,19 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
  * Overnight overlap: the cell's chip with a tip that reaches into the next day's cell, so a 22:00–08:00 shift
  * reads as running into the next morning while it stays on its start day. On the last day of the range the tip stays inside the cell.
  */
-function OvernightChip({ chip, lastDay, children }: { chip: Chip; lastDay: boolean; children: ReactNode }) {
+function OvernightChip({ chip, lastDay, attached, children }: { chip: Chip; lastDay: boolean; attached: boolean; children: ReactNode }) {
   // Out of branch and locked cells are muted, and so is their tip
   const fill = chip.branch || chip.locked ? 'var(--schedule-branch-bg)' : `var(--schedule-${chipFills(chip)[1]})`
   return (
     <span className={classes.overnight} data-last-day={lastDay || undefined} style={{ '--overnight-fill': fill } as CSSProperties}>
       {children}
+      {attached && <AttachmentMark />}
       <span className={classes.overnightTip} aria-hidden="true" />
     </span>
   )
 }
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, overnight, lastDay, ...state }: CellState & {
+const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, overnight, lastDay, found, ...state }: CellState & {
   chip: Chip | null
   name: string
   overflow: boolean
@@ -135,24 +140,30 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
   /** Show the overnight tip when the chip ends after midnight */
   overnight: boolean
   lastDay: boolean
+  /** Find in schedule flashes the person's row */
+  found: boolean
 }) {
   const context = `${name}, ${formatHeader(state.day)}`
   const late = chip && overnight ? overnightSegment(chip) : undefined
+  const attached = chip ? attachmentSummary(attachmentsOf(chip)) : null
   const content = chip && (
     cells === 'detailed' ? <DetailedChip chip={chip} />
       : cells === 'stacked' ? <StackedChip chip={chip} />
-        : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} />
+        : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tagLabels={SHOW_TAG_LABELS} />
   )
   return (
     <div
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
-      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}`}
+      data-found={found || undefined}
+      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}${attached ? `. Attached: ${attached}` : ''}`}
     >
       {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
       {chip ? (
-        late ? <OvernightChip chip={chip} lastDay={lastDay}>{content}</OvernightChip> : content
+        late
+          ? <OvernightChip chip={chip} lastDay={lastDay} attached={!!attached}>{content}</OvernightChip>
+          : <WithAttachmentMark attached={!!attached}>{content}</WithAttachmentMark>
       ) : state.selectable && (
         <Plus size={18} strokeWidth={1.75} className={classes.add} aria-hidden="true" />
       )}
@@ -161,13 +172,14 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
 })
 
 const OpenCell = memo(function OpenCell({ shift, cells, ...state }: CellState & { shift: OpenShift | null }) {
+  const attached = attachmentSummary(shift?.attachments)
   return (
     <div
       {...cellProps(state)}
       className={`${classes.cell} ${classes.openCell}`}
-      aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}`}
+      aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}${attached ? `. Attached: ${attached}` : ''}`}
     >
-      {shift && <OpenShiftChip shift={shift} density={cells === 'codes' ? state.density : cells} />}
+      {shift && <WithAttachmentMark attached={!!attached}><OpenShiftChip shift={shift} density={cells === 'codes' ? state.density : cells} /></WithAttachmentMark>}
     </div>
   )
 })
@@ -229,10 +241,12 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false, overnight = false,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false, overnight = false, found = null,
 }: WorkforceGridProps) {
   const { days } = model
-  const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
+  const { ref: sizeRef, width } = useElementSize<HTMLDivElement>()
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const scrollerRef = useMergedRef(sizeRef, scrollRef)
   // One day: the grid is at most DAY_MAX_WIDTH wide and centered, so fit the columns to that
   const single = days.length === 1
   const { narrowLabel, layout: density } = fitColumns(single ? Math.min(width, DAY_MAX_WIDTH) : width, days.length)
@@ -242,6 +256,18 @@ export default function WorkforceGrid({
   const active = selection.active
   const activeRow = active ? model.byKey.get(active.row) : undefined
   const activeDay = activeRow && (activeRow.kind === 'member' || activeRow.kind === 'open') ? active?.day ?? null : null
+  const reduceMotion = useReducedMotion()
+  const foundRow = found ? model.rows.find((row) => row.kind === 'member' && row.line === 0 && row.member.id === found)?.key : undefined
+
+  // Find in schedule: center the person's first line in the scroller (below the pinned header rows)
+  useEffect(() => {
+    const scroller = scrollRef.current
+    const label = foundRow && scroller?.querySelector<HTMLElement>(`[data-row="${CSS.escape(foundRow)}"][data-day="label"]`)
+    if (!scroller || !label) return
+    const offset = label.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+    scroller.scrollTo({ top: scroller.scrollTop + offset - (scroller.clientHeight - label.offsetHeight) / 2, behavior: reduceMotion ? 'auto' : 'smooth' })
+  }, [foundRow, reduceMotion])
+
   const style = { gridTemplateColumns: `var(--workforce-label-width) repeat(${days.length}, minmax(0, 1fr))` } as CSSProperties
 
   const esc = selection.escapeProps
@@ -363,6 +389,7 @@ export default function WorkforceGrid({
         const name = shortName(member)
         const rowActive = active?.row === row.key && activeDay !== null
         const rowSelected = selection.isRowSelected(row.key)
+        const isFound = member.id === found || undefined
         return (
           <div role="row" className={classes.row} key={row.key}>
             {row.line === 0 ? (
@@ -372,6 +399,7 @@ export default function WorkforceGrid({
                 data-row-header=""
                 data-active={rowActive || undefined}
                 data-selected={rowSelected || undefined}
+                data-found={isFound}
                 data-row={row.key}
                 data-day="label"
                 {...esc}
@@ -394,6 +422,7 @@ export default function WorkforceGrid({
                 data-row-header=""
                 data-active={rowActive || undefined}
                 data-selected={rowSelected || undefined}
+                data-found={isFound}
                 data-row={row.key}
                 data-day="label"
                 {...esc}
@@ -411,6 +440,7 @@ export default function WorkforceGrid({
                 warning={row.warnings[index]}
                 overnight={overnight}
                 lastDay={index === days.length - 1}
+                found={!!isFound}
                 {...cellState(row.key, days[index], index)}
               />
             ))}
@@ -487,7 +517,7 @@ export default function WorkforceGrid({
       data-cells={cells === 'codes' ? undefined : cells}
       data-assigning={assigning || undefined}
     >
-      {contextMenu ? <GridContextMenu title={contextMenu.title} onPreview={contextMenu.onPreview}>{grid}</GridContextMenu> : grid}
+      {contextMenu ? <GridContextMenu {...contextMenu}>{grid}</GridContextMenu> : grid}
       <VisuallyHidden role="status">{selection.selected.size > 1 ? `${selection.selected.size} cells selected` : ''}</VisuallyHidden>
     </div>
   )

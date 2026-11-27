@@ -10,8 +10,30 @@ export const modifiers = ['None', 'Overtime 1.5×', 'Overtime 2×', 'Holiday pay
 export const actingRanks = ['None', 'Corporal', 'Sergeant', 'Lieutenant']
 export const customers = ['City of New York', 'NYC Transit', 'Barclays Center']
 export const units = [...watches.map((watch) => watch.unit), 'Special Ops', 'K9 Unit', 'Training']
-/** Branches (precincts) people can work at. The demo's unit is in the first one. */
-export const branches = [...new Set([HOME_BRANCH, OTHER_BRANCH, ...navUnits])]
+/** A branch and the branches under it */
+export type BranchNode = { label: string; children?: BranchNode[] }
+
+/** Branches people can work at, as a tree: boroughs and divisions, their precincts and companies, then squads. */
+export const branchTree: BranchNode[] = [
+  {
+    label: 'Patrol Borough Brooklyn',
+    children: [
+      { label: HOME_BRANCH, children: [{ label: '99th Precinct - Anti-Crime' }, { label: '99th Precinct - Detective Squad' }] },
+      { label: OTHER_BRANCH },
+      { label: '90th Precinct - Brooklyn' },
+    ],
+  },
+  { label: 'Patrol Borough Manhattan South', children: [{ label: navUnits[1] }, { label: 'Midtown South Precinct' }] },
+  { label: 'Fire Division 13 - Queens', children: [{ label: navUnits[2] }, { label: 'Ladder 7 - Queens' }] },
+]
+
+/** The branch tree in list order, each with its depth and how many branches sit directly under it */
+export const branchOptions = (function flatten(nodes: BranchNode[], depth: number): { value: string; label: string; depth: number; count: number }[] {
+  return nodes.flatMap((node) => [
+    { value: node.label, label: node.label, depth, count: node.children?.length ?? 0 },
+    ...flatten(node.children ?? [], depth + 1),
+  ])
+})(branchTree, 0)
 export const timeBanks: TimeBank[] = ['Overtime', 'Comp Time', 'Holiday']
 /** Hours each bank can still take this period (mock) */
 export const bankAvailable: Record<TimeBank, number> = { Overtime: 16, 'Comp Time': 40, Holiday: 8 }

@@ -1,10 +1,11 @@
-import { formatHeader, segmentKind, type Chip, type Segment } from '../../schedule/data'
+import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { dayKey, findWatch, shortName, type OpenShiftEdit, type SegmentDetails, type Watch, type WorkforceMember, type WorkforceSegment } from '../data'
 import { assignDay, flattenDay, regroupDay, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import type { LeaveRequest } from './LeaveEntry'
 import { segmentDetails } from './options'
+import { normalizeEnd } from './format'
 
 /* ------------------------------------------------------------------ */
 /* Bulk edits: what the panel does to several selected cells at once.  */
@@ -28,9 +29,6 @@ export interface BulkSelection {
   open: OpenItem[]
 }
 
-/** The fields "Change fields" sets on every selected cell */
-export type BulkField = 'activity' | 'location' | 'modifier' | 'unit'
-
 /** What an action saves, how many cells it changed, and why others were left alone */
 export interface BulkResult {
   commit: EditCommit
@@ -43,6 +41,8 @@ const isLeave = (segment: Segment) => segmentKind(segment) === 'leave'
 const ownLines = (day: BulkDay) => day.lines.filter((line) => !day.blocks[line].locked)
 const lockedLines = (day: BulkDay) => day.lines.length - ownLines(day).length
 const unitOf = (day: BulkDay, chip: Chip) => (chip.outOfUnit ? chip.unit ?? day.watch.unit : day.watch.unit)
+/** An error inside a sentence: "Overlaps PatD …" → "overlaps PatD …" (codes keep their case) */
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1)
 const newId = (prefix: string) => `${prefix}${Math.random().toString(36).slice(2, 8)}`
 
 /** Groups the selected cells by person-day (two lines of one day are one day) and open shift */
@@ -99,37 +99,65 @@ export function assignCode(selection: BulkSelection, code: string): BulkResult {
   return { commit: { days }, changed: days.length, skipped }
 }
 
-/** The values a field has across the selected cells' working segments (and open shifts) */
-export function fieldValues(selection: BulkSelection, field: BulkField): (string | null)[] {
-  const values: (string | null)[] = []
+/** A working segment the bulk form shows and edits: of a selected, unlocked cell, or a selected open shift */
+export interface BulkSegment {
+  day: number
+  code: string
+  start: number
+  end: number
+  details: SegmentDetails
+}
+
+const openDetails = (shift: OpenItem['shift']) =>
+  segmentDetails({ code: shift.code, details: shift.details }, findWatch(shift.watch).unit, shift.id, shift.location)
+
+/** The working segments of the selected cells (leave and locked cells left out) and the selected open shifts */
+export function bulkSegments(selection: BulkSelection): BulkSegment[] {
+  const segments: BulkSegment[] = []
   for (const day of selection.days) {
     for (const line of ownLines(day)) {
       const chip = day.blocks[line]
       chip.segments.forEach((segment: WorkforceSegment, index) => {
         if (isLeave(segment)) return
-        values.push(segmentDetails(segment, unitOf(day, chip), `${day.key}:${segment.id ?? `s${line}.${index}`}`)[field])
+        const details = segmentDetails(segment, unitOf(day, chip), `${day.key}:${segment.id ?? `s${line}.${index}`}`)
+        segments.push({ day: day.day, code: segment.code, ...segmentHours(segment), details })
       })
     }
   }
   for (const { shift } of selection.open) {
-    values.push(segmentDetails({ code: shift.code, details: shift.details }, findWatch(shift.watch).unit, shift.id, shift.location)[field])
+    segments.push({ day: shift.day, code: shift.code, start: shift.start, end: shift.end, details: openDetails(shift) })
   }
-  return values
+  return segments
 }
 
 /** The shared value of a field, or null when the cells differ (or there are none) */
 export const commonValue = <T,>(values: T[]): T | null => (values.length && values.every((value) => value === values[0]) ? values[0] : null)
 
-/** Sets one field on every selected cell's working segments and open shifts. Leave segments and locked cells stay. */
-export function changeField(selection: BulkSelection, change: Partial<SegmentDetails>): BulkResult {
+/** What a bulk change does to one segment: a new code and/or fields, or null to leave it */
+export type SegmentChange = (segment: BulkSegment) => { code?: string; details?: SegmentDetails } | null
+
+/** Skipped cells, for the status line */
+function skippedCells(selection: BulkSelection, leaveOnly: number, extra: string[] = []) {
+  const locked = lockedCount(selection)
+  const empty = selection.days.filter((day) => !day.lines.length).length
+  return [
+    ...(locked ? [plural(locked, 'locked cell')] : []),
+    ...(leaveOnly ? [plural(leaveOnly, 'leave cell')] : []),
+    ...(empty ? [plural(empty, 'empty cell')] : []),
+    ...extra,
+  ]
+}
+
+/**
+ * Changes every working segment of the selected unlocked cells, and the selected open shifts. Leave segments and
+ * locked cells stay. Segment ids are filled in as `s{block}.{index}`, as `flattenDay` does, so the mock defaults hold.
+ */
+export function changeSegments(selection: BulkSelection, change: SegmentChange): BulkResult {
   const days: [string, Chip[]][] = []
   let changed = 0
   let leaveOnly = 0
-  let empty = 0
   for (const day of selection.days) {
     const own = ownLines(day)
-    if (!day.lines.length) empty += 1
-    if (!own.length) continue
     let touched = false
     const chips = day.blocks.map((chip, line) => {
       if (!own.includes(line)) return chip
@@ -137,29 +165,126 @@ export function changeField(selection: BulkSelection, change: Partial<SegmentDet
         leaveOnly += 1
         return chip
       }
+      let chipChanged = false
+      const segments = chip.segments.map((segment: WorkforceSegment, index) => {
+        if (isLeave(segment)) return segment
+        const id = segment.id ?? `s${line}.${index}`
+        const details = segmentDetails(segment, unitOf(day, chip), `${day.key}:${id}`)
+        const next = change({ day: day.day, code: segment.code, ...segmentHours(segment), details })
+        if (!next) return segment
+        chipChanged = true
+        return { ...segment, id, details: next.details ?? details, code: next.code ?? segment.code }
+      })
+      if (!chipChanged) return chip
       changed += 1
       touched = true
-      return {
-        ...chip,
-        segments: chip.segments.map((segment: WorkforceSegment, index) => {
-          if (isLeave(segment)) return segment
-          const id = segment.id ?? `s${line}.${index}`
-          return { ...segment, id, details: { ...segmentDetails(segment, unitOf(day, chip), `${day.key}:${id}`), ...change } }
-        }),
-      }
+      return { ...chip, segments }
     })
     if (touched) days.push([day.key, chips])
   }
-  const open: [string, OpenShiftEdit][] = selection.open.map(({ shift }) => [shift.id, {
-    details: { ...segmentDetails({ code: shift.code, details: shift.details }, findWatch(shift.watch).unit, shift.id, shift.location), ...change },
-  }])
+  const open: [string, OpenShiftEdit][] = []
+  for (const { shift } of selection.open) {
+    const next = change({ day: shift.day, code: shift.code, start: shift.start, end: shift.end, details: openDetails(shift) })
+    if (!next) continue
+    open.push([shift.id, { ...(next.code ? { code: next.code } : {}), ...(next.details ? { details: next.details } : {}) }])
+  }
+  return { commit: { days, open }, changed: changed + open.length, skipped: skippedCells(selection, leaveOnly) }
+}
+
+/**
+ * New times from a bulk edit: the typed start and/or end, the segment's own for the other. An end at or before the
+ * start is the next day, as in the single-cell form. Null when it would start and end at the same time.
+ */
+export function applyTimes(span: { start: number; end: number }, times: { start?: number; end?: number }) {
+  const start = times.start ?? span.start
+  const end = times.end ?? (span.end % 24 || 24)
+  if (start % 24 === end % 24 && !(start === 0 && end === 24)) return null
+  return { start, end: normalizeEnd(start, end) }
+}
+
+/**
+ * Scheduled times on every selected assignment with one working segment, and on open shifts. Assignments split into
+ * several working segments are skipped (which one would get the times?), and so are days where the new times clash.
+ */
+export function changeTimes(selection: BulkSelection, times: { start?: number; end?: number }): BulkResult {
+  const days: [string, Chip[]][] = []
+  const problems: string[] = []
+  let changed = 0
+  let split = 0
+  let leaveOnly = 0
+  for (const day of selection.days) {
+    const own = ownLines(day)
+    const items = flattenDay(day.blocks)
+    let count = 0
+    let error = null as string | null
+    const next = items.map((item) => {
+      if (!own.includes(item.from)) return item
+      const working = items.filter((other) => other.from === item.from && !isLeave(other.segment))
+      if (isLeave(item.segment) || working.length !== 1) return item
+      const span = applyTimes(segmentHours(item.segment), times)
+      if (!span) {
+        error = 'starts and ends at the same time'
+        return item
+      }
+      count += 1
+      return { ...item, segment: { ...item.segment, ...span } }
+    })
+    for (const line of own) {
+      const segments = day.blocks[line].segments
+      if (segments.every(isLeave)) leaveOnly += 1
+      else if (segments.filter((segment) => !isLeave(segment)).length > 1) split += 1
+    }
+    if (!count && !error) continue
+    const result = error ? { chips: day.blocks, error } : regroupDay(day.blocks, next)
+    if (result.error) problems.push(`${shortName(day.member)}, ${formatHeader(day.day)} (${lowerFirst(result.error)})`)
+    else {
+      days.push([day.key, result.chips])
+      changed += count
+    }
+  }
+  const open: [string, OpenShiftEdit][] = []
+  for (const { shift } of selection.open) {
+    const span = applyTimes(shift, times)
+    if (span) open.push([shift.id, span])
+  }
+  const extra = [...(split ? [`${plural(split, 'split assignment')} (set those one at a time)`] : []), ...problems]
+  return { commit: { days, open }, changed: changed + open.length, skipped: skippedCells(selection, leaveOnly, extra) }
+}
+
+/**
+ * Scheduled date: moves every selected, unlocked cell to `to`, as moving one assignment does. A person's cells from
+ * several days all go to that day; when they would clash there, that person's cells stay. Open shifts stay too.
+ */
+export function moveCells(selection: BulkSelection, to: number): BulkResult {
+  const days: [string, Chip[]][] = []
+  const problems: string[] = []
+  let changed = 0
+  const byMember = new Map<string, BulkDay[]>()
+  for (const day of selection.days) {
+    if (day.day === to || !ownLines(day).length) continue
+    byMember.set(day.member.id, [...(byMember.get(day.member.id) ?? []), day])
+  }
+  for (const sources of byMember.values()) {
+    const member = sources[0].member
+    const target = member.chips(to)
+    const moving = sources.flatMap((day) => ownLines(day).map((line) => day.blocks[line]))
+    const moved = moving.flatMap((chip, index) => chip.segments.map((segment: WorkforceSegment) => ({ segment: { ...segment, id: newId('m') }, from: target.length + index })))
+    const result = regroupDay([...target, ...moving], [...flattenDay(target), ...moved])
+    if (result.error) {
+      problems.push(`${shortName(member)} (${lowerFirst(result.error)})`)
+      continue
+    }
+    for (const day of sources) days.push([day.key, day.blocks.filter((_, line) => !ownLines(day).includes(line))])
+    days.push([dayKey(member.id, to), result.chips])
+    changed += moving.length
+  }
   const locked = lockedCount(selection)
   const skipped = [
     ...(locked ? [plural(locked, 'locked cell')] : []),
-    ...(leaveOnly ? [plural(leaveOnly, 'leave cell')] : []),
-    ...(empty ? [plural(empty, 'empty cell')] : []),
+    ...(selection.open.length ? [`${plural(selection.open.length, 'open shift')} (their date can’t change)`] : []),
+    ...problems,
   ]
-  return { commit: { days, open }, changed: changed + open.length, skipped }
+  return { commit: { days }, changed, skipped }
 }
 
 /** Removes the selected cells (open shifts too), except locked ones */
@@ -186,7 +311,7 @@ export function addLeave(selection: BulkSelection, leave: LeaveRequest): BulkRes
       continue
     }
     const result = regroupDay(day.blocks, [...flattenDay(day.blocks), { segment: { ...segment, id: segment.id! }, from: day.blocks.length }])
-    if (result.error) problems.push(`${shortName(day.member)}, ${formatHeader(day.day)} (${result.error.toLowerCase()})`)
+    if (result.error) problems.push(`${shortName(day.member)}, ${formatHeader(day.day)} (${lowerFirst(result.error)})`)
     else days.push([day.key, result.chips])
   }
   const skipped = [

@@ -485,6 +485,8 @@ export function useGridSelection({
      */
     escapeProps,
     clear: () => setState((s) => ({ ...s, base: new Set(), anchor: null, focus: null })),
+    /** Selects just this cell and makes it the active one (e.g. to follow an assignment that moved). Focus stays where it is. */
+    select: (cell: CellRef) => setState((s) => ({ ...s, base: new Set([cellKey(cell.row, cell.day)]), anchor: null, focus: null, active: cell })),
     /** Back to nothing selected and no active cell, e.g. for Reset demo */
     reset: () => setState({ base: new Set(), anchor: null, focus: null, active: null, signature }),
     /** Puts focus back on the active cell, e.g. after closing the panel */

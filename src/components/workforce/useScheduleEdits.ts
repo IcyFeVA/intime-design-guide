@@ -1,6 +1,6 @@
 import { useReducer } from 'react'
 import type { Chip } from '../schedule/data'
-import { noEdits, type OpenShiftEdit, type ScheduleEdits } from './data'
+import { noEdits, syncOvertime, type OpenShiftEdit, type ScheduleEdits } from './data'
 
 /** One autosave: people's days replaced as a whole, and open shift changes merged in. */
 export interface EditCommit {
@@ -28,7 +28,7 @@ function reducer(state: State, action: Action): State {
   }
   const { days = [], open = [] } = action.commit
   const nextDays = new Map(state.edits.days)
-  for (const [key, chips] of days) nextDays.set(key, chips)
+  for (const [key, chips] of days) nextDays.set(key, syncOvertime(chips))
   const nextOpen = new Map(state.edits.open)
   for (const [id, edit] of open) nextOpen.set(id, { ...nextOpen.get(id), ...edit })
   return {

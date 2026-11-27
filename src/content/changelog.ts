@@ -10,6 +10,77 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Copy, paste and Fill work in the grid, and assignments can move to another person.',
+    changes: [
+      'Right-click › Copy and Paste (or Ctrl/⌘ C and V in the grid) copy cells like a spreadsheet: one cell fills the whole selection, a larger area keeps its shape. The bulk panel’s More › Paste works too.',
+      'Fill gives an open shift to people picked from a list: available first, then with warnings, then who is busy and why. Find lists set the order, and Auto Fill picks the best matches.',
+      'Picking another employee in the panel moves the selected assignment to them; on an open shift it gives them a place.',
+      'After a move to another person or day, the panel follows the assignment to its new cell.',
+      'The Branch field saves: another branch makes the assignment out of branch.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The details panel’s employee row now works: Hours, Find in schedule and the person menu.',
+    changes: [
+      'Hours opens a summary: scheduled, overtime and leave hours for this week and this schedule period, the week against the 60h cap, and each time bank’s balance and what it can still take this period.',
+      'Find in schedule scrolls the grid to the person’s row and highlights it for a moment, opening their watch if it’s collapsed.',
+      'The menu’s View profile opens employee details. Message, Call (with the mobile number) and View schedule are preview only.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'With several cells selected, “Change fields” has the same fields as one cell and starts open.',
+    changes: [
+      'Times, actual times, shift code, customer, Bank this time and acting rank join activity, location, hours modifier and unit. Differing values show “Mixed”.',
+      'Typing only a start keeps each cell’s own end, and the other way round. Assignments split into several segments keep their times.',
+      'Leave opens in its own section and folds “Change fields” away, so the leave form is in view.',
+      'Picking a scheduled date moves every selected cell to that day. Picking an actual date sets it on all of them.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Overtime and out-of-unit cells show only their icon (clock, arrow), without the “OT” and “OU” text. The legend now scrolls on small screens.',
+    changes: [
+      'Applies to the grid, the legend and the page’s examples in every view density. Team View and Location View keep the text.',
+      'The legend fits the space below its button; its title stays while the list scrolls.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Cells with attachments get a folded corner on their bottom right, like a comment in a spreadsheet.',
+    changes: [
+      'It shows in every view density and on a month (a smaller corner), on people’s cells and open shifts. It stays clear of the ⚠ (top left) and the OT, OU and lock tags (top right).',
+      'The cell’s screen-reader label lists what’s attached. New legend row: Attachments.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: null,
+    summary: 'Light and subtle primary buttons, badges and icon buttons now use the theme’s primary colors in every demo.',
+    changes: [
+      'Their text and icons use the primary text color (before: a near-white cyan in dark mode), and their background and hover use the primary light backgrounds.',
+      'Work Scheduling: Add task, Add segment and Set actual in the details panel are primary instead of gray, like Add reminder and Add note in the task form. Empty attachment sections no longer say “None yet.”',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The details panel’s Attachments tab now holds an assignment’s tags, assets, tasks and note.',
+    changes: [
+      'Tags and assets are picked from one searchable list grouped by category (“Vehicle › Car 4417”). Tags can also be custom text. Added items show as removable chips.',
+      'Add task opens the Calendar’s task form inside the demo. Tasks list their time, recurrence and reminders; select one to edit it.',
+      'Each assignment has one note: a text box that saves when you leave it. It also shows at the end of the Details tab.',
+      'Each assignment has its own attachments, and the tab’s count covers all four sections. Locked court dates show the court’s file and note read-only.',
+    ],
+  },
+  {
     date: '2026-11-26',
     page: '/patterns/vacation-bidding',
     summary: 'Vacation Bidding: submitted bids can be withdrawn. Withdraw sits on the left of the Pending footer in both modes, is styled as destructive, asks first, and starts the bid over with no requests.',
