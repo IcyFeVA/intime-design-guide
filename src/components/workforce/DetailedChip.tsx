@@ -1,5 +1,6 @@
 import { ArrowUpRight, Clock3, Lock } from 'lucide-react'
 import { chipParts, formatHours, type Chip } from '../schedule/data'
+import { SHOW_TAG_LABELS } from '../../tokens/workforce'
 import classes from './Workforce.module.css'
 
 function Tags({ overtime, outOfUnit, branch, locked }: { overtime: boolean; outOfUnit: boolean; branch?: string; locked?: boolean }) {
@@ -8,8 +9,8 @@ function Tags({ overtime, outOfUnit, branch, locked }: { overtime: boolean; outO
   if (!overtime && !outOfUnit) return null
   return (
     <span className={classes.partTags}>
-      {outOfUnit && <span className={classes.partTag}><ArrowUpRight size={12} strokeWidth={2} /><span className={classes.partTagText}>OU</span></span>}
-      {overtime && <span className={classes.partTag}><Clock3 size={12} strokeWidth={2} /><span className={classes.partTagText}>OT</span></span>}
+      {outOfUnit && <span className={classes.partTag}><ArrowUpRight size={12} strokeWidth={2} />{SHOW_TAG_LABELS && <span className={classes.partTagText}>OU</span>}</span>}
+      {overtime && <span className={classes.partTag}><Clock3 size={12} strokeWidth={2} />{SHOW_TAG_LABELS && <span className={classes.partTagText}>OT</span>}</span>}
     </span>
   )
 }

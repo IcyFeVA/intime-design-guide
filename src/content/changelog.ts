@@ -11,6 +11,24 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Overtime and out-of-unit cells show only their icon (clock, arrow), without the “OT” and “OU” text. The legend now scrolls on small screens.',
+    changes: [
+      'Applies to the grid, the legend and the page’s examples in every view density. Team View and Location View keep the text.',
+      'The legend fits the space below its button; its title stays while the list scrolls.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'Cells with attachments get a folded corner on their bottom right, like a comment in a spreadsheet.',
+    changes: [
+      'It shows in every view density and on a month (a smaller corner), on people’s cells and open shifts. It stays clear of the ⚠ (top left) and the OT, OU and lock tags (top right).',
+      'The cell’s screen-reader label lists what’s attached. New legend row: Attachments.',
+    ],
+  },
+  {
+    date: '2026-11-27',
     page: null,
     summary: 'Light and subtle primary buttons, badges and icon buttons now use the theme’s primary colors in every demo.',
     changes: [

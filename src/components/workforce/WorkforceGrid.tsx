@@ -7,12 +7,14 @@ import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
 import {
   chipFills, coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatHour, formatWeekday, isPeriodStart, segmentHours, type Chip, type DayCoverage,
 } from '../schedule/data'
-import { DAY_MAX_WIDTH, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
+import { DAY_MAX_WIDTH, SHOW_TAG_LABELS, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
 import GridContextMenu from './GridContextMenu'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
 import { describeOpenShift, overnightSegment, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
+import { attachmentSummary, attachmentsOf } from './attachments'
+import { AttachmentMark, WithAttachmentMark } from './AttachmentMark'
 import { HEADER_ROW, staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
@@ -116,12 +118,13 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
  * Overnight overlap: the cell's chip with a tip that reaches into the next day's cell, so a 22:00–08:00 shift
  * reads as running into the next morning while it stays on its start day. On the last day of the range the tip stays inside the cell.
  */
-function OvernightChip({ chip, lastDay, children }: { chip: Chip; lastDay: boolean; children: ReactNode }) {
+function OvernightChip({ chip, lastDay, attached, children }: { chip: Chip; lastDay: boolean; attached: boolean; children: ReactNode }) {
   // Out of branch and locked cells are muted, and so is their tip
   const fill = chip.branch || chip.locked ? 'var(--schedule-branch-bg)' : `var(--schedule-${chipFills(chip)[1]})`
   return (
     <span className={classes.overnight} data-last-day={lastDay || undefined} style={{ '--overnight-fill': fill } as CSSProperties}>
       {children}
+      {attached && <AttachmentMark />}
       <span className={classes.overnightTip} aria-hidden="true" />
     </span>
   )
@@ -138,21 +141,24 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
 }) {
   const context = `${name}, ${formatHeader(state.day)}`
   const late = chip && overnight ? overnightSegment(chip) : undefined
+  const attached = chip ? attachmentSummary(attachmentsOf(chip)) : null
   const content = chip && (
     cells === 'detailed' ? <DetailedChip chip={chip} />
       : cells === 'stacked' ? <StackedChip chip={chip} />
-        : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} />
+        : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} tagLabels={SHOW_TAG_LABELS} />
   )
   return (
     <div
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
-      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}`}
+      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}${attached ? `. Attached: ${attached}` : ''}`}
     >
       {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
       {chip ? (
-        late ? <OvernightChip chip={chip} lastDay={lastDay}>{content}</OvernightChip> : content
+        late
+          ? <OvernightChip chip={chip} lastDay={lastDay} attached={!!attached}>{content}</OvernightChip>
+          : <WithAttachmentMark attached={!!attached}>{content}</WithAttachmentMark>
       ) : state.selectable && (
         <Plus size={18} strokeWidth={1.75} className={classes.add} aria-hidden="true" />
       )}
@@ -161,13 +167,14 @@ const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cel
 })
 
 const OpenCell = memo(function OpenCell({ shift, cells, ...state }: CellState & { shift: OpenShift | null }) {
+  const attached = attachmentSummary(shift?.attachments)
   return (
     <div
       {...cellProps(state)}
       className={`${classes.cell} ${classes.openCell}`}
-      aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}`}
+      aria-label={`${formatHeader(state.day)}: ${shift ? describeOpenShift(shift) : 'no open shift'}${attached ? `. Attached: ${attached}` : ''}`}
     >
-      {shift && <OpenShiftChip shift={shift} density={cells === 'codes' ? state.density : cells} />}
+      {shift && <WithAttachmentMark attached={!!attached}><OpenShiftChip shift={shift} density={cells === 'codes' ? state.density : cells} /></WithAttachmentMark>}
     </div>
   )
 })

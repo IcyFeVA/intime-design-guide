@@ -19,6 +19,8 @@ export interface ShiftChipProps {
   onClick?: () => void
   /** `false` renders a plain, hidden-from-screen-readers chip for grids where the cell itself is focusable (Workforce Scheduling). Default `true`. */
   interactive?: boolean
+  /** `false`: the OT and OU tags show their icon only, without the text (Workforce Scheduling, for now). Default `true`. */
+  tagLabels?: boolean
 }
 
 const fillStyle = (chip: Chip) => {
@@ -31,7 +33,7 @@ const fillStyle = (chip: Chip) => {
  * that branch. Locked (e.g. a court date): the same muted cell with a lock. `icons`: OU icon only (compact). `mini`: OU icon in the corner and the OT clock in the middle, since a mini cell has
  * no code and color alone can't tell overtime apart. `single`: one tag, OT first (mobile strip, hatching still shows OU).
  */
-function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons' | 'mini' | 'single' }) {
+function ChipTags({ chip, mode = 'full', labels = true }: { chip: Chip; mode?: 'full' | 'icons' | 'mini' | 'single'; labels?: boolean }) {
   const overtime = chipHasOvertime(chip)
   const iconOnly = mode === 'icons' || mode === 'mini'
   if (chip.locked) {
@@ -55,8 +57,8 @@ function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons'
     <>
       {(showOu || (showOt && mode !== 'mini')) && (
         <span className={classes.tags} aria-hidden="true">
-          {showOu && <span className={classes.tag}><ArrowUpRight size={iconOnly ? 12 : 13} strokeWidth={2} />{!iconOnly && 'OU'}</span>}
-          {showOt && mode !== 'mini' && <span className={classes.tag}><Clock3 size={13} strokeWidth={2} />OT</span>}
+          {showOu && <span className={classes.tag}><ArrowUpRight size={iconOnly ? 12 : 13} strokeWidth={2} />{!iconOnly && labels && 'OU'}</span>}
+          {showOt && mode !== 'mini' && <span className={classes.tag}><Clock3 size={13} strokeWidth={2} />{labels && 'OT'}</span>}
         </span>
       )}
       {showOt && mode === 'mini' && <Clock3 className={classes.miniOt} size={14} strokeWidth={2.25} aria-hidden="true" />}
@@ -65,7 +67,7 @@ function ChipTags({ chip, mode = 'full' }: { chip: Chip; mode?: 'full' | 'icons'
 }
 
 /** One cell in the schedule grid: one or more assignments, filled by kind, with OT and OU tags. */
-export default function ShiftChip({ chip, density = 'comfortable', context, onClick, interactive = true }: ShiftChipProps) {
+export default function ShiftChip({ chip, density = 'comfortable', context, onClick, interactive = true, tagLabels = true }: ShiftChipProps) {
   const overtime = chipHasOvertime(chip)
   const visible = density === 'compact' ? chip.segments.slice(0, 2) : chip.segments
   const cancelled = chip.segments.every((segment) => segment.cancelled)
@@ -86,7 +88,7 @@ export default function ShiftChip({ chip, density = 'comfortable', context, onCl
         </span>
       ))}
       {density === 'compact' && chip.segments.length > 2 && <span className={classes.more} aria-hidden="true">…</span>}
-      <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'mini' ? 'mini' : density === 'strip' ? 'single' : 'full'} />
+      <ChipTags chip={chip} mode={density === 'compact' ? 'icons' : density === 'mini' ? 'mini' : density === 'strip' ? 'single' : 'full'} labels={tagLabels} />
     </>
   )
   return (

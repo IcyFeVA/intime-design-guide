@@ -34,6 +34,19 @@ export const attachmentsOf = (chip: Chip | null | undefined): Attachments => (ch
 export const attachmentCount = (attachments: Attachments) =>
   attachments.tags.length + attachments.assets.length + attachments.tasks.length + (attachments.note.trim() ? 1 : 0)
 
+/** "2 tags, 1 asset and a note" for a cell's label, or null when there's nothing */
+export function attachmentSummary(attachments: Attachments | undefined): string | null {
+  if (!attachments || !attachmentCount(attachments)) return null
+  const count = (n: number, word: string) => (n ? [`${n} ${word}${n === 1 ? '' : 's'}`] : [])
+  const parts = [
+    ...count(attachments.tags.length, 'tag'),
+    ...count(attachments.assets.length, 'asset'),
+    ...count(attachments.tasks.length, 'task'),
+    ...(attachments.note.trim() ? ['a note'] : []),
+  ]
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0]
+}
+
 /** Several blocks' attachments as one (when blocks join) */
 export function mergeAttachments(list: Attachments[]): Attachments | undefined {
   const filled = list.filter((item) => attachmentCount(item) > 0)

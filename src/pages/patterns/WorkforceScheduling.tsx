@@ -18,7 +18,7 @@ import { MOCK_TODAY, PARTIAL_OVERTIME_HOURS, formatDuration, type Chip } from '.
 import { TimeField } from '../../components/workforce/panel/TimeField'
 import { formatSpan, normalizeEnd, parseTime } from '../../components/workforce/panel/format'
 import {
-  DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
+  DAY_MAX_WIDTH, LABEL_WIDTH, LABEL_WIDTH_NARROW, NARROW_LABEL_BELOW, PANEL_WIDTH, SHOW_TAG_LABELS, cellLayouts, fitColumns, viewDensities, workforceRanges, workforceTokens,
 } from '../../tokens/workforce'
 import ShiftChip from '../../components/schedule/ShiftChip'
 import classes from './WorkforceScheduling.module.css'
@@ -63,7 +63,7 @@ const assignmentCases: [string, string, string, string][] = [
   ['Partial leave', 'PatD 08:00–16:00, with Sick 13:00–16:00', 'One cell, split diagonally', 'The leave indented under PatD: 5h worked · 3h leave.'],
   ['Overnight', 'PatN 20:00–04:00', 'One cell, on the day it starts', '20:00–04:00 +1, 8h.'],
   ['All-day leave', 'Sick, all day', 'One leave cell', 'Sick, All day, 24h. The form shows only its times and leave type.'],
-  ['Out of unit', 'PatD for Special Ops', 'Striped, with an OU tag', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
+  ['Out of unit', 'PatD for Special Ops', 'Striped, with an arrow', 'A banner, “Working for Special Ops (out of unit)”. Still editable; Unit shows Special Ops.'],
   ['Out of branch', 'PatD at 84th Precinct', 'Muted, with “↗”', 'A banner, “Working out of branch”. Still editable.'],
   ['Locked', 'Court 13:00–17:00, set by Kings County Court', 'Muted, with a lock', 'A banner, “Set by Kings County Court. You can’t change it here.”, and its values as plain text. Nothing can be changed.'],
 ]
@@ -80,7 +80,7 @@ const scenarioDays: [string, string][] = [
 
 const elsewhereRows: [string, string, string, string][] = [
   ['Example', 'L. Garcia works PatD for Special Ops.', 'D. Patel works PatD at the 84th Precinct.', 'S. Kowalski is due in court, set by Kings County Court.'],
-  ['In the grid', 'Striped, with an OU tag where there is room.', 'Muted, with an arrow (“↗”).', 'Muted, with a lock.'],
+  ['In the grid', 'Striped, with an arrow where there is room.', 'Muted, with an arrow (“↗”).', 'Muted, with a lock.'],
   ['Banner', '“Working for Special Ops (out of unit)”', '“Working out of branch”', '“Set by Kings County Court. You can’t change it here.”'],
   ['In the panel', 'Editable as usual. Unit shows Special Ops.', 'Editable as usual. Branch shows 84th Precinct.', 'Read-only: the values as plain text, no form. Assign and Delete are off, and assign mode skips it.'],
   ['Staffing', 'Not counted: they are on the other unit’s street.', 'Not counted: they are at the other precinct.', 'Counted, like any assignment.'],
@@ -277,7 +277,7 @@ export default function WorkforceScheduling() {
         </Stack>
         <Text size="sm" mt="md"><strong>One day</strong> is a single centered column, at most {DAY_MAX_WIDTH}px wide with the names, as in the calendar’s day view. Its header gives the full date. All three densities work.</Text>
         <Text size="sm" fw={600} mb="xs" mt="lg">Detailed cells</Text>
-        <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with an OT tag, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
+        <Text size="sm" mb="sm">Detailed shows each assignment’s activity and times, as in the calendar. Overtime always gets its own red container with a clock, so a shift that runs into overtime is split in two instead of showing a diagonal. Two or more assignments in a cell stack as one-line containers. The cell is still the only click target.</Text>
         <Preview title="Detailed cells" align="start">
           <div className={classes.detailedSpecimens}>
             {detailedSpecimens.map(({ chip, label }) => (
@@ -294,7 +294,7 @@ export default function WorkforceScheduling() {
         </Preview>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Only where it fits.</strong> Detailed needs days at least {cellLayouts[0].minWidth}px wide (the Full layout below), usually one week. Narrower days show Compact cells, and switch back when there is room again, e.g. when the panel closes.</Text>
-          <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names and the OT and OU tags keep only their icons. Under about 165px, a single assignment’s tags do the same. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
+          <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
           <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times. A cell with three or more containers makes its row taller still; nothing is hidden.</Text>
           <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
         </Stack>
@@ -331,7 +331,7 @@ export default function WorkforceScheduling() {
                   <Table.Td><Text size="sm" className="tabular">{index === 0 ? `${layout.minWidth}px and wider` : `${layout.minWidth ? `${layout.minWidth}–` : 'Under '}${cellLayouts[index - 1].minWidth}px`}</Text></Table.Td>
                   <Table.Td>
                     <div className={classes.layoutSpecimens} data-layout={layout.key}>
-                      {layoutSpecimens.map((chip, chipIndex) => <ShiftChip key={chipIndex} chip={chip} density={layout.key} context="Specimen" />)}
+                      {layoutSpecimens.map((chip, chipIndex) => <ShiftChip key={chipIndex} chip={chip} density={layout.key} context="Specimen" tagLabels={SHOW_TAG_LABELS} />)}
                     </div>
                   </Table.Td>
                   <Table.Td><Text size="sm">{layout.shows}</Text></Table.Td>
@@ -588,6 +588,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Tags and assets</strong> are picked from one searchable list, grouped by category. Typing “lambo” finds Vehicle › Lambo 05; in Assets, “radio 2” lists the radios. Tags end with Custom…, which turns the field into a text box for anything else, like a police file number. Assets come from the inventory only. Added items show as chips; ✕ removes one.</Text>
           <Text size="sm"><strong>Tasks</strong> open the same task form as the Calendar: a name, the day (the assignment’s by default), a time, recurrence, reminders and a note. Each task lists its time, recurrence and number of reminders; select one to edit or delete it.</Text>
           <Text size="sm"><strong>Note</strong>: each assignment has one note, a plain text box that saves when you leave it. It also shows at the end of the Details tab, so a change like “Covering Sector C until 10:00” is seen without switching tabs; Edit there jumps to the text box.</Text>
+          <Text size="sm"><strong>In the grid</strong>, a cell with attachments gets a folded corner on its bottom right, like a comment in a spreadsheet. It shows in every view density and on a month, and stays clear of the ⚠ (top left) and the OT, OU and lock tags (top right). Its label lists what’s attached for screen readers (“Attached: 2 tags, 1 task and a note”).</Text>
           <Text size="sm"><strong>On a day with several assignments</strong>, an Assignment field at the top says which one the tab shows, and switches it.</Text>
           <Text size="sm"><strong>Locked assignments</strong> (a court date) show the court’s file and note read-only.</Text>
           <Text size="sm">Every change saves at once and is one Undo step. When an assignment is split or joined, its attachments stay with its first segment’s line; joined lines keep both sets. Joined lines keep both notes, one after the other. Copies made with Assign don’t take attachments along.</Text>

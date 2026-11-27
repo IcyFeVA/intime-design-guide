@@ -304,7 +304,7 @@ function TaskForm({ day, task, onClose, onSave, onDelete }: {
           <Eyebrow>Details</Eyebrow>
           <SimpleGrid cols={{ base: 1, xs: 2 }}>
             <Select label="Activity" data={activities} value={activity} onChange={(value) => setActivity(value ?? 'None')} allowDeselect={false} comboboxProps={{ withinPortal: true }} />
-            <Select label="Recurrence" data={recurrences} value={recurrence} onChange={(value) => setRecurrence(value ?? 'None')} allowDeselect={false} disabled={!!task} description={task ? 'Set when the task is created.' : undefined} />
+            <Select label="Recurrence" data={recurrences} value={recurrence} onChange={(value) => setRecurrence(value ?? 'None')} allowDeselect={false} disabled={!!task} />
           </SimpleGrid>
         </Stack>
         {reminders.map((reminder, index) => (
