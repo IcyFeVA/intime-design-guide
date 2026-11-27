@@ -60,8 +60,8 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
       style={style}
       aria-labelledby={headingId}
       onKeyDown={(event) => {
-        // Escape closes the panel, unless it is closing a dropdown or editing a field
-        if (event.key !== 'Escape' || (event.target as HTMLElement).closest('input, textarea, [aria-expanded="true"]')) return
+        // Escape closes the panel, unless it is closing a dropdown or a dialog (e.g. the task form), or editing a field
+        if (event.key !== 'Escape' || (event.target as HTMLElement).closest('input, textarea, [aria-expanded="true"], [role="dialog"]')) return
         event.stopPropagation()
         onClose()
       }}

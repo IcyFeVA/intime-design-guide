@@ -344,14 +344,25 @@ function TaskForm({ day, task, onClose, onSave, onDelete }: {
   )
 }
 
-export function TaskFormModal({ state, onClose, onSave, onDelete }: {
+/** Add or edit a task. Pass `contained` to keep it inside a demo frame (the frame needs `transform: translateZ(0)`). */
+export function TaskFormModal({ state, onClose, onSave, onDelete, contained = false }: {
   state: { key: number; day: number; task?: CalendarEvent; opened: boolean }
   onClose: () => void
   onSave: (task: CalendarEvent, recurrence: string) => void
   onDelete: (task: CalendarEvent) => void
+  contained?: boolean
 }) {
   return (
-    <Modal {...modalProps} opened={state.opened} onClose={onClose} size={560} title={state.task ? 'Edit task' : 'Add task'}>
+    <Modal
+      {...modalProps}
+      classNames={{ ...modalProps.classNames, inner: contained ? classes.containedInner : undefined }}
+      withinPortal={!contained}
+      lockScroll={!contained}
+      opened={state.opened}
+      onClose={onClose}
+      size={560}
+      title={state.task ? 'Edit task' : 'Add task'}
+    >
       <TaskForm key={state.key} day={state.day} task={state.task} onClose={onClose} onSave={onSave} onDelete={onDelete} />
     </Modal>
   )

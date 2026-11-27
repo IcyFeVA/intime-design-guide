@@ -39,7 +39,8 @@ const sortFields: SortField<WorkforceSort>[] = [
 const ALL_WATCHES: ReadonlySet<WatchId> = new Set(watches.map((watch) => watch.id))
 
 const panelSlide = {
-  in: { opacity: 1, transform: 'translateX(0)' },
+  // `none` once in, so the panel's dialogs (e.g. the task form) are placed in the demo frame, not in the panel
+  in: { opacity: 1, transform: 'none' },
   out: { opacity: 0, transform: 'translateX(16px)' },
   transitionProperty: 'opacity, transform',
 }

@@ -4,6 +4,7 @@ import {
   coverageLevel, formatHour, dayOf, formatHeader, rand, segmentHours, segmentKind, weekdayIndex, type Chip, type DayCoverage, type Segment,
 } from '../schedule/data'
 import type { EmployeeProfile } from '../schedule/profiles'
+import { courtDate, haddadFriday, type Attachments, type WorkforceChip } from './attachments'
 
 /* ------------------------------------------------------------------ */
 /* Workforce Scheduling mock data: one patrol unit in three watches.   */
@@ -66,6 +67,8 @@ export interface OpenShift {
   location: string
   /** Fields set in the details panel (activity, customer…); defaults apply when missing */
   details?: SegmentDetails
+  /** Tags, assets, tasks and a note on the shift */
+  attachments?: Attachments
 }
 
 /* ------------------------------------------------------------------ */
@@ -95,7 +98,7 @@ export interface SegmentDetails {
 export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
 
 /** Changes to an open shift. `deleted` takes it off the schedule. */
-export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled'>> & { deleted?: boolean }
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled' | 'attachments'>> & { deleted?: boolean }
 
 /** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
 export interface ScheduleEdits {
@@ -121,7 +124,7 @@ const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}):
 /** Working for another unit in the same precinct */
 const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
 /** A court date: the court sets it, so the scheduler can't change it */
-const court = (start: number, end: number): Chip => cell([c('Court', { start, end })], { locked: COURT })
+const court = (start: number, end: number, file: string, note: string): WorkforceChip => ({ ...cell([c('Court', { start, end })], { locked: COURT }), attachments: courtDate(file, note) })
 const COURT = 'Kings County Court'
 
 /** The precinct the demo's unit belongs to, and another one people are sometimes lent to */
@@ -184,12 +187,12 @@ type Spec = [id: string, first: string, last: string, rank: WorkforceRank, offse
 const specs: Record<WatchId, Spec[]> = {
   day: [
     // Scenario 3, leave: on vacation all day Tue. Locked court dates (set by the court): Nguyen Wed, Kowalski Tue, Garcia Fri
-    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12)] }],
-    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17)] }],
+    ['nguyen', 'Thomas', 'Nguyen', 'PO', 0, { 1: [cell([c('Vac', { start: 0, end: 24 })])], 2: [court(8, 12, '#PKXD393', 'Testifying in People v. Marsh, Part 14. Bring the arrest report.')] }],
+    ['kowalski', 'Sofia', 'Kowalski', 'PO', 1, { 1: [court(13, 17, '#PKXD402', 'Grand jury, room 512. Wear the dress uniform.')] }],
     ['okafor', 'Raymond', 'Okafor', 'Cpl', 2],
     ['alvarez', 'Marco', 'Alvarez', 'Sgt', 3, { 0: [cell([c('C-AM'), c('PatD', { start: 12 })])] }],
     // Scenario 7, out of unit: lent to Special Ops on Tue
-    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17)] }],
+    ['garcia', 'Lucia', 'Garcia', 'PO', 4, { 1: [ou([c('PatD')], 'Special Ops')], 4: [court(13, 17, '#QRTB118', 'Suppression hearing, Part 3. The ADA will call by 12:00.')] }],
     ['brennan', 'Kevin', 'Brennan', 'Sgt', 5, { 3: [cell([c('C-AM'), c('PatD', { start: 12 }), c('ExP', { overtime: 'full' })])] }],
     // Scenario 6, two assignments on Wed: PatD + Spe OT that touch (one cell), then Spe after a gap (a second line)
     // Also a warning: not certified for special details
@@ -203,7 +206,7 @@ const specs: Record<WatchId, Spec[]> = {
     ['patel', 'Dev', 'Patel', 'PO', 1, { 3: [cell([c('PatD')], { branch: OTHER_BRANCH })] }],
     // Warning, on leave: scheduled on Fri, but on vacation for all of it
     ['lee', 'Christine', 'Lee', 'PO', 2, { 4: [cell([c('PatD'), c('Vac', { start: 7, end: 17 })])] }],
-    ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [cell([c('PatD')])], 5: [], 6: [] }],
+    ['haddad', 'Bilal', 'Haddad', 'PO', 3, { 0: [cell([c('PatD')])], 1: [cell([c('PatD')])], 2: [cell([c('PatD')])], 3: [cell([c('PatD')])], 4: [{ ...cell([c('PatD')]), attachments: haddadFriday } as WorkforceChip], 5: [], 6: [] }],
     // Warning, double booked: the 84th Precinct has him on a detail during Wed's patrol
     ['johnson', 'Aaron', 'Johnson', 'PO', 4, { 2: [cell([c('PatD')]), cell([c('Spe', { start: 15, end: 19 })], { branch: OTHER_BRANCH })] }],
   ],

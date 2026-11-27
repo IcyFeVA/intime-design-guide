@@ -441,7 +441,7 @@ export default function WorkforceScheduling() {
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>It opens</strong> when a click or drag ends, or on Enter. Moving with the arrow keys doesn’t open it, but if it is open, it follows the active cell.</Text>
           <Text size="sm"><strong>It closes</strong> with its close button, Escape or the panel button in the toolbar. Focus goes back to the active cell.</Text>
-          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments (tags, assets, tasks and notes) is coming.</Text>
+          <Text size="sm"><strong>Two tabs:</strong> Details and Attachments. Attachments holds the assignment’s tags, assets, tasks and note (see Attachments below); the note also shows at the end of Details.</Text>
           <Text size="sm"><strong>Not built yet:</strong> Assign, History, Post as live and Find an employee say “Preview only” in the status line.</Text>
         </Stack>
       </Section>
@@ -581,6 +581,18 @@ export default function WorkforceScheduling() {
           </Table>
         </Table.ScrollContainer>
         <Text size="sm" mt="md">On a day with assignments in both places, the banner follows the selected assignment, and each assignment’s first row names where it is worked.</Text>
+      </Section>
+
+      <Section id="attachments" title="Attachments" description="The Attachments tab holds an assignment’s tags, assets, tasks and note. Each assignment has its own: a second assignment on the same day starts empty. The tab’s count covers all four.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Tags and assets</strong> are picked from one searchable list, grouped by category. Typing “lambo” finds Vehicle › Lambo 05; in Assets, “radio 2” lists the radios. Tags end with Custom…, which turns the field into a text box for anything else, like a police file number. Assets come from the inventory only. Added items show as chips; ✕ removes one.</Text>
+          <Text size="sm"><strong>Tasks</strong> open the same task form as the Calendar: a name, the day (the assignment’s by default), a time, recurrence, reminders and a note. Each task lists its time, recurrence and number of reminders; select one to edit or delete it.</Text>
+          <Text size="sm"><strong>Note</strong>: each assignment has one note, a plain text box that saves when you leave it. It also shows at the end of the Details tab, so a change like “Covering Sector C until 10:00” is seen without switching tabs; Edit there jumps to the text box.</Text>
+          <Text size="sm"><strong>On a day with several assignments</strong>, an Assignment field at the top says which one the tab shows, and switches it.</Text>
+          <Text size="sm"><strong>Locked assignments</strong> (a court date) show the court’s file and note read-only.</Text>
+          <Text size="sm">Every change saves at once and is one Undo step. When an assignment is split or joined, its attachments stay with its first segment’s line; joined lines keep both sets. Joined lines keep both notes, one after the other. Copies made with Assign don’t take attachments along.</Text>
+          <Text size="sm" c="dimmed">Try it: B. Haddad, Fri, Jun 5 has tags, assets, a task and a note. S. Kowalski, Tue, Jun 2 has a court date.</Text>
+        </Stack>
       </Section>
 
       <Section id="reference" title="Reference" size="display" description="The components behind the demo, its CSS variables and guidelines." />

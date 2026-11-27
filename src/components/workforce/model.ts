@@ -4,6 +4,7 @@ import {
   type WorkforceSort,
 } from './data'
 import { dayWarnings } from './warnings'
+import { attachmentsOf, mergeAttachments, type WorkforceChip } from './attachments'
 
 /* ------------------------------------------------------------------ */
 /* Grid model: the rendered rows, worked out once per structure change */
@@ -227,14 +228,20 @@ export function regroupDay(chips: Chip[], items: DaySegment[], focusId?: string)
       return { chips, error: `Touches an assignment set by ${locked}, which you can’t change` }
     }
   }
+  // Attachments stay with the block that holds an old block's first segment; blocks that join keep them all
+  const firstOf = new Map<number, number>()
+  items.forEach((item, index) => { if (!firstOf.has(item.from)) firstOf.set(item.from, index) })
   return {
     chips: blocks.map((block) => {
       const old: Partial<Chip> = chips[items[block[0]].from] ?? {}
-      const chip: Chip = { segments: block.map((index) => items[index].segment) }
+      const chip: WorkforceChip = { segments: block.map((index) => items[index].segment) }
       if (old.outOfUnit) Object.assign(chip, { outOfUnit: true, unit: old.unit })
       if (old.branch) chip.branch = old.branch
       if (old.locked) chip.locked = old.locked
       if (old.partialKind) chip.partialKind = old.partialKind
+      const owners = [...firstOf].filter(([, index]) => block.includes(index)).map(([from]) => from)
+      const attachments = mergeAttachments(owners.map((from) => attachmentsOf(chips[from])))
+      if (attachments) chip.attachments = attachments
       return chip
     }),
   }
@@ -278,6 +285,7 @@ const chipSpan = (chip: Chip) => {
 export function assignDay(chips: Chip[], lines: number[], source: Chip): { chips: Chip[]; changed: boolean; error?: string } {
   const copy: Chip = { ...source, segments: source.segments.map((segment: WorkforceSegment) => ({ ...segment, id: `a${(assignIds += 1)}` })) }
   delete copy.locked
+  delete (copy as WorkforceChip).attachments
   const range = chipSpan(copy)
   const overlaps = (chip: Chip) => {
     const other = chipSpan(chip)

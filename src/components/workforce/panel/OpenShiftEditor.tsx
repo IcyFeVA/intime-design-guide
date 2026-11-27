@@ -10,6 +10,8 @@ import { SegmentFields } from './SegmentFields'
 import { PanelFooter, PanelTabs } from './parts'
 import { segmentDetails } from './options'
 import { BranchSelect } from './BranchSelect'
+import { AttachmentsTab } from './AttachmentsTab'
+import { attachmentCount, noAttachments } from '../attachments'
 import classes from '../WorkforcePanel.module.css'
 
 type OpenItem = Extract<PanelItem, { kind: 'open-shift' }>
@@ -29,6 +31,7 @@ export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }
   const details = segmentDetails(segment, findWatch(shift.watch).unit, shift.id, shift.location)
   const save = (edit: OpenShiftEdit) => onEdit({ open: [[shift.id, edit]] })
   const setDetails = (change: Partial<SegmentDetails>) => save({ details: { ...details, ...change } })
+  const attachments = shift.attachments ?? noAttachments
 
   const handlers: SegmentHandlers = {
     onPatch: (_, patch) => {
@@ -58,7 +61,12 @@ export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }
 
   return (
     <>
-      <PanelTabs details={body} />
+      <PanelTabs
+        details={body}
+        attachments={<AttachmentsTab value={attachments} onChange={(next) => save({ attachments: next })} day={shift.day} />}
+        count={attachmentCount(attachments)}
+        note={attachments.note}
+      />
       <PanelFooter
         onPreview={onPreview}
         assigning={assigning}

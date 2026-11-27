@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Stack, Text } from '@mantine/core'
+import { Button, Select, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
 import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
 import { dayKey, HOME_BRANCH, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
@@ -17,6 +17,8 @@ import { dayWarnings } from '../warnings'
 import { segmentDetails } from './options'
 import { BranchSelect } from './BranchSelect'
 import { formatSpan } from './format'
+import { AttachmentsTab, NoAttachments } from './AttachmentsTab'
+import { attachmentCount, attachmentsOf, type Attachments } from '../attachments'
 import classes from '../WorkforcePanel.module.css'
 
 type DayItem = Extract<PanelItem, { kind: 'day' }>
@@ -240,9 +242,41 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
     </div>
   )
 
+  /* Attachments belong to the selected assignment (block) */
+  const attachments = attachmentsOf(selectedChip)
+  const setAttachments = (next: Attachments) => {
+    onEdit({ days: [[key, item.blocks.map((chip, index) => (index === selectedBlock ? { ...chip, attachments: next } : chip))]] })
+  }
+  const attachmentsTab = selectedBlock < 0
+    ? <NoAttachments />
+    : (
+      <AttachmentsTab
+        value={attachments}
+        onChange={setAttachments}
+        day={day}
+        readOnly={readOnly}
+        header={(
+          <>
+            {readOnly && <AssignmentBanner chip={selectedChip} />}
+            {blocks.length > 1 && (
+              <Select
+                label="Assignment"
+                description="Each assignment on this day has its own."
+                data={blocks.map((segments, index) => ({ value: String(index), label: `${segments[0].code} ${spanOf(segments)}` }))}
+                value={String(selectedBlock)}
+                onChange={(value) => { if (value !== null) setSelectedId(blocks[Number(value)][0].id) }}
+                allowDeselect={false}
+                classNames={{ input: 'tabular' }}
+              />
+            )}
+          </>
+        )}
+      />
+    )
+
   return (
     <>
-      <PanelTabs details={details} />
+      <PanelTabs details={details} attachments={attachmentsTab} count={attachmentCount(attachments)} note={attachments.note} />
       <PanelFooter
         onPreview={onPreview}
         onAssign={assigning ? () => onAssign(null) : startAssign}

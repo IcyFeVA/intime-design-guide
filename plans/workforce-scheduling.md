@@ -9,7 +9,7 @@
 The decisions there are final unless the user changes them; ask only about the open questions a step lists.
 
 Done: 1. panel core · 2. scenarios (leave, out of unit/branch) · 3. assign mode · 4. warnings, plus locked
-court dates, out of branch editable and the always-visible employee search · 5. bulk panel. Details in the "Step N as built"
+court dates, out of branch editable and the always-visible employee search · 5. bulk panel · 6. attachments tab. Details in the "Step N as built"
 sections and the 2026-11-26 sections below.
 
 - [x] **5. Bulk panel** (several cells selected). Spec: "Details panel scenarios" → **Bulk**; `plans/workforce-panel-review.md` item 12; screenshot `public/figma/workforce-scheduling-panel-bulk.png`. Replace today's `BulkItems` (list of cells + "Apply to all") in `WorkforcePanel.tsx`:
@@ -17,13 +17,13 @@ sections and the 2026-11-26 sections below.
   - [x] A shift code picker + "Assign to N": gives every selected person-day the shift in one save (reuse `assignDay`; locked cells and open shifts are skipped, the status line says why).
   - [x] A collapsed "Change fields" section (Activity, Location, Hours modifier, Unit…) that autosaves to every selected cell's segments.
   - [x] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
-- [ ] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
-  - [ ] Tabs "Details · Attachments (n)", n = all four sections.
-  - [ ] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
-  - [ ] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
-  - [ ] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
-  - [ ] Notes: add and list notes; the latest note also shows read-only at the end of the Details tab.
-  - Open question to ask: do attachments belong to the whole day, an assignment or a segment? Can one asset be on two people at once (warn)?
+- [x] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
+  - [x] Tabs "Details · Attachments (n)", n = all four sections.
+  - [x] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
+  - [x] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
+  - [x] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
+  - [x] ~~Notes: add and list notes~~ **One note per assignment** (user, 2026-11-27): just a textarea with a placeholder, saved when the scheduler leaves it; no adding or removing notes. It also shows read-only at the end of the Details tab.
+  - ~~Open question~~ Answered 2026-11-27 (user): attachments belong to the **block** (one grid cell); the same asset on two people at once is **allowed, no warning**.
 - [ ] **7. Employee row** (`panel/EmployeeRow.tsx`). Spec: "Details panel scenarios" → **Employee row**; review item 8.
   - [ ] Hours: a popover with this week and this period, overtime and time bank balances (the source of "16 avail." in Bank this time, `bankAvailable` in `panel/options.ts`). Use `workedHours` / `WEEKLY_HOURS_CAP` from `workforce/warnings.ts`.
   - [ ] Crosshair = Find in schedule: scrolls the grid to the person's row and highlights it.
@@ -480,6 +480,17 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - Not yet: Load from template and History are preview only; Paste is disabled until copy/paste exists (step 8).
 - **Times and fields in Assign to N: not now** (2026-11-26, user). Assign to N keeps the code's default hours and no fields. For other hours or fields, set up one cell as wanted, then use the footer's Assign (assign mode) to copy it to other cells.
 
+### Step 6 as built (2026-11-27): attachments tab
+
+- [x] Data: `workforce/attachments.ts`: `Attachments` (tags, assets, tasks, `note: string`), `WorkforceChip = Chip & { attachments? }`, `OpenShift.attachments` (saved through `OpenShiftEdit`), `attachmentCount` (the note counts 1 when filled), `mergeAttachments`, mock `tagCategories` / `assetCategories`. Mock: B. Haddad Fri Jun 5 (2 tags, 3 assets, 1 task, a note); each court date has its court file tag and the court's note.
+- [x] `regroupDay`: a block's attachments go to the new block holding its first segment (a split segment leaves them behind); blocks that join merge them (notes joined with a blank line). `assignDay` copies drop them. All-day leave replaces the day, attachments included.
+- [x] `panel/AttachmentsTab.tsx`: four sections (icon, uppercase title, count). Tags/assets: one searchable `Select` grouped by category, picking adds at once (words match the category or the value; taken values are hidden). Tags end with "Custom…", which turns the field into a text input carrying over what was typed (Enter adds, Escape goes back). Chips are Mantine `Pill`s with ✕. Tasks: rows (title; date if not the day, time or All day, recurrence, reminders) that open `TaskFormModal` to edit/delete; "Add task" opens it empty. Note: one textarea with a placeholder, saved on blur (user, 2026-11-27: one note per assignment, nothing to add or remove). Every save is one commit (one Undo step).
+- [x] `PanelTabs` (`panel/parts.tsx`) takes `attachments`, `count`, `note`: the note shows read-only at the end of Details with "Edit", which opens Attachments and focuses the textarea.
+- [x] `DayEditor`: the tab follows the selected segment's block; with several blocks, an "Assignment" select at the top switches it. Empty day: "No assignment yet" empty state. Locked: gray banner, everything read-only (the note as text). `OpenShiftEditor`: same tab, saved on the open shift.
+- [x] `TaskFormModal` takes `contained` (no portal, no scroll lock, overlay `inner` at `left: 0`). For it to cover the demo frame from inside the panel, the panel's slide-in now ends on `transform: none` (a transform would make the panel the modal's containing block). The panel ignores Escape from inside a dialog.
+- Decisions made without the user: asset values drop the category word ("Radio · R-208", court files "#PKXD402"); the Assignment select (not tabs) for several blocks; recurrence shown on the task row; the note has no author or time.
+- Not yet: assign copies and bulk actions don't touch attachments; no asset availability.
+
 ### Locked assignments; out of branch editable (2026-11-26, user)
 
 - **Out of branch is editable** (user: the scheduler can change another precinct's assignment). It keeps its grid look (muted, "↗ 84th") and still doesn't count towards staffing. Banner: "Working at 84th Precinct (out of branch)" + "Open in 84th Precinct" (preview). This overrides "Out of branch: read-only" in the 2026-11-25 decisions and step 2.
@@ -504,11 +515,11 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Employee search: filter the member rows by the corner input (name, rank, badge).
 - Tell the user when Detailed falls back to Compact cells (e.g. a note in the density menu); the grid knows (`cellViewFor` returns `codes`) but the demo doesn't.
 - Day view (hour timeline; see `MobileSchedule` `DayView` and `calendar/TimeGridView` for prior art).
-- Attachments and Notes tabs (Notes merge into Attachments, 2026-11-25).
 - Details panel scenarios: steps 1–5 built. What's left is tracked in **"Start here: remaining steps"** at the top.
 - Assign / Leave / Add segment / Set actual actually changing the grid; Undo.
 - Cells from the current app's legend that the grid doesn't show yet (see Legend), then add them to `legendItems`.
 - Coverage alerts actions (Post this shift, Find-Fill), Search, Approvals, Posts, Mandate.
+- Attachments: real tag and asset categories from settings; asset availability (who has Car 4417 now); tasks shown on the employee's Calendar; bulk Change fields for tags/assets.
 - Keyboard shortcuts scope in `src/tokens/shortcuts.ts`; copy/paste of cells; resizable panel.
 - Mobile layout.
 - Panel as a drawer over the grid (built, hidden): bring back the pin in the panel header and document it.
@@ -523,7 +534,8 @@ Prototype: `public/figma/workforce-scheduling-panel-attachments.png` (S. Kowalsk
 - Should changing a segment's Unit to another unit make the assignment out of unit (striped), and Branch to another precinct make it out of branch (read-only)?
 
 - Details panel: the open UI decisions are tracked in `plans/workforce-panel-review.md`, not here. Leave approval states (pending, approved, denied) and how they show in the panel are open too.
-- Attachments: do tags, assets and tasks belong to the whole day, a block or a segment? Can the same asset (e.g. "Car 4417") be on two people at the same time, and should that warn?
+- ~~Attachments: whole day, block or segment? Same asset on two people?~~ Answered 2026-11-27: per block; shared assets are fine, no warning.
+- Attachments: do a court date's file and note come from the court system? Should Assign copies take tags or assets along (today they take none)? Does the note need an author and time?
 
 - Schedule rulers ("Add new ruler" in the context menu): what a ruler shows on the grid and how it is edited.
 - Bulk panel: should Delete all skip open shifts, as Assign to N does?

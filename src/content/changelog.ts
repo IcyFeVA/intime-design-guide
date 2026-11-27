@@ -10,6 +10,17 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
+    summary: 'The details panel’s Attachments tab now holds an assignment’s tags, assets, tasks and note.',
+    changes: [
+      'Tags and assets are picked from one searchable list grouped by category (“Vehicle › Car 4417”). Tags can also be custom text. Added items show as removable chips.',
+      'Add task opens the Calendar’s task form inside the demo. Tasks list their time, recurrence and reminders; select one to edit it.',
+      'Each assignment has one note: a text box that saves when you leave it. It also shows at the end of the Details tab.',
+      'Each assignment has its own attachments, and the tab’s count covers all four sections. Locked court dates show the court’s file and note read-only.',
+    ],
+  },
+  {
     date: '2026-11-26',
     page: '/patterns/workforce-scheduling',
     summary: 'Proposal: overnight shifts can point into the next day. A shift that ends after midnight stays on its start day, and its cell gets a tip over the next day’s cell.',
