@@ -43,7 +43,6 @@ function WarningRow({ warning, onSelect }: { warning: ScheduleWarning; onSelect?
   return (
     <UnstyledButton className={classes.warningRow} onClick={onSelect} aria-label={`${warning.title}. ${warning.detail}. Select the assignment`}>
       {body}
-      <ChevronRight size={16} className={classes.warningsChevron} aria-hidden="true" />
     </UnstyledButton>
   )
 }
