@@ -14,7 +14,7 @@ const chips: Partial<Record<LegendKey, Chip>> = {
   scheduled: { segments: [{ code: 'PatD' }] },
   several: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }] },
   overtime: { segments: [{ code: 'ExP', overtime: 'full' }] },
-  partialOvertime: { segments: [{ code: 'PatS', overtime: 'partial' }] },
+  partialOvertime: { segments: [{ code: 'PatS', end: 20 }, { code: 'PatS', start: 20, overtime: 'full' }] },
   leave: { segments: [{ code: 'Sick' }] },
   partialLeave: { segments: [{ code: 'PatD', start: 8, end: 16 }, { code: 'Sick', start: 13, end: 16 }] },
   outOfUnit: { segments: [{ code: 'PatD' }], outOfUnit: true, unit: 'Special Ops' },

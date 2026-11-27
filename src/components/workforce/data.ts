@@ -1,7 +1,7 @@
 import { CircleDashed, Radio } from 'lucide-react'
 import { shiftCodeMap } from '../../tokens/schedule'
 import {
-  coverageLevel, formatHour, dayOf, formatHeader, rand, segmentHours, segmentKind, weekdayIndex, type Chip, type DayCoverage, type Segment,
+  PARTIAL_OVERTIME_HOURS, coverageLevel, formatHour, dayOf, formatHeader, rand, segmentHours, segmentKind, weekdayIndex, type Chip, type DayCoverage, type Segment,
 } from '../schedule/data'
 import type { EmployeeProfile } from '../schedule/profiles'
 import { courtDate, haddadFriday, type Attachments, type WorkforceChip } from './attachments'
@@ -120,6 +120,15 @@ export const shortName = (member: Pick<WorkforceMember, 'first' | 'last'>) => `$
 /* ------------------------------------------------------------------ */
 
 const c = (code: string, extra: Partial<Segment> = {}): Segment => ({ code, ...extra })
+/**
+ * A shift that runs into overtime: the regular segment, then a touching overtime segment for its last
+ * PARTIAL_OVERTIME_HOURS. Two segments, so the cell is split diagonally; one overtime segment alone is solid red.
+ */
+const holdover = (code: string, extra: Partial<Segment> = {}): Segment[] => {
+  const { start, end } = segmentHours({ code, ...extra })
+  const split = end - PARTIAL_OVERTIME_HOURS
+  return [c(code, { ...extra, start, end: split }), c(code, { ...extra, start: split, end, overtime: 'full' })]
+}
 const cell = (segments: Segment[], extra: Partial<Omit<Chip, 'segments'>> = {}): Chip => ({ segments, ...extra })
 /** Working for another unit in the same precinct */
 const ou = (segments: Segment[], unit: string): Chip => cell(segments, { outOfUnit: true, unit })
@@ -152,7 +161,7 @@ function rotation(seed: number, watch: WatchId, offset: number) {
     else if (r < 0.08) main = cell([c('PTO')])
     else if (r < 0.1) main = cell([c('Vac')])
     else if (r < 0.15) main = r2 < 0.3 ? ou([c('Train')], 'Training') : cell([c('Train')])
-    else if (r < 0.19) main = cell([c(base, { overtime: 'partial' })])
+    else if (r < 0.19) main = cell(holdover(base))
     else if (r < 0.22) main = ou([c(base)], lendingUnits[Math.floor(r2 * lendingUnits.length)])
     else if (r < 0.27) main = cell(split)
     else if (r < 0.29) main = cell([c('Spe')])
@@ -213,10 +222,10 @@ const specs: Record<WatchId, Spec[]> = {
   swing: [
     ['russo', 'Vincent', 'Russo', 'PO', 5],
     ['thompson', 'Sarah', 'Thompson', 'Cpl', 6],
-    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), c('PatS', { start: 16, overtime: 'partial' })])] }],
+    ['fitzgerald', 'Patrick', 'Fitzgerald', 'Sgt', 0, { 1: [cell([c('Train', { start: 8, end: 11 }), c('C-PM'), ...holdover('PatS', { start: 16 })])] }],
     // Two warnings on Tue: a 06:00 event at Barclays Center 7h after Monday's late swing, and not certified for special events
     ['petrov', 'Oksana', 'Petrov', 'PO', 1, {
-      0: [cell([c('PatS', { end: 23, overtime: 'partial' })])],
+      0: [cell(holdover('PatS', { end: 23 }))],
       1: [cell([barclaysEvent]), cell([c('PatS')])],
     }, ['Special event']],
     ['abara', 'Nnamdi', 'Abara', 'PO', 2],
@@ -343,6 +352,29 @@ export const watches: Watch[] = [
 ]
 
 /** The watches with the panel's edits applied: changed days replace the mock cells, and coverage is counted again. */
+/** Hours modifiers that make a segment overtime */
+export const isOvertimeModifier = (modifier: string) => modifier.startsWith('Overtime')
+
+/**
+ * Once a segment has fields, its hours modifier decides overtime: an Overtime modifier makes the segment overtime
+ * (red, with the clock), any other clears it. Run on every saved day, so the grid follows the panel.
+ */
+export function syncOvertime(chips: Chip[]): Chip[] {
+  return chips.map((chip) => {
+    let changed = false
+    const segments = chip.segments.map((segment: WorkforceSegment) => {
+      if (!segment.details) return segment
+      const overtime = isOvertimeModifier(segment.details.modifier) ? segment.overtime ?? 'full' : undefined
+      if (overtime === segment.overtime) return segment
+      changed = true
+      const next = { ...segment, overtime }
+      if (!overtime) delete next.overtime
+      return next
+    })
+    return changed ? { ...chip, segments } : chip
+  })
+}
+
 export function applyEdits(edits: ScheduleEdits): Watch[] {
   if (!edits.days.size) return watches
   return watches.map((base) => {

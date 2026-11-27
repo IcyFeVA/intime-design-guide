@@ -124,7 +124,7 @@ function TimeEntryDemo() {
 
 const layoutSpecimens: Chip[] = [
   { segments: [{ code: 'PatD' }] },
-  { segments: [{ code: 'PatD', overtime: 'partial' }] },
+  { segments: [{ code: 'PatD', end: 15 }, { code: 'PatD', start: 15, overtime: 'full' }] },
   { segments: [{ code: 'Train' }], outOfUnit: true },
   { segments: [{ code: 'Vac' }] },
 ]
@@ -156,7 +156,7 @@ const layoutDetails: [string, string, string, string][] = [
 /** Detailed view cells, with what each one shows */
 const detailedSpecimens: { chip: Chip; label: string }[] = [
   { chip: { segments: [{ code: 'PatD' }] }, label: 'One assignment' },
-  { chip: { segments: [{ code: 'PatD', overtime: 'partial' }] }, label: 'Runs into overtime: the overtime is split out' },
+  { chip: { segments: [{ code: 'PatD', end: 15 }, { code: 'PatD', start: 15, overtime: 'full' }] }, label: 'Runs into overtime: a regular and an overtime segment' },
   { chip: { segments: [{ code: 'ExP', overtime: 'full' }] }, label: 'Overtime' },
   { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }] }, label: 'Two assignments in one cell' },
   { chip: { segments: [{ code: 'C-AM' }, { code: 'PatD', start: 12 }, { code: 'ExP', overtime: 'full' }] }, label: 'Three assignments: the row gets taller' },
@@ -296,7 +296,7 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Only where it fits.</strong> Detailed needs days at least {cellLayouts[0].minWidth}px wide (the Full layout below), usually one week. Narrower days show Compact cells, and switch back when there is room again, e.g. when the panel closes.</Text>
           <Text size="sm"><strong>Text fits the day.</strong> Under about 205px, two or more assignments show codes instead of names. Under about 140px, stacked lines show hours without minutes (“08–12”), and open shifts drop the activity name under about 160px. The examples above are 200px wide.</Text>
           <Text size="sm"><strong>Taller rows:</strong> cells are 44px and rows 56px, so a name fits over its times. A cell with three or more containers makes its row taller still; nothing is hidden.</Text>
-          <Text size="sm"><strong>Runs into overtime:</strong> in this demo the last {PARTIAL_OVERTIME_HOURS} hours of the shift are the overtime part.</Text>
+          <Text size="sm"><strong>Runs into overtime:</strong> a regular segment and a touching overtime one (in this demo, the last {PARTIAL_OVERTIME_HOURS} hours). One segment set to overtime is solid red, without the split.</Text>
         </Stack>
         <Text size="sm" fw={600} mb="xs" mt="lg">Stacked cells</Text>
         <Text size="sm" mb="sm">Stacked shows the same assignments as Detailed, as plain colored bars: no names, times, codes, tags or icons. Every assignment is a 16px bar, so a row with one assignment is 28px high and fits the most people on screen. A cell with more assignments makes its row taller. A separate assignment on the same day still goes on the extra line.</Text>

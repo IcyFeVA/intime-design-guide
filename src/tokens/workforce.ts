@@ -81,7 +81,7 @@ export const legendItems: { key: LegendKey; label: string; meaning: string; stat
   { key: 'scheduled', label: 'Scheduled shift', meaning: 'Colored by kind. Shows the shift code, or the activity and times in Detailed.', status: 'draft' },
   { key: 'several', label: 'Two or more assignments', meaning: 'Share one cell. A separate assignment on the same day goes on an extra line.', status: 'draft' },
   { key: 'overtime', label: 'Overtime', meaning: 'Red, with a clock where there is room.', status: 'draft' },
-  { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'Split diagonally in Compact. Detailed and Stacked show the overtime part on its own.', status: 'draft' },
+  { key: 'partialOvertime', label: 'Runs into overtime', meaning: 'A regular segment and a touching overtime one. Split diagonally in Compact; Detailed and Stacked show the overtime part on its own. A cell that is all overtime is solid red.', status: 'draft' },
   { key: 'leave', label: 'Leave', meaning: 'Sick, PTO or vacation.', status: 'draft' },
   { key: 'partialLeave', label: 'Partial leave', meaning: 'Leave for part of a shift, in the same cell. Split diagonally in Compact.', status: 'draft' },
   { key: 'outOfUnit', label: 'Out of unit', meaning: 'Working for another unit in this precinct: striped, with an arrow where there is room. You can still change it.', status: 'draft' },
