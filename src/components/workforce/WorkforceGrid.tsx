@@ -8,7 +8,7 @@ import {
   chipFills, coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatHour, formatWeekday, isPeriodStart, segmentHours, type Chip, type DayCoverage,
 } from '../schedule/data'
 import { DAY_MAX_WIDTH, SHOW_TAG_LABELS, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
-import GridContextMenu from './GridContextMenu'
+import GridContextMenu, { type GridMenuActions } from './GridContextMenu'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
@@ -31,7 +31,7 @@ export interface WorkforceGridProps {
   onToggleStaffing: (watch: WatchId) => void
   onCoverageClick: (watch: Watch, day: number) => void
   /** Adds the right-click menu (see `GridContextMenu`). Pass `onContextMenu` to `useGridSelection` too. */
-  contextMenu?: { title: string; onPreview: (action: string) => void }
+  contextMenu?: GridMenuActions
   /** Assign mode is on: people's cells show a copy cursor and a dashed outline on hover */
   assigning?: boolean
   /** Overnight overlap (proposal): a shift that ends after midnight stays on its start day and points into the next day's cell */
@@ -517,7 +517,7 @@ export default function WorkforceGrid({
       data-cells={cells === 'codes' ? undefined : cells}
       data-assigning={assigning || undefined}
     >
-      {contextMenu ? <GridContextMenu title={contextMenu.title} onPreview={contextMenu.onPreview}>{grid}</GridContextMenu> : grid}
+      {contextMenu ? <GridContextMenu {...contextMenu}>{grid}</GridContextMenu> : grid}
       <VisuallyHidden role="status">{selection.selected.size > 1 ? `${selection.selected.size} cells selected` : ''}</VisuallyHidden>
     </div>
   )

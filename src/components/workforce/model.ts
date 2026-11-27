@@ -296,7 +296,7 @@ export function assignDay(chips: Chip[], lines: number[], source: Chip): { chips
   if (clash) return { chips, changed: false, error: `has ${clash.segments[0].code} set by ${clash.locked} then` }
   const next = [...kept, copy]
   const result = regroupDay(next, flattenDay(next))
-  if (result.error) return { chips, changed: false, error: result.error.toLowerCase() }
+  if (result.error) return { chips, changed: false, error: result.error[0].toLowerCase() + result.error.slice(1) }
   return { chips: result.chips, changed: daySignature(result.chips) !== daySignature(chips) }
 }
 

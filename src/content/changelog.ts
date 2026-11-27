@@ -12,6 +12,18 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
     page: '/patterns/workforce-scheduling',
+    summary: 'Copy, paste and Fill work in the grid, and assignments can move to another person.',
+    changes: [
+      'Right-click › Copy and Paste (or Ctrl/⌘ C and V in the grid) copy cells like a spreadsheet: one cell fills the whole selection, a larger area keeps its shape. The bulk panel’s More › Paste works too.',
+      'Fill gives an open shift to people picked from a list: available first, then with warnings, then who is busy and why. Find lists set the order, and Auto Fill picks the best matches.',
+      'Picking another employee in the panel moves the selected assignment to them; on an open shift it gives them a place.',
+      'After a move to another person or day, the panel follows the assignment to its new cell.',
+      'The Branch field saves: another branch makes the assignment out of branch.',
+    ],
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/workforce-scheduling',
     summary: 'The details panel’s employee row now works: Hours, Find in schedule and the person menu.',
     changes: [
       'Hours opens a summary: scheduled, overtime and leave hours for this week and this schedule period, the week against the 60h cap, and each time bank’s balance and what it can still take this period.',

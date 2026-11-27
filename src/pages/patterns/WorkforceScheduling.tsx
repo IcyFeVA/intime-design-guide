@@ -480,6 +480,8 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>One form for the selected segment.</strong> Its times come first (Scheduled, Start, End, Hours and actual times), then shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own values.</Text>
           <Text size="sm"><strong>Bank this time</strong> adds a time bank (Overtime, Comp Time or Holiday) and the hours to bank, with how many that bank can still take.</Text>
           <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live and Find an employee. Every row’s ⋯ menu has History, Cancel segment (Restore once cancelled) and Delete segment.</Text>
+          <Text size="sm"><strong>Moving an assignment.</strong> Pick another employee at the top to move the selected assignment to them on the same day, or use its ⋯ › Move to another day. It joins what’s there and never overlaps it: the panel says what’s in the way instead. Then the panel follows the assignment to its new cell, and the person’s row flashes. Undo moves it back.</Text>
+          <Text size="sm"><strong>Branch</strong> belongs to the selected assignment. Another branch makes it out of branch: muted in the grid and not counted in staffing.</Text>
           <Text size="sm"><strong>Saving.</strong> A field saves when you pick a value or leave it. The grid and staffing update at once, and the title says “Saved”. There is no Save button.</Text>
           <Text size="sm"><strong>Undo.</strong> Undo in the toolbar, or Ctrl/⌘ Z outside a field, reverts the last change. Reset demo restores the whole schedule.</Text>
           <Text size="sm"><strong>What isn’t saved.</strong> Times that overlap another segment, or that start and end together. The card says why, and the last saved times stay. Spans over 16h are saved but ask: “Longer than 16h. Is that right?”</Text>
@@ -528,6 +530,16 @@ export default function WorkforceScheduling() {
           <Text size="sm"><strong>Open shifts and live posts</strong> fill one place per person, on the shift’s own day. When nobody else is needed, the shift leaves the grid and assign mode stops.</Text>
           <Text size="sm"><strong>Stopping.</strong> Escape, Done in the bar or Done assigning in the footer. Selecting other cells while assigning gives them the shift, so stop first to just look around.</Text>
           <Text size="sm" c="dimmed">Try it: select B. Haddad on Fri, Jun 5, select Assign, then drag across empty days. Or select the night open shift on Tue, Jun 2 (2 needed) and give it to two people that day.</Text>
+        </Stack>
+      </Section>
+
+      <Section id="copy-fill" title="Copy, paste and fill" description="Right-click the grid for Copy, Paste and Fill. Copy and paste work like a spreadsheet; Fill gives an open shift to someone picked from a list of candidates.">
+        <Stack gap="xs">
+          <Text size="sm"><strong>Copy</strong> (Ctrl/⌘ C in the grid) copies the selected cells. Open shifts and locked cells, like court dates, aren’t copied.</Text>
+          <Text size="sm"><strong>Paste</strong> (Ctrl/⌘ V, or More › Paste in the panel with several cells selected) puts them into the selection. One copied cell goes into every selected cell. Several keep their shape from the selection’s top-left cell, across people and days. A pasted cell replaces what it overlaps, as Assign does; empty copied cells change nothing, and a day with a locked assignment in the way is skipped. One paste is one Undo.</Text>
+          <Text size="sm"><strong>Fill</strong> works on an open shift or live post (right-click it, or ⋯ › Fill… and the Find an employee icon in the panel). It lists everyone: available first, then those it would warn about (minimum rest, hours cap, certification), then, folded away, who works or is on leave at that time and why. Each row shows their hours this week and their other work that day. A find list sets the order (Best match, Fewest hours, Precedence), and Auto Fill picks the first available people for every place still needed. Once the shift is filled, the panel follows the person who got it.</Text>
+          <Text size="sm"><strong>Picking someone in the open shift’s employee field</strong> gives them one place straight away, without the list.</Text>
+          <Text size="sm" c="dimmed">Try it: right-click the Swing open shift on Tue, Jun 2, choose Fill, then Auto Fill. Or select B. Haddad Mon to Wed, press Ctrl/⌘ C, select another person’s Monday and press Ctrl/⌘ V.</Text>
         </Stack>
       </Section>
 
@@ -630,7 +642,17 @@ export default function WorkforceScheduling() {
           { prop: 'onClose', type: '() => void', description: 'The close button.' },
           { prop: 'onPreview', type: '(action: string) => void', description: 'A control that isn’t built yet was used.' },
           { prop: 'focusTick', type: 'number', description: 'Change it to move focus to the panel’s heading, e.g. after Enter.' },
+          { prop: 'onPaste', type: '() => void', description: 'Pastes copied cells into the selection (the bulk panel’s More › Paste). Missing: Paste is disabled.' },
+          { prop: 'people', type: 'PanelPeople', description: 'People as edited, plus onFind (Find in schedule), onFill and onFindFill (open shifts) and onMoved (select an assignment’s new cell after a move). Missing: preview only.' },
         ]} />
+        <Text size="sm" fw={600} mb="xs" mt="lg">FillModal</Text>
+        <PropsTable rows={[
+          { prop: 'shift', type: 'OpenShift | null', description: 'The open shift to fill; null closes it.' },
+          { prop: 'people', type: 'WorkforceMember[]', description: 'Everyone who could take it, as edited. fillCandidates (workforce/fill.ts) sorts them into available, with warnings and busy.' },
+          { prop: 'onFill', type: '(shift, ids) => void', description: 'Assign was selected. fillOpenShift(shift, people) gives back the days to save and the new filled count.' },
+          { prop: 'contained', type: 'boolean', description: 'Keeps it inside a demo frame.' },
+        ]} />
+        <Text size="sm" c="dimmed" mt="sm">Copy and paste are copyCells and pasteCells in workforce/clipboard.ts: pure functions of the grid model and the selected cells. GridContextMenu takes onCopy, onPaste and onFill; a missing handler disables the item.</Text>
       </Section>
 
       <Section id="tokens" title="CSS variables" description="Sizes for the grid and panel, and selection colors. All point at theme tokens, so they follow dark and light.">

@@ -11,10 +11,11 @@ import { approvalKinds } from '../../tokens/approvals'
 import { CoverageDrawer, type CoverageSelection } from '../schedule/ScheduleDetails'
 import { SortModal, type SortField } from '../sort/SortModal'
 import type { SortDirection } from '../schedule/FilterSheet'
-import { MOCK_TODAY, formatHeader, rangeDays, type Chip } from '../schedule/data'
+import { MOCK_TODAY, formatHeader, rangeDays, segmentHours, type Chip } from '../schedule/data'
 import { DEFAULT_VIEW_DENSITY, TARGET_WIDTH, workforceRanges, type ViewDensity, type WorkforceRange } from '../../tokens/workforce'
 import {
-  applyEdits, dayKey, findUnit, findWatch, openShifts, shortName, stillNeeded, watches, type Watch, type WatchId, type WorkforceMember, type WorkforceSort,
+  applyEdits, dayKey, findUnit, findWatch, openShifts, shortName, stillNeeded, watches, type OpenShift, type Watch, type WatchId, type WorkforceMember,
+  type WorkforceSegment, type WorkforceSort,
 } from './data'
 import { HEADER_ROW, assignDay, buildGridModel, panelContent, type AssignSource } from './model'
 import { useGridSelection, type CellRef, type GridActivation, type GridContextTarget } from './useGridSelection'
@@ -25,6 +26,9 @@ import { WorkforceToolbar, WorkforceViewActions } from './WorkforceChrome'
 import { AssignBar } from './AssignBar'
 import { chipSpanLabel } from './panel/format'
 import type { PanelPeople } from './panel/people'
+import { FillModal } from './FillModal'
+import { describeShift, fillOpenShift } from './fill'
+import { copyCells, pasteCells, type ScheduleClipboard } from './clipboard'
 import classes from './WorkforceDemo.module.css'
 
 const sortFields: SortField<WorkforceSort>[] = [
@@ -54,6 +58,13 @@ const DEFAULT_STAFFING: ReadonlySet<WatchId> = new Set(['swing'])
 /** How long Find in schedule highlights a row (the CSS flash is a bit shorter) */
 const FOUND_MS = 2600
 
+/** A cell to select once the grid has the change: the person, the day, and which of their cells on it */
+interface Reveal {
+  member: string
+  day: number
+  match: (chip: Chip) => boolean
+}
+
 /** The Workforce Scheduling desktop demo: toolbar, grid, details panel, coverage drawer and employee details. */
 export default function WorkforceDemo() {
   const reduceMotion = useReducedMotion()
@@ -74,10 +85,14 @@ export default function WorkforceDemo() {
   const [assign, setAssign] = useState<AssignSource | null>(null)
   const [overnight, setOvernight] = useState(true)
   const [found, setFound] = useState<string | null>(null)
+  const [clipboard, setClipboard] = useState<ScheduleClipboard | null>(null)
+  const [fillTarget, setFillTarget] = useState<{ id: string; day: number } | null>(null)
+  const [reveal, setReveal] = useState<Reveal | null>(null)
   const approvals = useApprovals({ kind: 'activity' })
   const schedule = useScheduleEdits()
   const edited = useMemo(() => applyEdits(schedule.edits), [schedule.edits])
-  const members = useMemo(() => new Map(edited.flatMap((watch) => watch.members).map((member) => [member.id, member])), [edited])
+  const editedMembers = useMemo(() => edited.flatMap((watch) => watch.members), [edited])
+  const members = useMemo(() => new Map(editedMembers.map((member) => [member.id, member])), [editedMembers])
   const approvalsButton = useRef<HTMLButtonElement>(null)
   const pendingApprovals = approvalKinds.reduce((sum, item) => sum + openCount(approvals.requests, item.key), 0)
   const closeApprovals = () => {
@@ -215,18 +230,93 @@ export default function WorkforceDemo() {
     const timer = window.setTimeout(() => setFound(null), FOUND_MS)
     return () => window.clearTimeout(timer)
   }, [found])
+  /** Opens the person's watch if it's collapsed, then scrolls to their row and flashes it */
+  const flashRow = (id: string) => {
+    const member = members.get(id)
+    if (!member) return
+    if (collapsed.has(member.watch)) setCollapsed((set) => toggle(set, member.watch))
+    setFound(null)
+    // Next frame, so a second Find on the same person flashes the row again
+    requestAnimationFrame(() => setFound(id))
+  }
+
+  /** Select a cell that an edit just made: show its day and the person's row; the effect below selects it */
+  const revealCell = (target: Reveal) => {
+    if (!days.includes(target.day)) setAnchor(target.day)
+    flashRow(target.member)
+    setReveal(target)
+  }
+
+  // Once the grid has the change (this render), select the revealed cell (the line that holds it) and move focus to the panel
+  if (reveal && model.days.includes(reveal.day)) {
+    const index = model.days.indexOf(reveal.day)
+    const lines = model.rows.filter((row) => row.kind === 'member' && row.member.id === reveal.member)
+    const row = lines.find((line) => line.kind === 'member' && !!line.cells[index] && reveal.match(line.cells[index]!)) ?? lines[0]
+    setReveal(null)
+    if (row) {
+      selection.select({ row: row.key, day: reveal.day })
+      setPanelOpen(true)
+      setFocusTick((tick) => tick + 1)
+    }
+  }
+
+  /** Gives the open shift to these people. Once it's filled, the panel follows the first of them. */
+  const fill = (shift: OpenShift, ids: string[]) => {
+    const result = fillOpenShift(shift, ids.flatMap((id) => members.get(id) ?? []))
+    const parts: string[] = []
+    if (result.filled.length) {
+      schedule.commit({ days: result.days, open: [[shift.id, { filled: result.filledCount }]] })
+      parts.push(`Gave ${describeShift(shift)} to ${result.filled.map(shortName).join(', ')}. ${result.left ? `${result.left} more still needed.` : 'The shift is filled.'} Undo reverts it.`)
+      if (!result.left) {
+        revealCell({
+          member: result.filled[0].id,
+          day: shift.day,
+          match: (chip) => chip.segments.some((segment) => segment.code === shift.code && segmentHours(segment).start === shift.start),
+        })
+      }
+    }
+    if (result.skipped.length) parts.push(`Skipped ${result.skipped.join('; ')}.`)
+    setHint(parts.join(' '))
+    setFillTarget(null)
+  }
+  const fillShift = fillTarget ? openShifts(fillTarget.day, schedule.edits.open).find((shift) => shift.id === fillTarget.id) ?? null : null
+
   const people: PanelPeople = {
     member: (id) => members.get(id),
     onFind: (id) => {
       const member = members.get(id)
       if (!member) return
-      if (collapsed.has(member.watch)) setCollapsed((set) => toggle(set, member.watch))
-      setFound(null)
-      // Next frame, so a second Find on the same person flashes the row again
-      requestAnimationFrame(() => setFound(id))
+      flashRow(id)
       setHint(`${shortName(member)} is in the ${findWatch(member.watch).title} watch. Their row is highlighted.`)
     },
+    onFill: fill,
+    onFindFill: (shift) => setFillTarget({ id: shift.id, day: shift.day }),
+    onMoved: (to, status) => {
+      setHint(status)
+      revealCell({ member: to.member, day: to.day, match: (chip) => chip.segments.some((segment: WorkforceSegment) => segment.id === to.segment) })
+    },
   }
+
+  /* Copy and paste (the context menu, Ctrl/⌘ C and V in the grid, and the bulk panel's Paste) */
+  const copy = () => {
+    const result = copyCells(model, selection.ordered)
+    if (result.clipboard) setClipboard(result.clipboard)
+    setHint(result.status)
+  }
+  const paste = clipboard ? () => {
+    const result = pasteCells(model, selection.ordered, clipboard)
+    if (result.days.length) schedule.commit({ days: result.days })
+    setHint(result.status)
+  } : undefined
+  /** The first selected open shift: what Fill works on */
+  const selectedOpenShift = (() => {
+    for (const cell of selection.ordered) {
+      const row = model.byKey.get(cell.row)
+      const shift = row?.kind === 'open' ? row.cells[model.days.indexOf(cell.day)] : null
+      if (shift) return shift
+    }
+    return null
+  })()
 
   const preview = (action: string) => setHint(`Preview only: “${action}” isn’t built in this demo yet.`)
   const toggle = (set: ReadonlySet<WatchId>, id: WatchId) => {
@@ -240,6 +330,7 @@ export default function WorkforceDemo() {
     setRange('week'); setAnchor(MOCK_TODAY); setView(DEFAULT_VIEW_DENSITY); setSort('watch'); setDirection('asc')
     setSortOpen(false); setCollapsed(new Set()); setStaffingCollapsed(DEFAULT_STAFFING); setPanelOpen(false); setFocusTick(0); setHint(null)
     setCoverage(null); setMenuTarget(null); setAssign(null); setOvernight(true); setFound(null); selection.reset(); setApprovalsOpen(false); approvals.reset(); schedule.reset()
+    setClipboard(null); setFillTarget(null); setReveal(null)
   }
 
   return (
@@ -311,9 +402,19 @@ export default function WorkforceDemo() {
       <div
         className={classes.workspace}
         onKeyDown={(event) => {
+          const key = event.key.toLowerCase()
+          if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
+          const target = event.target as HTMLElement
+          // Ctrl/⌘ C and V copy and paste cells while focus is in the grid
+          if ((key === 'c' || key === 'v') && selection.gridProps.ref.current?.contains(target) && !target.closest('input, textarea')) {
+            event.preventDefault()
+            if (key === 'c') copy()
+            else if (paste) paste()
+            else setHint('Nothing copied yet. Select cells and press Ctrl/⌘ C first.')
+            return
+          }
           // Ctrl/⌘+Z undoes the last saved change, except while typing, where it undoes the typing
-          if (event.key.toLowerCase() !== 'z' || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return
-          if ((event.target as HTMLElement).closest('input, textarea, [contenteditable="true"]') || !schedule.canUndo) return
+          if (key !== 'z' || target.closest('input, textarea, [contenteditable="true"]') || !schedule.canUndo) return
           event.preventDefault()
           schedule.undo()
         }}
@@ -335,7 +436,13 @@ export default function WorkforceDemo() {
               onToggleGroup={(id) => setCollapsed((set) => toggle(set, id))}
               onToggleStaffing={(id) => setStaffingCollapsed((set) => toggle(set, id))}
               onCoverageClick={(watch: Watch, day: number) => setCoverage({ title: `${watch.title} watch`, day, coverage: watch.coverage(day) })}
-              contextMenu={{ title: menuTitle, onPreview: preview }}
+              contextMenu={{
+                title: menuTitle,
+                onPreview: preview,
+                onCopy: copy,
+                onPaste: paste,
+                onFill: selectedOpenShift ? () => setFillTarget({ id: selectedOpenShift.id, day: selectedOpenShift.day }) : undefined,
+              }}
               assigning={!!assign}
               overnight={overnight}
               found={found}
@@ -354,6 +461,7 @@ export default function WorkforceDemo() {
               saves={schedule.saves}
               assigning={!!assign}
               onAssign={startAssign}
+              onPaste={paste}
               onClose={closePanel}
               onPreview={preview}
               people={people}
@@ -362,6 +470,7 @@ export default function WorkforceDemo() {
           )}
         </Transition>
         <CoverageDrawer selection={coverage} onClose={() => setCoverage(null)} contained />
+        <FillModal shift={fillShift} people={editedMembers} onFill={fill} onClose={() => setFillTarget(null)} contained />
         <SortModal
           opened={sortOpen}
           value={{ field: sort, direction }}

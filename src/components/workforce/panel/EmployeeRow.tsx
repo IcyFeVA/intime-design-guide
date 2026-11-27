@@ -79,11 +79,16 @@ function HoursCard({ member, day }: { member: WorkforceMember; day: number }) {
 }
 
 /** The person the activity belongs to, with their hours, a jump to their row and a menu of actions. */
-export function EmployeeRow({ value, day, onChange, onPreview }: {
+export function EmployeeRow({ value, day, onChange, readOnly = false, hint, onPreview }: {
   value: string | null
   /** The day being edited: Hours shows its week and period */
   day: number
+  /** Another person was picked: the panel moves the assignment, or gives the open shift, to them */
   onChange: (id: string | null) => void
+  /** Nothing to give anyone (an empty day) or set outside scheduling (locked): the picker can't change */
+  readOnly?: boolean
+  /** What picking someone does, for screen readers */
+  hint?: string
   onPreview: Preview
 }) {
   const people = usePanelPeople()
@@ -101,6 +106,8 @@ export function EmployeeRow({ value, day, onChange, onPreview }: {
         data={employeeOptions}
         value={value}
         onChange={onChange}
+        readOnly={readOnly}
+        aria-description={hint}
         searchable
         allowDeselect={false}
         nothingFoundMessage="Nobody matches"
@@ -113,7 +120,7 @@ export function EmployeeRow({ value, day, onChange, onPreview }: {
         leftSection={person
           ? <Avatar size={30} radius="xl" color="intime" variant="light" alt="">{person.initials}</Avatar>
           : <span className={classes.noEmployee}><UserPlus size={16} strokeWidth={1.75} aria-hidden="true" /></span>}
-        rightSection={<ChevronsUpDown size={16} aria-hidden="true" />}
+        rightSection={readOnly ? null : <ChevronsUpDown size={16} aria-hidden="true" />}
         rightSectionPointerEvents="none"
         renderOption={({ option }) => {
           const member = allMembers.find((m) => m.id === option.value)

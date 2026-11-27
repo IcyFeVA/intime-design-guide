@@ -32,7 +32,7 @@ const shiftChip = (code: string): Chip => ({ segments: [{ code, start: shiftCode
  * the days, or delete them. Each action is one save, so one Undo reverts it. The grid shows which cells are selected,
  * so the panel doesn't list them.
  */
-export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAssign }: {
+export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAssign, onPaste }: {
   items: PanelItem[]
   onEdit: (commit: EditCommit) => void
   onPreview: Preview
@@ -40,6 +40,8 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
   onStatus: (text: string) => void
   assigning: boolean
   onAssign: (source: AssignSource | null) => void
+  /** Pastes what was copied into the selected cells. Missing: Paste is disabled (nothing copied). */
+  onPaste?: () => void
 }) {
   const selection = bulkSelection(items)
   const people = selection.days.length
@@ -200,7 +202,7 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
         moreItems={(
           <>
             <Menu.Item leftSection={<LayoutTemplate size={16} aria-hidden="true" />} onClick={() => onPreview('Load from template')}>Load from template</Menu.Item>
-            <Menu.Item leftSection={<ClipboardPaste size={16} aria-hidden="true" />} disabled>Paste</Menu.Item>
+            <Menu.Item leftSection={<ClipboardPaste size={16} aria-hidden="true" />} onClick={onPaste} disabled={!onPaste}>Paste</Menu.Item>
           </>
         )}
       />

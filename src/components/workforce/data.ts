@@ -69,6 +69,8 @@ export interface OpenShift {
   details?: SegmentDetails
   /** Tags, assets, tasks and a note on the shift */
   attachments?: Attachments
+  /** Set in the panel when the shift is worked at another branch; missing = `HOME_BRANCH` */
+  branch?: string
 }
 
 /* ------------------------------------------------------------------ */
@@ -98,7 +100,7 @@ export interface SegmentDetails {
 export type WorkforceSegment = Segment & { id?: string; details?: SegmentDetails }
 
 /** Changes to an open shift. `deleted` takes it off the schedule. */
-export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled' | 'attachments'>> & { deleted?: boolean }
+export type OpenShiftEdit = Partial<Pick<OpenShift, 'code' | 'start' | 'end' | 'details' | 'filled' | 'attachments' | 'branch'>> & { deleted?: boolean }
 
 /** Everything changed in the demo. A person's day is replaced as a whole (`memberId@day` → its cells). */
 export interface ScheduleEdits {

@@ -21,7 +21,7 @@ type Preview = (action: string) => void
  * Docked panel beside the grid. One cell: tabs with the day's details. Several cells: one shift or field for all of
  * them. Nothing: a hint. Every change saves at once and the grid follows.
  */
-export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, saves, assigning = false, onAssign, placement = 'docked', onPlacementChange, onClose, onPreview, people, focusTick = 0, style }: {
+export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, saves, assigning = false, onAssign, onPaste, placement = 'docked', onPlacementChange, onClose, onPreview, people, focusTick = 0, style }: {
   content: PanelContent
   /** Save a change (autosave). The grid updates from the edited schedule. */
   onEdit: (commit: EditCommit) => void
@@ -34,13 +34,15 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
   assigning?: boolean
   /** Starts assign mode with a copy of an assignment, or ends it (null) */
   onAssign: (source: AssignSource | null) => void
+  /** Pastes copied cells into the selection (the bulk panel's ⋯ › Paste). Missing: nothing is copied. */
+  onPaste?: () => void
   /** `docked`: beside the grid, which gets narrower. `drawer`: over the grid's right edge, which keeps its width. */
   placement?: PanelPlacement
   onPlacementChange?: (placement: PanelPlacement) => void
   onClose: () => void
   /** A control that is not built yet was used. Show it in the demo's status line. */
   onPreview: Preview
-  /** People as edited (the employee row's hours) and Find in schedule. Missing: the mock people, Find is preview only. */
+  /** People as edited (the employee row's hours), Find in schedule, Fill and following moves. Missing: the mock people, and those are preview only. */
   people?: PanelPeople
   /** Changes when the panel should take focus, e.g. after Enter on a cell */
   focusTick?: number
@@ -62,7 +64,7 @@ export default function WorkforcePanel({ content, onEdit, onUndo, onStatus, save
       {content.mode === 'single' && content.kind === 'open-shift' && <OpenShiftEditor item={content} onEdit={onEdit} onPreview={onPreview} assigning={assigning} onAssign={onAssign} key={contentKey} />}
 
       {content.mode === 'bulk' && (
-        <BulkEditor items={content.items} onEdit={onEdit} onPreview={onPreview} onStatus={onStatus} assigning={assigning} onAssign={onAssign} key={content.items.map((item) => item.key).join()} />
+        <BulkEditor items={content.items} onEdit={onEdit} onPreview={onPreview} onStatus={onStatus} assigning={assigning} onAssign={onAssign} onPaste={onPaste} key={content.items.map((item) => item.key).join()} />
       )}
     </>
   )
