@@ -95,7 +95,8 @@ export function AssignmentBanner({ chip }: { chip: Chip | null }) {
   if (chip?.outOfUnit) {
     return (
       <Alert variant="light" color="intime" icon={<ArrowUpRight size={18} aria-hidden="true" />} classNames={{ root: classes.banner, message: classes.bannerMessage }}>
-        Working for {chip.unit ?? 'another unit'} (out of unit)
+        {/* Working for {chip.unit ?? 'another unit'} (out of unit) */}
+        Working out of unit
       </Alert>
     )
   }
