@@ -68,7 +68,7 @@ export function TimesCard({ start: savedStart, end: savedEnd, day, onTimes, onMo
       {!onActual ? null : actual
         ? <ActualTimes key={`${actual.start}:${actual.end}:${actual.day}`} actual={actual} day={day} onChange={onActual} readOnly={readOnly} />
         : !readOnly && (
-          <Button variant="subtle" color="gray" size="xs" mt={6} leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => onActual({ start: savedStart, end: savedEnd })}>
+          <Button variant="subtle" size="xs" mt={6} leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => onActual({ start: savedStart, end: savedEnd })}>
             Set actual
           </Button>
         )}

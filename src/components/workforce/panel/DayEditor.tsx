@@ -232,7 +232,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
             />
           )
           : <Text size="sm" c="dimmed">No assignment on this day yet.</Text>}
-        <Button variant="subtle" color="gray" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={addSegment}>
+        <Button variant="subtle" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={addSegment}>
           Add segment
         </Button>
       </Stack>

@@ -11,6 +11,15 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
+    page: null,
+    summary: 'Light and subtle primary buttons, badges and icon buttons now use the theme’s primary colors in every demo.',
+    changes: [
+      'Their text and icons use the primary text color (before: a near-white cyan in dark mode), and their background and hover use the primary light backgrounds.',
+      'Work Scheduling: Add task, Add segment and Set actual in the details panel are primary instead of gray, like Add reminder and Add note in the task form. Empty attachment sections no longer say “None yet.”',
+    ],
+  },
+  {
+    date: '2026-11-27',
     page: '/patterns/workforce-scheduling',
     summary: 'The details panel’s Attachments tab now holds an assignment’s tags, assets, tasks and note.',
     changes: [

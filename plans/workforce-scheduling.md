@@ -19,7 +19,7 @@ sections and the 2026-11-26 sections below.
   - [x] Footer: Assign + Leave + ⋯ (Load from template, Paste, History, Delete all with a confirm). Leave adds leave to every selected day; Delete all is one Undo step.
 - [x] **6. Attachments tab.** Spec: "Details panel scenarios" → **Tabs and Attachments**, the "Attachments tab (2026-11-25, user)" section; review items 1 and 13; screenshots `-panel-attachments.png` (its free-text inputs are wrong) and `-add-task.png`. Replace the placeholder in `PanelTabs` (`panel/parts.tsx`):
   - [x] Tabs "Details · Attachments (n)", n = all four sections.
-  - [x] Four sections, always shown with their count and "None yet.": Tags, Assets, Tasks, Notes.
+  - [x] Four sections, always shown with their count (~~"None yet."~~ dropped 2026-11-27): Tags, Assets, Tasks, Note.
   - [x] Tags and Assets: one grouped, searchable picker ("Vehicle › Lambo 05"); tags only get "Custom…" (turns it into a text input). Added items are removable chips ("Vehicle · Lambo 05 ✕"). Mock categories: tags (Vehicle, Radio, Court file, Custom…), assets (Vehicle, Radio, Body camera…), 3–6 police/fire values each.
   - [x] Tasks: "+ Add task" opens the calendar's `TaskFormModal` (`calendar/CalendarModals.tsx`), which first needs a `contained` option to stay in the demo frame. Added tasks list with their time and reminder count.
   - [x] ~~Notes: add and list notes~~ **One note per assignment** (user, 2026-11-27): just a textarea with a placeholder, saved when the scheduler leaves it; no adding or removing notes. It also shows read-only at the end of the Details tab.
@@ -490,6 +490,7 @@ Prototype screenshot: `public/figma/workforce-scheduling-panel-blocks.png` (J. A
 - [x] `TaskFormModal` takes `contained` (no portal, no scroll lock, overlay `inner` at `left: 0`). For it to cover the demo frame from inside the panel, the panel's slide-in now ends on `transform: none` (a transform would make the panel the modal's containing block). The panel ignores Escape from inside a dialog.
 - Decisions made without the user: asset values drop the category word ("Radio · R-208", court files "#PKXD402"); the Assignment select (not tabs) for several blocks; recurrence shown on the task row; the note has no author or time.
 - Not yet: assign copies and bulk actions don't touch attachments; no asset availability.
+- Follow-up (user, 2026-11-27): no "None yet." in empty sections (the count says it); "Add …" text buttons (Add task, Add segment, Set actual, and the task form's Add reminder / Add note) use the primary color with the primary-light hover. Fixed globally by mapping Mantine's `--mantine-color-intime-light*` vars to the theme tokens (`mantineAliases`).
 
 ### Locked assignments; out of branch editable (2026-11-26, user)
 

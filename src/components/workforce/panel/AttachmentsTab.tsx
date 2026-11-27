@@ -33,7 +33,7 @@ const groupedFilter: OptionsFilter = ({ options, search }) => {
 }
 
 /**
- * Tags, assets, tasks and a note on one assignment. All four sections always show, with their count. Every change
+ * Tags, assets, tasks and a note on one assignment. All four sections always show, with their count (no empty text). Every change
  * saves at once (one Undo step); the note saves when you leave it. `readOnly`: shown, not changed (an assignment set outside scheduling).
  */
 export function AttachmentsTab({ value, onChange, day, readOnly = false, header }: {
@@ -73,13 +73,13 @@ export function AttachmentsTab({ value, onChange, day, readOnly = false, header 
           <TaskRow key={item.id} task={item} day={day} onOpen={readOnly ? undefined : () => setTask((state) => ({ key: state.key + 1, task: item, opened: true }))} />
         ))}
         {!readOnly && (
-          <Button variant="subtle" color="gray" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => setTask((state) => ({ key: state.key + 1, opened: true }))}>
+          <Button variant="subtle" size="xs" leftSection={<Plus size={14} aria-hidden="true" />} className={classes.linkButton} onClick={() => setTask((state) => ({ key: state.key + 1, opened: true }))}>
             Add task
           </Button>
         )}
       </AttachmentSection>
 
-      <AttachmentSection icon={<StickyNote size={14} aria-hidden="true" />} title="Note" count={value.note.trim() ? 1 : 0} hideEmpty={!readOnly}>
+      <AttachmentSection icon={<StickyNote size={14} aria-hidden="true" />} title="Note" count={value.note.trim() ? 1 : 0}>
         {readOnly
           ? value.note.trim() && <NoteText text={value.note} />
           : <NoteField key={value.note} value={value.note} onSave={(note) => set('note', note)} />}
@@ -99,14 +99,7 @@ export function AttachmentsTab({ value, onChange, day, readOnly = false, header 
   )
 }
 
-function AttachmentSection({ icon, title, count, hideEmpty = false, children }: {
-  icon: ReactNode
-  title: string
-  count: number
-  /** The section's own field says it's empty (the note's textarea) */
-  hideEmpty?: boolean
-  children: ReactNode
-}) {
+function AttachmentSection({ icon, title, count, children }: { icon: ReactNode; title: string; count: number; children: ReactNode }) {
   const id = useId()
   return (
     <section className={classes.attachSection} aria-labelledby={id}>
@@ -115,7 +108,6 @@ function AttachmentSection({ icon, title, count, hideEmpty = false, children }: 
         {title}
         <span className={classes.attachCount}>({count})</span>
       </h5>
-      {count === 0 && !hideEmpty && <Text size="sm" c="dimmed">None yet.</Text>}
       {children}
     </section>
   )
