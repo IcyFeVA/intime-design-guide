@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Button, Select, Stack, Text } from '@mantine/core'
+import { Button, Stack, Text } from '@mantine/core'
 import { Plus } from 'lucide-react'
 import { formatHeader, segmentHours, segmentKind, type Chip, type Segment } from '../../schedule/data'
-import { dayKey, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
+import { dayKey, HOME_BRANCH, shortName, type SegmentDetails, type WorkforceSegment } from '../data'
 import { flattenDay, regroupDay, type AssignSource, type DaySegment, type PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
 import { SegmentList, type BlockInfo, type PanelSegment, type SegmentHandlers } from './SegmentList'
@@ -14,7 +14,8 @@ import { LeaveEntry, LeaveTypeField, type LeaveRequest } from './LeaveEntry'
 import { ReadOnlyFields } from './ReadOnlyFields'
 import { WarningStack } from './Warnings'
 import { dayWarnings } from '../warnings'
-import { branches, segmentDetails } from './options'
+import { segmentDetails } from './options'
+import { BranchSelect } from './BranchSelect'
 import { formatSpan } from './format'
 import classes from '../WorkforcePanel.module.css'
 
@@ -64,7 +65,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
 
   const [selectedId, setSelectedId] = useState<string | null>((blocks[item.line] ?? blocks[0])?.[0]?.id ?? null)
   const [note, setNote] = useState<{ id: string; text: string; undo: boolean } | null>(null)
-  const [branch, setBranch] = useState<string | null>(branches[0])
+  const [branch, setBranch] = useState<string | null>(HOME_BRANCH)
   const [leaveOpen, setLeaveOpen] = useState(false)
 
   const selected = items.find((entry) => entry.segment.id === selectedId)?.segment ?? items[0]?.segment ?? null
@@ -214,7 +215,7 @@ export function DayEditor({ item, onEdit, onUndo, onPreview, assigning, onAssign
       <AssignmentBanner chip={selectedChip} />
       <EmployeeRow value={member.id} onChange={() => onPreview('Reassign to another employee')} onPreview={onPreview} />
       <WarningStack warnings={warnings} onSelectBlock={(index) => { if (blocks[index]?.[0]) setSelectedId(blocks[index][0].id) }} />
-      <Select label="Branch" data={branches} value={selectedChip?.branch ?? branch} onChange={setBranch} allowDeselect={false} readOnly={readOnly} />
+      <BranchSelect value={selectedChip?.branch ?? branch} onChange={setBranch} readOnly={readOnly} />
       <Stack gap={4}>
         {blocks.length
           ? (

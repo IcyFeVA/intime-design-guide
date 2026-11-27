@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Select } from '@mantine/core'
-import { findWatch, type OpenShiftEdit, type SegmentDetails } from '../data'
+import { findWatch, HOME_BRANCH, type OpenShiftEdit, type SegmentDetails } from '../data'
 import { formatHeader } from '../../schedule/data'
 import type { AssignSource, PanelItem } from '../model'
 import type { EditCommit } from '../useScheduleEdits'
@@ -9,7 +8,8 @@ import { TimesCard } from './TimesCard'
 import { EmployeeRow } from './EmployeeRow'
 import { SegmentFields } from './SegmentFields'
 import { PanelFooter, PanelTabs } from './parts'
-import { branches, segmentDetails } from './options'
+import { segmentDetails } from './options'
+import { BranchSelect } from './BranchSelect'
 import classes from '../WorkforcePanel.module.css'
 
 type OpenItem = Extract<PanelItem, { kind: 'open-shift' }>
@@ -24,7 +24,7 @@ export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }
 }) {
   const { shift } = item
   const [employee, setEmployee] = useState<string | null>(null)
-  const [branch, setBranch] = useState<string | null>(branches[0])
+  const [branch, setBranch] = useState<string | null>(HOME_BRANCH)
   const segment: PanelSegment = { id: 'open', code: shift.code, start: shift.start, end: shift.end, details: shift.details }
   const details = segmentDetails(segment, findWatch(shift.watch).unit, shift.id, shift.location)
   const save = (edit: OpenShiftEdit) => onEdit({ open: [[shift.id, edit]] })
@@ -41,7 +41,7 @@ export function OpenShiftEditor({ item, onEdit, onPreview, assigning, onAssign }
   const body = (
     <div className={classes.body}>
       <EmployeeRow value={employee} onChange={setEmployee} onPreview={onPreview} />
-      <Select label="Branch" data={branches} value={branch} onChange={setBranch} allowDeselect={false} />
+      <BranchSelect value={branch} onChange={setBranch} />
       <SegmentList blocks={[[segment]]} selectedId="open" onSelect={() => {}} handlers={handlers} />
       <TimesCard
         key={`${shift.start}:${shift.end}`}

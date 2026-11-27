@@ -31,7 +31,7 @@ const mouse: [string, string][] = [
   ['Click a date', 'Selects that day for everyone, open shifts included. Shift-click, Ctrl-click (⌘-click) or drag along the dates for more days.'],
   ['Right-click', 'Opens a menu for a name, a date or a selected cell: Copy, Paste, Load from template, Pre-fill, Leave, Post, Fill, Add new ruler and History. Paste is available after Copy. Anything not yet selected is selected first, so a selection of rows or days stays as it is. The Menu key or Shift+F10 opens it from the keyboard.'],
   ['Click Open shifts', 'Selects all open shifts.'],
-  ['Type in “Search employees”', 'The search sits above the names, always ready. X or Escape clears it. Filtering the rows isn’t built yet.'],
+  ['Type in “Filter employees”', 'The search sits above the names, always ready. X or Escape clears it. Filtering the rows isn’t built yet.'],
   ['Ctrl-click (⌘-click on Mac)', 'Adds a cell to the selection, or takes it out. Drag after it to add a block.'],
   ['Hover an empty cell', 'Shows a plus. Click to add an activity for that person and day.'],
 ]
@@ -478,7 +478,7 @@ export default function WorkforceScheduling() {
         <Stack gap="xs">
           <Text size="sm"><strong>One form for the selected segment.</strong> Its times come first (Scheduled, Start, End, Hours and actual times), then shift code, activity, location, customer, hours modifier, time bank, unit and acting rank. Every segment has its own values.</Text>
           <Text size="sm"><strong>Bank this time</strong> adds a time bank (Overtime, Comp Time or Holiday) and the hours to bank, with how many that bank can still take.</Text>
-          <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live, Find an employee and Cancel segment. The other rows show only their menu.</Text>
+          <Text size="sm"><strong>The selected segment</strong> is outlined and shows its actions: Post as live and Find an employee. Every row’s ⋯ menu has History, Cancel segment (Restore once cancelled) and Delete segment.</Text>
           <Text size="sm"><strong>Saving.</strong> A field saves when you pick a value or leave it. The grid and staffing update at once, and the title says “Saved”. There is no Save button.</Text>
           <Text size="sm"><strong>Undo.</strong> Undo in the toolbar, or Ctrl/⌘ Z outside a field, reverts the last change. Reset demo restores the whole schedule.</Text>
           <Text size="sm"><strong>What isn’t saved.</strong> Times that overlap another segment, or that start and end together. The card says why, and the last saved times stay. Spans over 16h are saved but ask: “Longer than 16h. Is that right?”</Text>

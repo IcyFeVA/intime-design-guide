@@ -5,7 +5,7 @@ import { ArrowUpRight, Ban, Lock, CalendarArrowUp, CornerDownRight, Ellipsis, Hi
 import { shiftCodeMap } from '../../../tokens/schedule'
 import { formatDuration, segmentHours, segmentKind } from '../../schedule/data'
 import type { WorkforceSegment } from '../data'
-import { codeFill, formatSpan, fromIso, toIso } from './format'
+import { codeFill, formatActual, formatSpan, fromIso, toIso } from './format'
 import classes from '../WorkforcePanel.module.css'
 
 export type PanelSegment = WorkforceSegment & { id: string }
@@ -106,7 +106,7 @@ function Times({ segment }: { segment: PanelSegment }) {
   if (!actual) return <span className={classes.time}>{formatSpan(start, end)}</span>
   return (
     <span className={classes.time}>
-      <s className={classes.scheduled}>{formatSpan(start, end)}</s> {formatSpan(actual.start, actual.end)}
+      <s className={classes.scheduled}>{formatSpan(start, end)}</s> {formatActual(actual)}
     </span>
   )
 }
@@ -152,6 +152,9 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
           </>
         )}
         <Menu.Item leftSection={<History size={16} aria-hidden="true" />} onClick={() => handlers.onPreview('Segment history')}>History</Menu.Item>
+        {!isLeave(segment) && (segment.cancelled
+          ? <Menu.Item leftSection={<RotateCcw size={16} aria-hidden="true" />} onClick={() => handlers.onPatch(segment.id, { cancelled: false })}>Restore segment</Menu.Item>
+          : <Menu.Item leftSection={<Ban size={16} aria-hidden="true" />} onClick={() => handlers.onPatch(segment.id, { cancelled: true })}>Cancel segment</Menu.Item>)}
         {handlers.onDelete && (
           <Menu.Item color="red" leftSection={<Trash2 size={16} aria-hidden="true" />} onClick={() => handlers.onDelete?.(segment.id)}>Delete segment</Menu.Item>
         )}
@@ -181,9 +184,6 @@ function SegmentRow({ segment, root, total, selected, onSelect, handlers, blockM
         <>
           {action('Post as live', <Radio size={16} />)}
           {action('Find an employee', <UserSearch size={16} />)}
-          {segment.cancelled
-            ? action('Restore segment', <RotateCcw size={16} />, () => handlers.onPatch(segment.id, { cancelled: false }))
-            : action('Cancel segment', <Ban size={16} />, () => handlers.onPatch(segment.id, { cancelled: true }))}
         </>
       )}
       {readOnly ? null : blockMenu ? (

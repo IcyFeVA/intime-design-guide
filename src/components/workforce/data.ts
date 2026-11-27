@@ -84,8 +84,11 @@ export interface SegmentDetails {
   customer: string
   unit: string
   acting: string
-  /** Actual start and end (hours, end past 24 = next day), when they differ from the schedule */
-  actual: { start: number; end: number } | null
+  /**
+   * Actual start and end (hours, end past 24 = next day), when they differ from the schedule. `day` is the actual
+   * date when it was changed (day number); missing means the scheduled day.
+   */
+  actual: { start: number; end: number; day?: number } | null
 }
 
 /** A segment as the panel edits it: a stable id and its fields. Unedited mock segments have neither. */

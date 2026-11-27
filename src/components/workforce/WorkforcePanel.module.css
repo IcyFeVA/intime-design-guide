@@ -290,6 +290,17 @@
   align-self: flex-start;
 }
 
+/* Hours: a value, not a field, centered on the inputs beside it */
+.hoursValue {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  height: 36px;
+  padding-left: 4px;
+}
+
 /* ---------- Out of unit / branch ---------- */
 
 .banner {
@@ -427,4 +438,24 @@ button.warningRow:hover,
   .warningsChevron {
     transition: none;
   }
+}
+
+/* ---------- Branch select ---------- */
+
+.branchOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding-inline-start: calc(var(--branch-depth, 0) * 14px);
+}
+
+.branchCount {
+  color: var(--text-dimmed);
+  font-weight: 400;
+}
+
+.branchCheck {
+  margin-inline-start: auto;
+  flex: none;
 }

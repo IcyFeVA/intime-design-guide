@@ -54,8 +54,8 @@ function EmployeeSearch() {
       className={classes.cornerSearch}
       classNames={{ input: classes.cornerSearchInput }}
       size="sm"
-      aria-label="Search employees"
-      placeholder="Search employees…"
+      aria-label="Filter employees"
+      placeholder="Filter employees…"
       value={query}
       onChange={(event) => setQuery(event.currentTarget.value)}
       leftSection={<Search size={16} strokeWidth={1.75} aria-hidden="true" />}
