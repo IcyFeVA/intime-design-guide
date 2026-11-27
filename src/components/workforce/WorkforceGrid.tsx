@@ -1,16 +1,18 @@
-import { memo, useState, type CSSProperties, type SyntheticEvent } from 'react'
+import { memo, useState, type CSSProperties, type ReactNode, type SyntheticEvent } from 'react'
 import { useElementSize } from '@mantine/hooks'
 import { Badge, CloseButton, TextInput, UnstyledButton, VisuallyHidden } from '@mantine/core'
 import { ChevronDown, Megaphone, Plus, Search, ShieldCheck, Triangle, TriangleAlert } from 'lucide-react'
 import ShiftChip from '../schedule/ShiftChip'
 import { BodiesValue, HoursValue, TimeOfDayBar } from '../schedule/Coverage'
-import { coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatWeekday, isPeriodStart, type Chip, type DayCoverage } from '../schedule/data'
+import {
+  chipFills, coverageLevel, dayNumber, describeChip, formatFullDate, formatHeader, formatHour, formatWeekday, isPeriodStart, segmentHours, type Chip, type DayCoverage,
+} from '../schedule/data'
 import { DAY_MAX_WIDTH, cellViewFor, fitColumns, type CellLayout, type CellView, type ViewDensity } from '../../tokens/workforce'
 import GridContextMenu from './GridContextMenu'
 import OpenShiftChip from './OpenShiftChip'
 import DetailedChip from './DetailedChip'
 import StackedChip from './StackedChip'
-import { describeOpenShift, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
+import { describeOpenShift, overnightSegment, rankLabels, shortName, type OpenShift, type Watch, type WatchId } from './data'
 import { HEADER_ROW, staffingMetrics, type GridModel, type GridRow, type StaffingMetric } from './model'
 import type { GridSelection } from './useGridSelection'
 import classes from './Workforce.module.css'
@@ -30,6 +32,8 @@ export interface WorkforceGridProps {
   contextMenu?: { title: string; onPreview: (action: string) => void }
   /** Assign mode is on: people's cells show a copy cursor and a dashed outline on hover */
   assigning?: boolean
+  /** Overnight overlap (proposal): a shift that ends after midnight stays on its start day and points into the next day's cell */
+  overnight?: boolean
 }
 
 // Keeps clicks, keys and focus inside the search away from the grid's selection handlers
@@ -108,20 +112,47 @@ const cellProps = ({ row, day, selectable, selected, active, edges, tabStop, den
   'data-boundary': boundary || undefined,
 })
 
-const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, ...state }: CellState & { chip: Chip | null; name: string; overflow: boolean; warning: string | null }) {
+/**
+ * Overnight overlap: the cell's chip with a tip that reaches into the next day's cell, so a 22:00–08:00 shift
+ * reads as running into the next morning while it stays on its start day. On the last day of the range the tip stays inside the cell.
+ */
+function OvernightChip({ chip, lastDay, children }: { chip: Chip; lastDay: boolean; children: ReactNode }) {
+  // Out of branch and locked cells are muted, and so is their tip
+  const fill = chip.branch || chip.locked ? 'var(--schedule-branch-bg)' : `var(--schedule-${chipFills(chip)[1]})`
+  return (
+    <span className={classes.overnight} data-last-day={lastDay || undefined} style={{ '--overnight-fill': fill } as CSSProperties}>
+      {children}
+      <span className={classes.overnightTip} aria-hidden="true" />
+    </span>
+  )
+}
+
+const MemberCell = memo(function MemberCell({ chip, name, overflow, warning, cells, overnight, lastDay, ...state }: CellState & {
+  chip: Chip | null
+  name: string
+  overflow: boolean
+  warning: string | null
+  /** Show the overnight tip when the chip ends after midnight */
+  overnight: boolean
+  lastDay: boolean
+}) {
   const context = `${name}, ${formatHeader(state.day)}`
+  const late = chip && overnight ? overnightSegment(chip) : undefined
+  const content = chip && (
+    cells === 'detailed' ? <DetailedChip chip={chip} />
+      : cells === 'stacked' ? <StackedChip chip={chip} />
+        : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} />
+  )
   return (
     <div
       {...cellProps(state)}
       className={classes.cell}
       data-overflow={overflow || undefined}
-      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${warning ? `. Warning: ${warning}` : ''}`}
+      aria-label={`${context}: ${chip ? describeChip(chip) : state.selectable ? 'no activity' : 'empty'}${late ? `. Ends ${formatHour(segmentHours(late).end)} the next day` : ''}${warning ? `. Warning: ${warning}` : ''}`}
     >
       {warning && <TriangleAlert size={16} strokeWidth={2} className={classes.warnMark} aria-hidden="true" />}
       {chip ? (
-        cells === 'detailed' ? <DetailedChip chip={chip} />
-          : cells === 'stacked' ? <StackedChip chip={chip} />
-            : <ShiftChip chip={chip} density={state.density} context={context} interactive={false} />
+        late ? <OvernightChip chip={chip} lastDay={lastDay}>{content}</OvernightChip> : content
       ) : state.selectable && (
         <Plus size={18} strokeWidth={1.75} className={classes.add} aria-hidden="true" />
       )}
@@ -198,7 +229,7 @@ const StaffingRow = memo(function StaffingRow({ rowKey, watch, metric, label, da
  * Employee and open-shift cells can be selected like a spreadsheet (see `useGridSelection`).
  */
 export default function WorkforceGrid({
-  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false,
+  model, selection, view, today, onToggleGroup, onToggleStaffing, onCoverageClick, contextMenu, assigning = false, overnight = false,
 }: WorkforceGridProps) {
   const { days } = model
   const { ref: scrollerRef, width } = useElementSize<HTMLDivElement>()
@@ -372,7 +403,16 @@ export default function WorkforceGrid({
               </div>
             )}
             {row.cells.map((chip, index) => (
-              <MemberCell key={days[index]} chip={chip} name={name} overflow={row.overflow} warning={row.warnings[index]} {...cellState(row.key, days[index], index)} />
+              <MemberCell
+                key={days[index]}
+                chip={chip}
+                name={name}
+                overflow={row.overflow}
+                warning={row.warnings[index]}
+                overnight={overnight}
+                lastDay={index === days.length - 1}
+                {...cellState(row.key, days[index], index)}
+              />
             ))}
           </div>
         )

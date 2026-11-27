@@ -116,7 +116,7 @@ export function FramePage({ title, back, tabs, actions, toolbar, children }: {
   )
 }
 
-export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, overlay, overlayOpen = false, children }: {
+export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav, status, onReset, toolbar, targetWidth, demoControls, overlay, overlayOpen = false, children }: {
   /** Shows the Unit / Location tabs with this one active. Leave out for pages without tabs. */
   view?: ScheduleView
   title?: string
@@ -131,6 +131,8 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
   toolbar: ReactNode
   /** Adds a Target resolution button: full screen, but no wider than this (px). For screenshots at the product's target size. */
   targetWidth?: number
+  /** Extra demo-only controls in the bar above the frame, before Target resolution, e.g. a toggle for a proposed design */
+  demoControls?: ReactNode
   /**
    * A screen that covers the page below the top bar (title row down), e.g. Approvals opened from Workforce Scheduling.
    * It stays mounted while hidden, so it keeps its state and opens instantly. Use `FramePage` with a `back` link inside it.
@@ -181,7 +183,8 @@ export function DesktopDemoFrame({ view, title = 'Team View', tabs, actions, nav
     <>
       <Group justify="space-between" px="md" py="xs" className={classes.demoBar} wrap="nowrap">
         <Text size="xs" c="dimmed" role="status">{status}</Text>
-        <Group gap={4} wrap="nowrap">
+        <Group gap={4} wrap="nowrap" style={{ flex: 'none' }}>
+          {demoControls}
           {targetWidth && (
             <Button variant="subtle" color="gray" size="compact-xs" leftSection={<Laptop size={14} />} onClick={() => setScreen('target')}>Target resolution</Button>
           )}

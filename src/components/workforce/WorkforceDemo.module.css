@@ -69,3 +69,18 @@
   text-align: center;
   color: var(--text-dimmed);
 }
+
+/* ---------- Proposal toggle in the demo bar ---------- */
+
+/* Stands out from the quiet demo buttons beside it, so reviewers find it */
+.proposal {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  margin-inline-end: 8px;
+  padding: 3px 10px 3px 4px;
+  border: 1px solid var(--border-primary-default);
+  border-radius: 999px;
+  background: var(--background-primary-light);
+}

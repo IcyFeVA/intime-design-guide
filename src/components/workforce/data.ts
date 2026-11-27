@@ -103,6 +103,9 @@ export interface ScheduleEdits {
 export const noEdits: ScheduleEdits = { days: new Map(), open: new Map() }
 export const dayKey = (memberId: string, day: number) => `${memberId}@${day}`
 
+/** The cell's last segment that ends after midnight (end past 24), if any: the shift runs into the next day */
+export const overnightSegment = (chip: Chip) => chip.segments.findLast((segment) => segmentHours(segment).end > 24)
+
 /** "B. Haddad" */
 export const shortName = (member: Pick<WorkforceMember, 'first' | 'last'>) => `${member.first[0]}. ${member.last}`
 
@@ -220,8 +223,9 @@ const specs: Record<WatchId, Spec[]> = {
   night: [
     // Warning, minimum rest: training at 06:00 after Monday's night shift
     ['cohen', 'Yael', 'Cohen', 'PO', 1, { 0: [cell([c('PatN')])], 1: [cell([c('Train', { start: 6, end: 10 })]), cell([c('PatN')])] }],
-    ['murphy', 'Declan', 'Murphy', 'Sgt', 2],
-    ['rossi', 'Angela', 'Rossi', 'PO', 3],
+    // Overnight overlap (proposal): shifts that end the next morning. Murphy two nights in a row, Rossi on Thu.
+    ['murphy', 'Declan', 'Murphy', 'Sgt', 2, { 1: [cell([c('PatN', { start: 22, end: 32 })])], 2: [cell([c('PatN', { start: 22, end: 32 })])] }],
+    ['rossi', 'Angela', 'Rossi', 'PO', 3, { 3: [cell([c('PatN', { start: 23, end: 31 })])] }],
     ['kim', 'Joon', 'Kim', 'PO', 4],
     ['santos', 'Luis', 'Santos', 'Cpl', 5],
     ['walsh', 'Fiona', 'Walsh', 'PO', 6],
