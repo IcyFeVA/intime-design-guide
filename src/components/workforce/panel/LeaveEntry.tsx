@@ -98,7 +98,6 @@ export function LeaveEntry({ span, replaces, onAdd, onCancel, defaultCode = 'Sic
         )}
       </SimpleGrid>
       {allDay && replaces && <Text size="xs" c="dimmed" mt={8}>Replaces {replaces}. Undo brings it back.</Text>}
-      {!allDay && <Text size="xs" c="dimmed" mt={8}>Leave inside an assignment stays in its cell, as a partial leave.</Text>}
       {error && <Text size="xs" mt={6} c="var(--text-error-default)" role="alert">{error}. Not saved.</Text>}
       <Group gap={8} mt={12} justify="flex-end">
         <Button variant="default" size="xs" onClick={onCancel}>Cancel</Button>

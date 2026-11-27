@@ -128,13 +128,11 @@ export function BulkEditor({ items, onEdit, onPreview, onStatus, assigning, onAs
 
           <div className={classes.bulkSection}>
             <UnstyledButton className={classes.bulkToggle} onClick={() => setFieldsOpen((open) => !open)} aria-expanded={fieldsOpen} aria-controls={fieldsId}>
-              <Text size="sm" fw={600} c="var(--text-default)">Change fields</Text>
-              <Text size="xs" c="dimmed" className={classes.grow} truncate>Activity, location, hours modifier, unit</Text>
+              <Text size="sm" fw={600} c="var(--text-default)" className={classes.grow}>Change fields</Text>
               <ChevronRight size={16} className={classes.warningsChevron} data-open={fieldsOpen || undefined} aria-hidden="true" />
             </UnstyledButton>
             <Collapse expanded={fieldsOpen} id={fieldsId}>
               <div className={classes.bulkFields}>
-                <Text size="xs" c="dimmed">A value you pick saves to every selected cell. Leave and locked cells stay as they are.</Text>
                 <SimpleGrid cols={2} spacing="sm" verticalSpacing="sm">
                   {fields.map((field) => {
                     const values = fieldValues(selection, field.key)
