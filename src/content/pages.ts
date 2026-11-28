@@ -170,7 +170,7 @@ export const pages: PageDef[] = [
     component: lazy(() => import('../pages/patterns/VacationBidding')),
   },
   {
-    path: '/patterns/shift-bidding', title: 'Shift Bidding', group: 'Patterns', icon: CalendarCheck, status: 'review', updated: '2026-11-27',
+    path: '/patterns/shift-bidding', title: 'Shift Bidding', group: 'Patterns', icon: CalendarCheck, status: 'confirmed', updated: '2026-11-27',
     description: 'How employees bid for shifts: wait for their turn, select shifts on offer, rank them and submit.',
     keywords: ['shift bid', 'shift bids', 'shift bidding', 'bid', 'bidding', 'turn-based', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'select shift', 'choice', 'rank', 'ranking', 'priority', 'drag and drop', 'submit', 'seniority', 'all at once', 'available', 'full', 'filled', 'places', 'missed', 'awarded', 'denied', 'taken down', 'coverage'],
     sections: s(['desktop', 'Shift bidding'], ['differences', 'Shift and vacation bids'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['selecting', 'Selecting shifts'], ['ranking', 'Ranking shifts'], ['sign-ups', 'Sign-ups'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),

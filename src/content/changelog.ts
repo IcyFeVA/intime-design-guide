@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
     page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding approved. Both modes, the shift bid states (including Missed) and the shifts on offer are confirmed.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/shift-bidding',
     summary: 'Shift Bidding: closed bids still list the shifts that were on offer, read-only, so their sign-ups show who was awarded.',
   },
   {

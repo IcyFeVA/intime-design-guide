@@ -17,8 +17,8 @@ export type BidKind = 'vacation' | 'shift'
 
 /** Shift bids: shifts are always offered, in both modes. */
 export const shiftBidModes: typeof bidModes = [
-  { key: 'turn-based', label: 'Turn-based', meaning: 'Employees bid one after another, usually by seniority. You wait in a queue; when it is your turn you select shifts from the ones still open, rank them and submit. Shifts that filled up before your turn can’t be selected.', status: 'review' },
-  { key: 'all-at-once', label: 'All at once', meaning: 'Everyone bids during the same window, shown as a countdown. You select shifts, rank them and submit, and can still change them until the window closes. Then the agency awards the shifts by its rules, usually seniority.', status: 'review' },
+  { key: 'turn-based', label: 'Turn-based', meaning: 'Employees bid one after another, usually by seniority. You wait in a queue; when it is your turn you select shifts from the ones still open, rank them and submit. Shifts that filled up before your turn can’t be selected.', status: 'confirmed' },
+  { key: 'all-at-once', label: 'All at once', meaning: 'Everyone bids during the same window, shown as a countdown. You select shifts, rank them and submit, and can still change them until the window closes. Then the agency awards the shifts by its rules, usually seniority.', status: 'confirmed' },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -71,37 +71,37 @@ export const shiftBidStates: typeof bidStates = [
   {
     key: 'queued', badge: 'queued', modes: ['turn-based'], when: 'Other employees bid before you',
     panel: 'How many employees are ahead of you, and that you will be notified when it is your turn. The shifts on offer are hidden until then.',
-    list: 'Queued badge and the time left in the bid.', status: 'review',
+    list: 'Queued badge and the time left in the bid.', status: 'confirmed',
   },
   {
     key: 'your-turn', badge: 'your-turn', modes: ['turn-based'], when: 'It is your turn to bid',
     panel: 'Your ranked shifts (or an empty box), the shifts on offer with Select Shift, and Submit at the bottom. Submit is disabled until you select a shift.',
-    list: 'Your Turn badge, the time left, and “Selected: N” once you select shifts.', status: 'review',
+    list: 'Your Turn badge, the time left, and “Selected: N” once you select shifts.', status: 'confirmed',
   },
   {
     key: 'open', badge: 'open', modes: ['all-at-once'], when: 'The bid window is open for everyone',
     panel: 'Your ranked shifts (or an empty box), the shifts on offer with Select Shift, and Submit at the bottom.',
-    list: 'Open badge, the time left, and “Selected: N” once you select shifts.', status: 'review',
+    list: 'Open badge, the time left, and “Selected: N” once you select shifts.', status: 'confirmed',
   },
   {
     key: 'pending', badge: 'pending', modes: ['turn-based', 'all-at-once'], when: 'You submitted your shifts',
     panel: 'Turn-based: the selection is locked in; Edit changes the ranking and you can remove a shift, but Select Shift is gone. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
-    list: 'Pending badge and “Signed up for: N”.', status: 'review',
+    list: 'Pending badge and “Signed up for: N”.', status: 'confirmed',
   },
   {
     key: 'closed', badge: 'closed', modes: ['turn-based', 'all-at-once'], when: 'The window closed after you submitted',
     panel: 'How many shifts you were awarded, each ranked shift with Awarded or Denied, and the shifts that were on offer, read-only, with their sign-ups.',
-    list: 'Closed badge and “Awarded: N”.', status: 'review',
+    list: 'Closed badge and “Awarded: N”.', status: 'confirmed',
   },
   {
     key: 'expired', badge: 'missed', modes: ['turn-based', 'all-at-once'], when: 'The window closed before you submitted (or, turn-based, before your turn)',
     panel: 'Nothing was sent. Shifts that weren’t submitted are dropped.',
-    list: 'Missed badge.', status: 'review',
+    list: 'Missed badge.', status: 'confirmed',
   },
   {
     key: 'taken-down', badge: 'taken-down', modes: ['turn-based', 'all-at-once'], when: 'A scheduler withdrew the bid',
     panel: 'The bid was taken down and your shifts are canceled.',
-    list: 'Taken Down badge.', status: 'review',
+    list: 'Taken Down badge.', status: 'confirmed',
   },
 ]
 
