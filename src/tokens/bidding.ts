@@ -12,6 +12,15 @@ export const bidModes: { key: BidMode; label: string; meaning: string; status: T
   { key: 'all-at-once', label: 'All at once', meaning: 'Everyone bids during the same window, shown as a countdown. You pick from the shifts on offer, rank them and submit, and can still change them until the window closes. Then the agency awards the leave by its rules, usually seniority.', status: 'confirmed' },
 ]
 
+/** What employees bid for: their own leave requests (vacation) or shifts the agency offers. */
+export type BidKind = 'vacation' | 'shift'
+
+/** Shift bids: shifts are always offered, in both modes. */
+export const shiftBidModes: typeof bidModes = [
+  { key: 'turn-based', label: 'Turn-based', meaning: 'Employees bid one after another, usually by seniority. You wait in a queue; when it is your turn you select shifts from the ones still open, rank them and submit. Shifts that filled up before your turn can’t be selected.', status: 'review' },
+  { key: 'all-at-once', label: 'All at once', meaning: 'Everyone bids during the same window, shown as a countdown. You select shifts, rank them and submit, and can still change them until the window closes. Then the agency awards the shifts by its rules, usually seniority.', status: 'review' },
+]
+
 /* ------------------------------------------------------------------ */
 /* Your place in a bid                                                 */
 /* ------------------------------------------------------------------ */
@@ -56,6 +65,50 @@ export const bidStates: { key: BidState; badge: string; modes: BidMode[]; when: 
     list: 'Taken Down badge.', status: 'confirmed',
   },
 ]
+
+/** Shift bids: the same states, worded for shifts. A bid that closed before you submitted is Missed. */
+export const shiftBidStates: typeof bidStates = [
+  {
+    key: 'queued', badge: 'queued', modes: ['turn-based'], when: 'Other employees bid before you',
+    panel: 'How many employees are ahead of you, and that you will be notified when it is your turn. The shifts on offer are hidden until then.',
+    list: 'Queued badge and the time left in the bid.', status: 'review',
+  },
+  {
+    key: 'your-turn', badge: 'your-turn', modes: ['turn-based'], when: 'It is your turn to bid',
+    panel: 'Your ranked shifts (or an empty box), the shifts on offer with Select Shift, and Submit at the bottom. Submit is disabled until you select a shift.',
+    list: 'Your Turn badge, the time left, and “Selected: N” once you select shifts.', status: 'review',
+  },
+  {
+    key: 'open', badge: 'open', modes: ['all-at-once'], when: 'The bid window is open for everyone',
+    panel: 'Your ranked shifts (or an empty box), the shifts on offer with Select Shift, and Submit at the bottom.',
+    list: 'Open badge, the time left, and “Selected: N” once you select shifts.', status: 'review',
+  },
+  {
+    key: 'pending', badge: 'pending', modes: ['turn-based', 'all-at-once'], when: 'You submitted your shifts',
+    panel: 'Turn-based: the selection is locked in; Edit changes the ranking and you can remove a shift, but Select Shift is gone. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
+    list: 'Pending badge and “Signed up for: N”.', status: 'review',
+  },
+  {
+    key: 'closed', badge: 'closed', modes: ['turn-based', 'all-at-once'], when: 'The window closed after you submitted',
+    panel: 'How many shifts you were awarded, and each ranked shift with Awarded or Denied.',
+    list: 'Closed badge and “Awarded: N”.', status: 'review',
+  },
+  {
+    key: 'expired', badge: 'missed', modes: ['turn-based', 'all-at-once'], when: 'The window closed before you submitted (or, turn-based, before your turn)',
+    panel: 'Nothing was sent. Shifts that weren’t submitted are dropped.',
+    list: 'Missed badge.', status: 'review',
+  },
+  {
+    key: 'taken-down', badge: 'taken-down', modes: ['turn-based', 'all-at-once'], when: 'A scheduler withdrew the bid',
+    panel: 'The bid was taken down and your shifts are canceled.',
+    list: 'Taken Down badge.', status: 'review',
+  },
+]
+
+export const bidStatesFor = (kind: BidKind) => (kind === 'shift' ? shiftBidStates : bidStates)
+
+/** Whether a shift on offer can still be selected. Full shifts can’t. */
+export type ShiftAvailability = 'available' | 'full'
 
 /** “1st”, “2nd”, “3rd”, “4th”… for choices. */
 export function ordinal(value: number) {

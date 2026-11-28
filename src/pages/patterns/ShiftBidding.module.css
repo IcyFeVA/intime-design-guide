@@ -1,0 +1,6 @@
+.figma {
+  display: block;
+  width: 100%;
+  border-radius: var(--mantine-radius-md);
+  border: 1px solid var(--intime-border);
+}

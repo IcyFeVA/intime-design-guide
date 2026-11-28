@@ -7,7 +7,7 @@ import { PickerMenu } from '../schedule/ScheduleChrome'
 import { dayNumber, MOCK_TODAY } from '../schedule/data'
 import { teamBidStatuses, type TeamBidStatus } from '../../tokens/bidding'
 import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
-import { signUpsFor, teamBidsFor, type Bid, type TeamBid } from './data'
+import { formatSpan, shiftSignUpsFor, signUpsFor, teamBidsFor, type Bid, type OfferedShift, type SignUp, type TeamBid } from './data'
 import classes from './VacationBidding.module.css'
 
 type TeamView = 'month' | 'week'
@@ -121,33 +121,67 @@ export function TeamBidsModal({ bid, opened, onClose }: { bid: Bid; opened: bool
   )
 }
 
+/** Sign-ups in the List Organizer's order with rank, and Awarded once the bid is closed. */
+function SignUpsDialog({ title, intro, signUps, closed, opened, onClose }: {
+  title: string
+  intro?: string
+  signUps: SignUp[]
+  closed: boolean
+  opened: boolean
+  onClose: () => void
+}) {
+  return (
+    <Modal opened={opened} onClose={onClose} centered size={600} title={title} classNames={{ title: classes.modalTitle }}>
+      {intro && <Text fw={600} mb={4}>{intro}</Text>}
+      <Text className={classes.confirmText}>Sign-Ups are sorted based on the List Organizer’s current order.</Text>
+      {signUps.length ? (
+        <Table className={classes.signUps} verticalSpacing={8} horizontalSpacing={0} mt="xl" withRowBorders={false}>
+          <Table.Thead>
+            <Table.Tr><Table.Th>Employee</Table.Th><Table.Th w="32%">Rank</Table.Th><Table.Th w="24%">Status</Table.Th></Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {signUps.map((signUp) => (
+              <Table.Tr key={signUp.name} data-you={signUp.you || undefined}>
+                <Table.Td>{signUp.name}{signUp.you && <Text span c="dimmed" inherit> (you)</Text>}</Table.Td>
+                <Table.Td>{signUp.rank}</Table.Td>
+                <Table.Td>{signUp.awarded && <RequestStatusBadge stateKey="awarded" size="lg" />}</Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      ) : (
+        <Text c="dimmed" mt="xl">Nobody has signed up yet.</Text>
+      )}
+      {!closed && <Text size="sm" c="dimmed" mt="md">Awarded shows here once the bid closes.</Text>}
+      <Group justify="flex-end" mt="xl">
+        <Button variant="outline" className={classes.confirm} onClick={onClose} data-autofocus>Close</Button>
+      </Group>
+    </Modal>
+  )
+}
+
 /**
  * All at once: who signed up, in the List Organizer's order, with their rank. Nobody knows who is awarded
  * until the bid closes, so Status stays empty until then.
  */
 export function ViewSignUpsModal({ bid, opened, onClose }: { bid: Bid; opened: boolean; onClose: () => void }) {
-  const signUps = signUpsFor(bid)
+  return <SignUpsDialog title="View Sign-Ups" signUps={signUpsFor(bid)} closed={bid.state === 'closed'} opened={opened} onClose={onClose} />
+}
+
+/** Shift bids: who signed up for one shift, opened from its “N Sign-Ups” link. */
+export function ShiftSignUpsModal({ bid, shift, onClose }: { bid: Bid; shift: OfferedShift | null; onClose: () => void }) {
+  const [last, setLast] = useState(shift)
+  if (shift && shift !== last) setLast(shift)
+  /* Keeps the last shift while the dialog closes, so its content doesn't vanish mid-transition */
+  const shown = shift ?? last
   return (
-    <Modal opened={opened} onClose={onClose} centered size={600} title="View Sign-Ups" classNames={{ title: classes.modalTitle }}>
-      <Text className={classes.confirmText}>Sign-Ups are sorted based on the List Organizer’s current order.</Text>
-      <Table className={classes.signUps} verticalSpacing={8} horizontalSpacing={0} mt="xl" withRowBorders={false}>
-        <Table.Thead>
-          <Table.Tr><Table.Th>Employee</Table.Th><Table.Th w="32%">Rank</Table.Th><Table.Th w="24%">Status</Table.Th></Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {signUps.map((signUp) => (
-            <Table.Tr key={signUp.name} data-you={signUp.you || undefined}>
-              <Table.Td>{signUp.name}{signUp.you && <Text span c="dimmed" inherit> (you)</Text>}</Table.Td>
-              <Table.Td>{signUp.rank}</Table.Td>
-              <Table.Td>{signUp.awarded && <RequestStatusBadge stateKey="awarded" size="lg" />}</Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-      {bid.state !== 'closed' && <Text size="sm" c="dimmed" mt="md">Awarded shows here once the bid closes.</Text>}
-      <Group justify="flex-end" mt="xl">
-        <Button variant="outline" className={classes.confirm} onClick={onClose} data-autofocus>Close</Button>
-      </Group>
-    </Modal>
+    <SignUpsDialog
+      title="View Sign-Ups"
+      intro={shown ? `${shown.title} · ${formatSpan(shown.start, shown.end)}` : undefined}
+      signUps={shown ? shiftSignUpsFor(bid, shown) : []}
+      closed={bid.state === 'closed'}
+      opened={!!shift}
+      onClose={onClose}
+    />
   )
 }

@@ -10,22 +10,27 @@ import RequestStatusBadge from '../../pages/components/RequestStatusBadge'
 import { RangePicker } from '../date-picker/DatePickers'
 import { PickerMenu } from '../schedule/ScheduleChrome'
 import { formatMonthDay, weekdayIndex } from '../schedule/data'
-import { bidStates, leaveTypeLabel, leaveTypes, ordinal, type BidMode, type LeaveTypeKey } from '../../tokens/bidding'
+import { bidStatesFor, leaveTypeLabel, leaveTypes, ordinal, type BidKind, type BidMode, type LeaveTypeKey } from '../../tokens/bidding'
 import {
-  FULL_DAY, calendarDayLabel, formatRangeShort, formatSpan, plural, requestTimes, requestWeeks, signUpsFor, spanDays, timeBanks, type Bid, type BidRequest,
+  FULL_DAY, calendarDayLabel, coversDay, formatRangeShort, formatSpan, isFull, plural, requestDayCount, requestTimes, requestWeeks, shiftSignUpsFor, signUpsFor, timeBanks,
+  type Bid, type BidRequest, type OfferedShift,
 } from './data'
 import type { BidStatusFilter, VacationBiddingState } from './useVacationBidding'
-import { TeamBidsModal, ViewSignUpsModal } from './TeamBids'
+import { ShiftSignUpsModal, TeamBidsModal, ViewSignUpsModal } from './TeamBids'
 import classes from './VacationBidding.module.css'
 
-const badgeFor = (bid: Bid) => bidStates.find((item) => item.key === bid.state)!.badge
+const kindOf = (bid: Bid): BidKind => bid.kind ?? 'vacation'
+const badgeFor = (bid: Bid) => bidStatesFor(kindOf(bid)).find((item) => item.key === bid.state)!.badge
 /** The window has closed: closed, expired or taken down */
 const isOver = (bid: Bid) => bid.state === 'closed' || bid.state === 'expired' || bid.state === 'taken-down'
 const remainingLabel = (bid: Bid) => (isOver(bid) ? 'Window closed' : `${bid.remaining} remaining`)
 const requestName = (request: BidRequest) => request.title ?? leaveTypeLabel(request.type)
 
 /** What the count in the bid list says, by state */
-const pickedLabel: Partial<Record<Bid['state'], string>> = { 'your-turn': 'Selected', open: 'Requests', pending: 'Signed up for', closed: 'Awarded' }
+const pickedLabels: Record<BidKind, Partial<Record<Bid['state'], string>>> = {
+  vacation: { 'your-turn': 'Selected', open: 'Requests', pending: 'Signed up for', closed: 'Awarded' },
+  shift: { 'your-turn': 'Selected', open: 'Selected', pending: 'Signed up for', closed: 'Awarded' },
+}
 
 /* ------------------------------------------------------------------ */
 /* Tabs and filters                                                    */
@@ -33,12 +38,12 @@ const pickedLabel: Partial<Record<Bid['state'], string>> = { 'your-turn': 'Selec
 
 const signUpTabs = ['Posts', 'Shift Bids', 'Vacation Bids'] as const
 
-/** Posts, Shift Bids and Vacation Bids. Only Vacation Bids is part of this guide. */
-export function SignUpTabs({ onOther }: { onOther: (tab: string) => void }) {
+/** Posts, Shift Bids and Vacation Bids. `active` is the current tab (Vacation Bids by default). */
+export function SignUpTabs({ active: current = 'Vacation Bids', onOther }: { active?: 'Shift Bids' | 'Vacation Bids'; onOther: (tab: string) => void }) {
   return (
     <div className={classes.tabs} role="tablist" aria-label="Sign-up type">
       {signUpTabs.map((tab) => {
-        const active = tab === 'Vacation Bids'
+        const active = tab === current
         return (
           <UnstyledButton key={tab} role="tab" aria-selected={active} data-active={active || undefined} className={classes.tab} onClick={() => !active && onOther(tab)}>
             {tab}
@@ -53,12 +58,12 @@ const longDate = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric
 const formatLong = (day: number) => longDate.format(new Date(day * 86_400_000))
 
 /** The status filter lists the states of the current mode */
-const statusOptions = (mode: BidMode): { key: BidStatusFilter; label: string }[] => [
+const statusOptions = (mode: BidMode, kind: BidKind = 'vacation'): { key: BidStatusFilter; label: string }[] => [
   { key: 'all', label: 'All Statuses' },
   ...(mode === 'turn-based'
     ? [{ key: 'your-turn', label: 'Your Turn' }, { key: 'queued', label: 'Queued' }] as const
     : [{ key: 'open', label: 'Open' }] as const),
-  { key: 'pending', label: 'Pending' }, { key: 'closed', label: 'Closed' }, { key: 'expired', label: 'Expired' }, { key: 'taken-down', label: 'Taken Down' },
+  { key: 'pending', label: 'Pending' }, { key: 'closed', label: 'Closed' }, { key: 'expired', label: kind === 'shift' ? 'Missed' : 'Expired' }, { key: 'taken-down', label: 'Taken Down' },
 ]
 
 /** Search, date range, round and status. Search and status filter the demo; the others are preview only. */
@@ -85,7 +90,7 @@ export function BidFilters({ state }: { state: VacationBiddingState }) {
       />
       <PickerMenu label="Bid round" value={round} onChange={(value) => { setRound(value); state.setHint('Upcoming and closed bids are not part of this demo.') }}
         options={[{ key: 'live', label: 'Live' }, { key: 'upcoming', label: 'Upcoming' }, { key: 'closed', label: 'Closed' }]} />
-      <PickerMenu label="Status" value={state.status} onChange={state.setStatus} options={statusOptions(state.mode)} />
+      <PickerMenu label="Status" value={state.status} onChange={state.setStatus} options={statusOptions(state.mode, state.kind)} />
     </>
   )
 }
@@ -98,7 +103,7 @@ export const LiveBadge = () => <Badge variant="dot" color="intime" size="md" cla
 
 /** One bid in the list: title, period, time left and how many requests you picked. */
 export function BidListItem({ bid, active, onOpen }: { bid: Bid; active?: boolean; onOpen: (id: string) => void }) {
-  const label = pickedLabel[bid.state]
+  const label = pickedLabels[kindOf(bid)][bid.state]
   const picked = bid.state === 'closed' ? bid.requests.filter((request) => request.outcome === 'awarded').length : bid.requests.length
   return (
     <UnstyledButton className={classes.bidItem} data-active={active || undefined} aria-current={active ? 'true' : undefined} onClick={() => onOpen(bid.id)}>
@@ -124,9 +129,9 @@ export function BidListItem({ bid, active, onOpen }: { bid: Bid; active?: boolea
 }
 
 export function BidList({ state }: { state: VacationBiddingState }) {
-  const label = statusOptions(state.mode).find((option) => option.key === state.status)?.label ?? 'All Statuses'
+  const label = statusOptions(state.mode, state.kind).find((option) => option.key === state.status)?.label ?? 'All Statuses'
   return (
-    <nav className={classes.listPane} aria-label="Vacation bids">
+    <nav className={classes.listPane} aria-label={state.kind === 'shift' ? 'Shift bids' : 'Vacation bids'}>
       <Text size="sm" fw={600} c="dimmed" tt="uppercase" lts="0.06em" className={classes.eyebrow}>{label}</Text>
       {state.items.length ? (
         <Stack gap={6}>
@@ -154,18 +159,31 @@ export function RankBadge({ rank, label }: { rank: number; label?: string }) {
 
 const weekdayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
-/** The weeks around a request, with the requested days marked. Dashed, because they are not approved yet. */
-export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start' | 'end' | 'startTime' | 'endTime'> }) {
+/** Runs of consecutive covered days in one week, as [first, last] pairs. */
+function weekRuns(request: Pick<BidRequest, 'start' | 'end' | 'days'>, week: number[]) {
+  const runs: [number, number][] = []
+  for (const day of week) {
+    if (!coversDay(request, day)) continue
+    const last = runs[runs.length - 1]
+    if (last && last[1] === day - 1) last[1] = day
+    else runs.push([day, day])
+  }
+  return runs
+}
+
+/**
+ * The weeks around a request, with the requested days marked. Dashed, because they are not approved yet.
+ * A shift with `days` marks only those days, one bar per run of days in a row.
+ */
+export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start' | 'end' | 'startTime' | 'endTime' | 'days'> }) {
   const weeks = requestWeeks(request)
   const times = requestTimes(request)
   return (
-    <div className={classes.calendar} role="img" aria-label={`Requested days: ${formatSpan(request.start, request.end)}, ${plural(spanDays(request), 'day')}${times ? `, ${times}` : ''}`}>
+    <div className={classes.calendar} role="img" aria-label={`${request.days ? 'Shift' : 'Requested'} days: ${formatSpan(request.start, request.end)}, ${plural(requestDayCount(request), 'day')}${times ? `, ${times}` : ''}`}>
       <div className={classes.calHead} aria-hidden="true">
         {weekdayNames.map((name) => <span key={name}><span className={classes.calLong}>{name}</span><span className={classes.calShort}>{name.slice(0, 3)}</span></span>)}
       </div>
       {weeks.map((week, row) => {
-        const from = Math.max(request.start, week[0])
-        const to = Math.min(request.end, week[6])
         return (
           <div key={week[0]} className={classes.calWeek} aria-hidden="true">
             {week.map((day, index) => (
@@ -173,7 +191,9 @@ export function RequestCalendar({ request }: { request: Pick<BidRequest, 'start'
                 {calendarDayLabel(day, row === 0 && index === 0)}
               </span>
             ))}
-            <span className={classes.calBar} style={{ gridColumn: `${weekdayIndex(from) + 1} / ${weekdayIndex(to) + 2}` }}>{times ?? 'Leave'}</span>
+            {weekRuns(request, week).map(([from, to]) => (
+              <span key={from} className={classes.calBar} style={{ gridColumn: `${weekdayIndex(from) + 1} / ${weekdayIndex(to) + 2}` }}>{times ?? 'Leave'}</span>
+            ))}
           </div>
         )
       })}
@@ -308,7 +328,7 @@ export function RequestList({ state, ranking, editable, deletable = true, onEdit
                   deletable={deletable && !request.outcome}
                   outcome={request.outcome}
                   expanded={open}
-                  deleteDisabled={locked && requests.length === 1 ? 'A submitted bid needs at least one request' : undefined}
+                  deleteDisabled={locked && requests.length === 1 ? `A submitted bid needs at least one ${state.noun}` : undefined}
                   onMove={(to) => state.reorder(index, to)}
                   onEdit={() => onEdit(request)}
                   onDelete={() => onDelete(request)}
@@ -480,18 +500,24 @@ export function ConfirmDialog({ opened, title, confirmLabel = 'Confirm', destruc
   )
 }
 
-/** Before submitting: after this, no requests can be added. */
-export function SubmitBidModal({ opened, mode = 'turn-based', onClose, onConfirm }: { opened: boolean; mode?: BidMode; onClose: () => void; onConfirm: () => void }) {
+/** Before submitting: after this, no requests can be added (turn-based). */
+export function SubmitBidModal({ opened, mode = 'turn-based', kind = 'vacation', onClose, onConfirm }: { opened: boolean; mode?: BidMode; kind?: BidKind; onClose: () => void; onConfirm: () => void }) {
+  const bidName = kind === 'shift' ? 'Shift Bid' : 'Vacation Bid'
   return (
     <ConfirmDialog opened={opened} title="Submit Bid" onClose={onClose} onConfirm={onConfirm}>
-      {mode === 'turn-based' ? (
+      {kind === 'shift' && mode === 'turn-based' ? (
+        <>
+          <Text inherit>By clicking “Confirm” you will be submitting these shifts as part of your Shift Bid to a Scheduler.</Text>
+          <Text inherit><strong>You will no longer be able to select more shifts</strong> for your bid. You can still change their ranking or remove them while the bid is pending.</Text>
+        </>
+      ) : mode === 'turn-based' ? (
         <>
           <Text inherit>By clicking “Confirm” you will be submitting these leave requests as part of your Vacation Bid to a Scheduler.</Text>
           <Text inherit><strong>You will no longer be able to add more leave requests</strong> to your bid. You can still make edits to leaves with status pending.</Text>
         </>
       ) : (
         <>
-          <Text inherit>By clicking “Confirm” you will be submitting these shifts as part of your Vacation Bid to a Scheduler.</Text>
+          <Text inherit>By clicking “Confirm” you will be submitting these shifts as part of your {bidName} to a Scheduler.</Text>
           <Text inherit><strong>You can still make changes until the bid closes:</strong> select more shifts, remove them and change their ranking.</Text>
         </>
       )}
@@ -501,29 +527,30 @@ export function SubmitBidModal({ opened, mode = 'turn-based', onClose, onConfirm
 }
 
 /** Leaving a bid during your turn throws away the requests that were not submitted. */
-export function LeaveBidModal({ count, opened, onClose, onConfirm }: { count: number; opened: boolean; onClose: () => void; onConfirm: () => void }) {
+export function LeaveBidModal({ count, noun = 'request', opened, onClose, onConfirm }: { count: number; noun?: string; opened: boolean; onClose: () => void; onConfirm: () => void }) {
   return (
     <ConfirmDialog opened={opened} title="Warning" onClose={onClose} onConfirm={onConfirm}>
-      <Text inherit>You have an unsubmitted bid. If you choose to leave the page, your {count === 1 ? 'request' : plural(count, 'request')} will be discarded. Proceed?</Text>
+      <Text inherit>You have an unsubmitted bid. If you choose to leave the page, your {count === 1 ? noun : plural(count, noun)} will be discarded. Proceed?</Text>
     </ConfirmDialog>
   )
 }
 
 /** Before withdrawing a submitted bid: it starts over with no requests. */
-export function WithdrawBidModal({ opened, onClose, onConfirm }: { opened: boolean; onClose: () => void; onConfirm: () => void }) {
+export function WithdrawBidModal({ opened, kind = 'vacation', onClose, onConfirm }: { opened: boolean; kind?: BidKind; onClose: () => void; onConfirm: () => void }) {
+  const shifts = kind === 'shift'
   return (
     <ConfirmDialog opened={opened} title="Withdraw bid?" confirmLabel="Withdraw" destructive onClose={onClose} onConfirm={onConfirm}>
-      <Text inherit>Your bid will no longer be submitted to the scheduler, and <strong>all your requests will be removed</strong>. This can’t be undone.</Text>
-      <Text inherit>To take part, add your requests again and submit before the bid closes.</Text>
+      <Text inherit>Your bid will no longer be submitted to the scheduler, and <strong>all your {shifts ? 'selected shifts' : 'requests'} will be removed</strong>. This can’t be undone.</Text>
+      <Text inherit>{shifts ? 'To take part, select your shifts again and submit before the bid closes.' : 'To take part, add your requests again and submit before the bid closes.'}</Text>
     </ConfirmDialog>
   )
 }
 
 /** Asks before deleting a request. */
-export function DeleteRequestModal({ request, onClose, onConfirm }: { request: BidRequest | null; onClose: () => void; onConfirm: () => void }) {
+export function DeleteRequestModal({ request, noun = 'request', onClose, onConfirm }: { request: BidRequest | null; noun?: string; onClose: () => void; onConfirm: () => void }) {
   return (
-    <ConfirmDialog opened={!!request} title="Delete this request?" confirmLabel="Delete" destructive onClose={onClose} onConfirm={onConfirm}>
-      <Text inherit>Please confirm that you want to delete this request.<br />This action cannot be undone.</Text>
+    <ConfirmDialog opened={!!request} title={`Delete this ${noun}?`} confirmLabel="Delete" destructive onClose={onClose} onConfirm={onConfirm}>
+      <Text inherit>Please confirm that you want to delete this {noun}.<br />This action cannot be undone.</Text>
     </ConfirmDialog>
   )
 }
@@ -532,11 +559,48 @@ export function DeleteRequestModal({ request, onClose, onConfirm }: { request: B
 /* All at once: shifts on offer                                        */
 /* ------------------------------------------------------------------ */
 
-/** The shifts the agency offers. Select Shift adds one as your next choice; selected ones say which choice they are. */
-export function OfferedShifts({ state }: { state: VacationBiddingState }) {
+/** Shift bids: a shift's note. Add a note opens a field; once saved it reads as a quote with Edit. Saved on blur. */
+function ShiftNote({ shiftId, state }: { shiftId: string; state: VacationBiddingState }) {
+  const note = state.shiftNotes[shiftId]
+  const [editing, setEditing] = useState(false)
+  if (editing || note === '') {
+    return (
+      <Textarea
+        label="Note"
+        autosize
+        minRows={2}
+        maxLength={300}
+        value={note ?? ''}
+        onChange={(event) => state.setShiftNote(shiftId, event.currentTarget.value)}
+        onBlur={(event) => { setEditing(false); if (!event.currentTarget.value.trim()) state.clearShiftNote(shiftId) }}
+        placeholder="Anything the scheduler should know"
+        autoFocus
+      />
+    )
+  }
+  if (note === undefined) {
+    return <Button variant="subtle" fw={600} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => state.setShiftNote(shiftId, '')} className={classes.addNoteLink}>Add a note</Button>
+  }
+  return (
+    <Group gap={10} wrap="nowrap" align="flex-start">
+      <StickyNote size={18} strokeWidth={1.75} aria-hidden="true" className={classes.dimIcon} />
+      <Text fs="italic">“{note}” <Anchor component="button" type="button" onClick={() => setEditing(true)} className={classes.inlineLink}>Edit</Anchor></Text>
+    </Group>
+  )
+}
+
+/**
+ * The shifts the agency offers. Select Shift adds one as your next choice; selected ones say which choice they are.
+ * `selectable` hides Select Shift (turn-based shift bids after submitting). Shift bids add availability, places
+ * filled and sign-ups, and hide Select Shift on full shifts.
+ */
+export function OfferedShifts({ state, selectable = true }: { state: VacationBiddingState; selectable?: boolean }) {
   const [expanded, setExpanded] = useState<string[]>([])
+  const [signUpsShift, setSignUpsShift] = useState<OfferedShift | null>(null)
   const ranks = new Map(state.requests.map((request, index) => [request.shiftId, index + 1]))
   const toggle = (id: string) => setExpanded((list) => (list.includes(id) ? list.filter((item) => item !== id) : [...list, id]))
+  const shiftBid = state.kind === 'shift'
+  const bid = state.active
   return (
     <section className={`${classes.card} ${classes.offers}`} aria-label="Shifts on offer">
       <ul className={classes.offerList}>
@@ -545,29 +609,58 @@ export function OfferedShifts({ state }: { state: VacationBiddingState }) {
           const open = expanded.includes(shift.id)
           const note = state.shiftNotes[shift.id]
           const times = requestTimes(shift)
+          const full = isFull(shift)
+          const signUpCount = bid ? shiftSignUpsFor(bid, shift).length : 0
+          const chevron = (
+            <Tooltip label={open ? 'Hide details' : 'Show details'}>
+              <ActionIcon variant="subtle" color="gray" size={36} aria-label={`${open ? 'Hide' : 'Show'} details for ${shift.title}`} aria-expanded={open} onClick={() => toggle(shift.id)}>
+                <ChevronDown size={20} className={classes.chevron} data-open={open || undefined} />
+              </ActionIcon>
+            </Tooltip>
+          )
+          const action = (
+            <div className={classes.offerAction}>
+              {rank ? (
+                <Text className={classes.choice}>{ordinal(rank)} Choice</Text>
+              ) : selectable && !full && (
+                <Button variant="subtle" fw={600} className={classes.teamBids} rightSection={<MousePointer2 size={18} aria-hidden="true" />} aria-label={`Select ${shift.title}`} onClick={() => state.select(shift)}>
+                  Select Shift
+                </Button>
+              )}
+            </div>
+          )
           return (
             <li key={shift.id} className={classes.offer}>
-              <div className={classes.offerMain}>
-                <Text fw={600} className={classes.offerTitle}>{shift.title}</Text>
-                <Text className={`${classes.offerDates} tabular`}>{formatSpan(shift.start, shift.end)}{times && <Text span c="dimmed" inherit> · {times}</Text>}</Text>
-                <div className={classes.offerAction}>
-                  {rank ? (
-                    <Text className={classes.choice}>{ordinal(rank)} Choice</Text>
-                  ) : (
-                    <Button variant="subtle" fw={600} className={classes.teamBids} rightSection={<MousePointer2 size={18} aria-hidden="true" />} aria-label={`Select ${shift.title}`} onClick={() => state.select(shift)}>
-                      Select Shift
-                    </Button>
-                  )}
+              {shiftBid ? (
+                <div className={`${classes.offerMain} ${classes.shiftOfferMain}`}>
+                  <div className={classes.offerBadge}><RequestStatusBadge stateKey={full ? 'full' : 'available'} size="sm" /></div>
+                  <div className={classes.offerName}>
+                    <Text fw={600} className={classes.offerTitle}>{shift.title}</Text>
+                    {note && (
+                      <Tooltip label="Has a note"><span className={classes.noteIcon} role="img" aria-label="Has a note"><StickyNote size={18} strokeWidth={1.75} /></span></Tooltip>
+                    )}
+                  </div>
+                  <div className={classes.offerMeta}>
+                    <Text inherit className={`${classes.offerDates} tabular`}>{formatSpan(shift.start, shift.end)}</Text>
+                    <Text inherit className="tabular">{shift.filled ?? 0}/{shift.slots} Filled</Text>
+                  </div>
+                  <Anchor component="button" type="button" className={`${classes.signUpsLink} tabular`} onClick={() => setSignUpsShift(shift)} aria-label={`${plural(signUpCount, 'sign-up')} for ${shift.title}. Show who`}>
+                    {signUpCount} Sign-Ups
+                  </Anchor>
+                  {action}
+                  {chevron}
                 </div>
-                <Tooltip label={open ? 'Hide details' : 'Show details'}>
-                  <ActionIcon variant="subtle" color="gray" size={36} aria-label={`${open ? 'Hide' : 'Show'} details for ${shift.title}`} aria-expanded={open} onClick={() => toggle(shift.id)}>
-                    <ChevronDown size={20} className={classes.chevron} data-open={open || undefined} />
-                  </ActionIcon>
-                </Tooltip>
-              </div>
+              ) : (
+                <div className={classes.offerMain}>
+                  <Text fw={600} className={classes.offerTitle}>{shift.title}</Text>
+                  <Text className={`${classes.offerDates} tabular`}>{formatSpan(shift.start, shift.end)}{times && <Text span c="dimmed" inherit> · {times}</Text>}</Text>
+                  {action}
+                  {chevron}
+                </div>
+              )}
               <Collapse expanded={open} transitionDuration={220} transitionTimingFunction="cubic-bezier(0.2, 0, 0, 1)">
                 <div className={classes.offerDetails}>
-                  {note === undefined ? (
+                  {shiftBid ? <ShiftNote shiftId={shift.id} state={state} /> : note === undefined ? (
                     <Button variant="subtle" fw={600} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => state.setShiftNote(shift.id, '')} className={classes.addNoteLink}>Add a note</Button>
                   ) : (
                     <Textarea label="Note" autosize minRows={2} maxLength={300} value={note} onChange={(event) => state.setShiftNote(shift.id, event.currentTarget.value)} placeholder="Anything the scheduler should know" autoFocus={note === ''} />
@@ -579,6 +672,7 @@ export function OfferedShifts({ state }: { state: VacationBiddingState }) {
           )
         })}
       </ul>
+      {bid && <ShiftSignUpsModal bid={bid} shift={signUpsShift} onClose={() => setSignUpsShift(null)} />}
     </section>
   )
 }
@@ -636,6 +730,10 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
 
   const count = bid.requests.length
   const allAtOnce = bid.mode === 'all-at-once'
+  /** Shift bids: shifts on offer in both modes, no own requests and no Team Bids (each shift lists its sign-ups) */
+  const shiftBid = kindOf(bid) === 'shift'
+  const offersShifts = allAtOnce || shiftBid
+  const noun = state.noun
   const draft = bid.state === 'your-turn' || bid.state === 'open'
   const yourTurn = bid.state === 'your-turn'
   const pending = bid.state === 'pending'
@@ -668,7 +766,12 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
               You will be notified once it is your turn.
             </Text>
           )}
-          {draft && (
+          {draft && (shiftBid ? (
+            <Text className={classes.lead}>
+              Select the shifts you want from the list below, set their priority, and click <strong>Submit</strong> once you’re ready.{' '}
+              {allAtOnce ? 'You can make changes until the bid closes.' : 'After submitting you can still change their ranking.'}
+            </Text>
+          ) : (
             <>
               <Text className={classes.lead}>
                 Add your leave requests, set their priority, and click <strong>Submit</strong> once you’re ready. You can make changes for as long as your requests are pending.
@@ -678,38 +781,38 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
                 {yourTurn && <Button variant={count ? 'default' : 'filled'} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => setForm({ opened: true })}>Add Request</Button>}
               </Group>
             </>
-          )}
+          ))}
           {pending && (
             <>
               <Text className={classes.lead}>
                 {allAtOnce ? (
                   <>Your bid is submitted. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />Until the bid closes, you can add or remove shifts and change their ranking.</>
                 ) : (
-                  <>Your selection is locked in. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />While the bid is pending, you can change the ranking, but you can’t add new requests.</>
+                  <>Your selection is locked in. You picked <RankBadge rank={count} /> {count === 1 ? 'shift' : 'shifts'} in ranked order.<br />While the bid is pending, you can change the ranking, but you can’t add new {noun}s.</>
                 )}
               </Text>
-              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+              {!shiftBid && <Group justify="flex-end" mt="lg">{teamBids}</Group>}
             </>
           )}
           {bid.state === 'closed' && (
             <>
               <Text className={classes.lead}>
                 Bidding is closed. You were awarded <RankBadge rank={awarded} /> of {plural(count, 'shift')}.<br />
-                The agency awards leave by its own rules, usually seniority.
+                The agency awards {shiftBid ? 'shifts' : 'leave'} by its own rules, usually seniority.
               </Text>
-              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+              {!shiftBid && <Group justify="flex-end" mt="lg">{teamBids}</Group>}
             </>
           )}
           {bid.state === 'expired' && (
             <>
               <Text className={classes.lead}>The bid closed before you submitted, so nothing was sent.</Text>
-              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+              {!shiftBid && <Group justify="flex-end" mt="lg">{teamBids}</Group>}
             </>
           )}
           {bid.state === 'taken-down' && (
             <>
-              <Text className={classes.lead}>A scheduler took this bid down. Your requests are canceled.</Text>
-              <Group justify="flex-end" mt="lg">{teamBids}</Group>
+              <Text className={classes.lead}>A scheduler took this bid down. Your {noun}s are canceled.</Text>
+              {!shiftBid && <Group justify="flex-end" mt="lg">{teamBids}</Group>}
             </>
           )}
           {showList && (count ? (
@@ -717,7 +820,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
               <RequestList
                 state={state}
                 ranking={ranking && bid.state !== 'closed'}
-                editable={yourTurn}
+                editable={yourTurn && !shiftBid}
                 deletable={!allAtOnce || ranking}
                 onEdit={(request) => setForm({ opened: true, request })}
                 onDelete={setRemoving}
@@ -726,7 +829,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
             </>
           ) : (
             <div className={classes.empty}>
-              {allAtOnce ? (
+              {offersShifts ? (
                 <>
                   <Text c="dimmed">Your selected shifts will appear here.</Text>
                   <Text c="dimmed">Once they are here, use drag and drop to reorder and set their priority.</Text>
@@ -740,11 +843,11 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
             </div>
           ))}
         </Card>
-        {allAtOnce && (draft || pending) && <OfferedShifts state={state} />}
+        {offersShifts && (draft || pending) && <OfferedShifts state={state} selectable={draft || allAtOnce} />}
       </div>
       {draft && (
         <div className={classes.footer}>
-          <Tooltip label={allAtOnce ? 'Select a shift first' : 'Add a request first'} disabled={count > 0}>
+          <Tooltip label={offersShifts ? 'Select a shift first' : 'Add a request first'} disabled={count > 0}>
             <Button
               data-disabled={!count || undefined}
               aria-disabled={!count || undefined}
@@ -776,14 +879,14 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
           )}
         </div>
       )}
-      <RequestFormModal opened={form.opened} bid={bid} request={form.request} onClose={() => setForm((value) => ({ ...value, opened: false }))} onSave={state.save} />
-      <DeleteRequestModal request={removing} onClose={() => setRemoving(null)} onConfirm={() => { if (removing) state.remove(removing.id); setRemoving(null) }} />
-      {allAtOnce
+      {!shiftBid && <RequestFormModal opened={form.opened} bid={bid} request={form.request} onClose={() => setForm((value) => ({ ...value, opened: false }))} onSave={state.save} />}
+      <DeleteRequestModal request={removing} noun={noun} onClose={() => setRemoving(null)} onConfirm={() => { if (removing) state.remove(removing.id); setRemoving(null) }} />
+      {!shiftBid && (allAtOnce
         ? <ViewSignUpsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />
-        : <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />}
-      <SubmitBidModal opened={submitting} mode={bid.mode} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
-      <WithdrawBidModal opened={withdrawing} onClose={() => setWithdrawing(false)} onConfirm={() => { state.withdraw(); setWithdrawing(false) }} />
-      <LeaveBidModal count={state.unsubmitted} opened={!!state.leaving} onClose={state.cancelLeave} onConfirm={state.confirmLeave} />
+        : <TeamBidsModal bid={bid} opened={teamOpen} onClose={() => setTeamOpen(false)} />)}
+      <SubmitBidModal opened={submitting} mode={bid.mode} kind={kindOf(bid)} onClose={() => setSubmitting(false)} onConfirm={() => { state.submit(); setSubmitting(false) }} />
+      <WithdrawBidModal opened={withdrawing} kind={kindOf(bid)} onClose={() => setWithdrawing(false)} onConfirm={() => { state.withdraw(); setWithdrawing(false) }} />
+      <LeaveBidModal count={state.unsubmitted} noun={noun} opened={!!state.leaving} onClose={state.cancelLeave} onConfirm={state.confirmLeave} />
     </div>
   )
 }
