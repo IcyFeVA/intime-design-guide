@@ -1,6 +1,6 @@
 import { lazy } from 'react'
 import {
-  Accessibility, BookOpen, Box, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Keyboard, Layers,
+  Accessibility, BookOpen, Box, CalendarCheck, CalendarClock, CalendarDays, CalendarRange, Clock, Code, Download, Eye, FileClock, FormInput, Keyboard, Layers,
   LayoutGrid, ListCheck, MessageSquareWarning, MousePointerClick, Palette, PanelLeft, Shapes, Sparkles, Table, Tag, TreePalm, Type, Users, MapPin, Grid3x3,
 } from 'lucide-react'
 import type { PageDef, PageGroup } from './types'
@@ -168,6 +168,13 @@ export const pages: PageDef[] = [
     keywords: ['vacation', 'bid', 'bidding', 'vacation bid', 'turn-based', 'turn', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'leave', 'time off', 'request', 'rank', 'ranking', 'priority', 'drag and drop', 'reorder', 'submit', 'banked ot', 'comp time', 'seniority', 'all at once', 'team bids', 'awarded', 'team calendar', 'open', 'select shift', 'choice', 'closed', 'expired', 'taken down', 'denied'],
     sections: s(['desktop', 'Vacation bidding'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['ranking', 'Ranking requests'], ['add-request', 'Adding a request'], ['all-at-once', 'Shifts on offer'], ['team-bids', 'Team Bids'], ['component', 'Using the components'], ['tokens', 'CSS variables'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
     component: lazy(() => import('../pages/patterns/VacationBidding')),
+  },
+  {
+    path: '/patterns/shift-bidding', title: 'Shift Bidding', group: 'Patterns', icon: CalendarCheck, status: 'confirmed', updated: '2026-11-27',
+    description: 'How employees bid for shifts: wait for their turn, select shifts on offer, rank them and submit.',
+    keywords: ['shift bid', 'shift bids', 'shift bidding', 'bid', 'bidding', 'turn-based', 'your turn', 'queue', 'queued', 'pending', 'sign-ups', 'sign ups', 'select shift', 'choice', 'rank', 'ranking', 'priority', 'drag and drop', 'submit', 'seniority', 'all at once', 'available', 'full', 'filled', 'places', 'missed', 'awarded', 'denied', 'taken down', 'coverage'],
+    sections: s(['desktop', 'Shift bidding'], ['differences', 'Shift and vacation bids'], ['modes', 'Bid modes'], ['states', 'Your place in the bid'], ['selecting', 'Selecting shifts'], ['ranking', 'Ranking shifts'], ['sign-ups', 'Sign-ups'], ['component', 'Using the components'], ['guidelines', 'Guidelines'], ['figma', 'Figma reference']),
+    component: lazy(() => import('../pages/patterns/ShiftBidding')),
   },
   {
     path: '/patterns/keyboard-shortcuts', title: 'Keyboard Shortcuts', group: 'Patterns', icon: Keyboard, status: 'confirmed', updated: '2026-11-23',

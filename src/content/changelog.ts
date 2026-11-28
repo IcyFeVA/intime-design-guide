@@ -11,6 +11,28 @@ export interface ChangelogEntry {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
+    page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding approved. Both modes, the shift bid states (including Missed) and the shifts on offer are confirmed.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding: closed bids still list the shifts that were on offer, read-only, so their sign-ups show who was awarded.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/shift-bidding',
+    summary: 'New page: Shift Bidding. Employees select shifts on offer, rank them and submit, turn-based or all at once.',
+    changes: [
+      'Built on the vacation bidding components: the same bid list, ranking, Submit, Edit, Withdraw and warning dialogs.',
+      'Shifts on offer show Available or Full, places filled and a sign-ups link that lists who signed up for that shift. Full shifts can’t be selected.',
+      'Turn-based bids also offer shifts instead of Add Request. After submitting, Select Shift is gone; you can re-rank or remove shifts.',
+      'The calendar under a shift marks only the days it is worked, with its hours. A shift’s note reads as a quote with Edit once saved.',
+      'A bid that closed before you submitted is Missed.',
+    ],
+  },
+  {
+    date: '2026-11-27',
     page: '/patterns/workforce-scheduling',
     summary: 'Copy, paste and Fill work in the grid, and assignments can move to another person.',
     changes: [

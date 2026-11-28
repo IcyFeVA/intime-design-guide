@@ -1,5 +1,5 @@
-import { MOCK_TODAY, dayNumber, dayOf, formatMonthDay, startOfWeek } from '../schedule/data'
-import type { BidMode, BidState, LeaveTypeKey, TeamBidStatus } from '../../tokens/bidding'
+import { MOCK_TODAY, dayNumber, dayOf, formatMonthDay, startOfWeek, weekdayIndex } from '../schedule/data'
+import type { BidKind, BidMode, BidState, LeaveTypeKey, TeamBidStatus } from '../../tokens/bidding'
 
 /* A "day" is the number of days since 1970-01-01 (UTC), as in schedule/data.ts. */
 
@@ -14,7 +14,9 @@ export interface BidRequest {
   /** “HH:MM” on the last day; 24:00 (end of day) by default */
   endTime?: string
   note?: string
-  /** All at once: the shift on offer this request is for, and its name */
+  /** Only these days are worked, between start and end (shift bids). All days when not set */
+  days?: number[]
+  /** A shift on offer this request is for (all at once, or a shift bid), and its name */
   shiftId?: string
   title?: string
   /** After an all-at-once bid closes */
@@ -39,6 +41,8 @@ export const timeBanks: { type: LeaveTypeKey; hours: number }[] = [
 export interface Bid {
   id: string
   title: string
+  /** Vacation (your own leave requests) or shift bid (shifts on offer). Vacation when not set */
+  kind?: BidKind
   mode: BidMode
   /** The leave period people bid on */
   period: [number, number]
@@ -62,7 +66,40 @@ export interface OfferedShift {
   endTime?: string
   /** Mock: someone with more seniority wants it too, so it is denied when the bid closes */
   contested?: boolean
+  /** Shift bids: the days worked between start and end (all days when not set) */
+  days?: number[]
+  /** Shift bids: places, places already taken, and how many others signed up */
+  slots?: number
+  filled?: number
+  signUps?: number
 }
+
+/** Shift bids: Full once every place is taken. */
+export const isFull = (shift: OfferedShift) => shift.slots !== undefined && (shift.filled ?? 0) >= shift.slots
+
+/**
+ * Shift bids: title, first day (days after the bid period starts), length, times, weekdays worked (0 = Monday),
+ * places, places taken, sign-ups, contested.
+ */
+const shiftPlan: [string, number, number, [string, string], number[], number, number, number, boolean][] = [
+  ['Community', 43, 10, ['07:00', '15:00'], [0, 1, 2, 3, 4], 6, 1, 5, false],
+  ['Day Patrol', 45, 12, ['08:00', '17:30'], [2, 3, 4, 5, 6], 6, 3, 5, false],
+  ['Office: Admin', 64, 12, ['08:00', '16:00'], [0, 1, 2, 3, 4], 6, 0, 2, false],
+  ['Night Patrol', 43, 14, ['22:00', '06:00'], [0, 1, 2, 3], 6, 6, 9, false],
+  ['Security', 71, 12, ['06:00', '14:00'], [0, 1, 2, 3, 4], 6, 5, 7, true],
+  ['Day Patrol: Weekends', 62, 23, ['08:00', '17:30'], [5, 6], 6, 3, 5, false],
+]
+
+const shiftOffersFor = (bid: Bid): OfferedShift[] =>
+  shiftPlan.flatMap(([title, offset, length, times, weekdays, slots, filled, signUps, contested], index) => {
+    const start = bid.period[0] + offset
+    const end = Math.min(bid.period[1], start + length - 1)
+    const days = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter((day) => weekdays.includes(weekdayIndex(day)))
+    if (start > bid.period[1] || !days.length) return []
+    /* Once closed, the contested shifts went to people with more seniority, so they are full */
+    const taken = bid.state === 'closed' && contested ? slots : filled
+    return [{ id: `${bid.id}-offer-${index}`, title, start: days[0], end: days[days.length - 1], startTime: times[0], endTime: times[1], days, slots, filled: taken, signUps, contested }]
+  })
 
 /** Title, first day (days after the bid period starts), length, times, contested. */
 const offerPlan: [(season: string) => string, number, number, [string, string] | null, boolean][] = [
@@ -76,6 +113,7 @@ const offerPlan: [(season: string) => string, number, number, [string, string] |
 
 /** The shifts on offer in an all-at-once bid (mock). */
 export const offeredShiftsFor = (bid: Bid): OfferedShift[] => {
+  if (bid.kind === 'shift') return shiftOffersFor(bid)
   const season = bid.title.split(' ')[0]
   return offerPlan.map(([title, offset, length, times, contested], index) => ({
     id: `${bid.id}-offer-${index}`,
@@ -89,8 +127,15 @@ export const offeredShiftsFor = (bid: Bid): OfferedShift[] => {
 
 /** A request for a shift on offer. */
 export const requestForShift = (shift: OfferedShift): BidRequest => ({
-  id: `request-${shift.id}`, type: 'vacation', start: shift.start, end: shift.end, startTime: shift.startTime, endTime: shift.endTime, shiftId: shift.id, title: shift.title,
+  id: `request-${shift.id}`, type: 'vacation', start: shift.start, end: shift.end, startTime: shift.startTime, endTime: shift.endTime, days: shift.days, shiftId: shift.id, title: shift.title,
 })
+
+/** Whether a request covers a day: inside its range and, for shifts, one of its days. */
+export const coversDay = (request: Pick<BidRequest, 'start' | 'end' | 'days'>, day: number) =>
+  day >= request.start && day <= request.end && (!request.days || request.days.includes(day))
+
+/** Days a request covers: every day of the range, or only the shift's days. */
+export const requestDayCount = (request: Pick<BidRequest, 'start' | 'end' | 'days'>) => request.days?.length ?? request.end - request.start + 1
 
 const year = (day: number) => new Date(day * 86_400_000).getUTCFullYear()
 
@@ -162,7 +207,33 @@ const allAtOnceBids = (): Bid[] => {
   ]
 }
 
-export const initialBids = (mode: BidMode = 'turn-based'): Bid[] => (mode === 'turn-based' ? turnBasedBids() : allAtOnceBids())
+/* ---------- Shift bids ---------- */
+
+const winterCoverage = { id: 'winter-coverage', title: 'Winter Coverage 2026', kind: 'shift' as const, period: [dayOf(2026, 11, 1), dayOf(2027, 1, 31)] as [number, number], remaining: '11h 45m', requests: [], ahead: 0 }
+const springCoverage = { id: 'spring-coverage', title: 'Spring Coverage 2027', kind: 'shift' as const, period: [dayOf(2027, 3, 1), dayOf(2027, 5, 31)] as [number, number], remaining: '4 days 2h', requests: [], ahead: 3 }
+const fallCoverage = { id: 'fall-coverage', title: 'Fall Coverage 2026', kind: 'shift' as const, period: [dayOf(2026, 8, 1), dayOf(2026, 10, 31)] as [number, number], remaining: '', ahead: 0, submittedOn: dayOf(2026, 5, 12) }
+const spring2026 = { id: 'spring-2026', title: 'Spring 2026', kind: 'shift' as const, period: [dayOf(2026, 3, 1), dayOf(2026, 6, 30)] as [number, number], remaining: '', requests: [], ahead: 0 }
+const summerCoverage = { id: 'summer-coverage', title: 'Summer Coverage 2026', kind: 'shift' as const, period: [dayOf(2026, 6, 1), dayOf(2026, 8, 31)] as [number, number], remaining: '', requests: [], ahead: 0, submittedOn: dayOf(2026, 5, 20) }
+
+/** A closed shift bid: three ranked shifts, the contested ones denied. */
+const closedShiftBid = (mode: BidMode): Bid => {
+  const closed: Bid = { ...fallCoverage, mode, state: 'closed', requests: [] }
+  const offers = offeredShiftsFor(closed)
+  closed.requests = [offers[1], offers[0], offers[4]].filter(Boolean).map((shift) => ({ ...requestForShift(shift), outcome: shift.contested ? 'denied' : 'awarded' }))
+  return closed
+}
+
+/** One shift bid per state, as for vacation bids. Spring 2026 closed before you picked, so it is Missed. */
+const shiftBids = (mode: BidMode): Bid[] => [
+  { ...winterCoverage, mode, state: mode === 'turn-based' ? 'your-turn' : 'open' },
+  ...(mode === 'turn-based' ? [{ ...springCoverage, mode, state: 'queued' as const }] : []),
+  closedShiftBid(mode),
+  { ...spring2026, mode, state: 'expired' },
+  { ...summerCoverage, mode, state: 'taken-down' },
+]
+
+export const initialBids = (mode: BidMode = 'turn-based', kind: BidKind = 'vacation'): Bid[] =>
+  kind === 'shift' ? shiftBids(mode) : mode === 'turn-based' ? turnBasedBids() : allAtOnceBids()
 
 /* ---------- Team Bids ---------- */
 
@@ -219,6 +290,25 @@ export function signUpsFor(bid: Bid): SignUp[] {
   if (bid.submittedOn !== undefined && bid.state !== 'expired') {
     const youAwarded = bid.requests.some((request) => request.outcome === 'awarded')
     list.splice(YOUR_PLACE, 0, { name: 'John B. McLane', rank: 'Sergeant', you: true, awarded: closed ? youAwarded : undefined })
+  }
+  return list
+}
+
+/**
+ * Shift bids: who signed up for one shift, in the List Organizer's order. You appear once your bid is submitted
+ * with the shift in it. Awarded only shows after the bid closes.
+ */
+export function shiftSignUpsFor(bid: Bid, shift: OfferedShift): SignUp[] {
+  const index = Number(shift.id.split('-').pop()) || 0
+  const count = shift.signUps ?? 0
+  const closed = bid.state === 'closed'
+  const mine = bid.submittedOn !== undefined && bid.state !== 'expired' ? bid.requests.find((request) => request.shiftId === shift.id) : undefined
+  /* Your awarded place counts toward the places filled */
+  const othersAwarded = (shift.filled ?? 0) - (mine?.outcome === 'awarded' ? 1 : 0)
+  const others = Array.from({ length: count }, (_, i) => otherSignUps[(index * 3 + i) % otherSignUps.length])
+  const list: SignUp[] = others.map(([name, rank], i) => ({ name, rank, awarded: closed ? i < othersAwarded : undefined }))
+  if (mine) {
+    list.splice(Math.min(YOUR_PLACE, list.length), 0, { name: 'John B. McLane', rank: 'Sergeant', you: true, awarded: closed ? mine.outcome === 'awarded' : undefined })
   }
   return list
 }
