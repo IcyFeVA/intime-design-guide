@@ -121,12 +121,14 @@ export function TeamBidsModal({ bid, opened, onClose }: { bid: Bid; opened: bool
   )
 }
 
-/** Sign-ups in the List Organizer's order with rank, and Awarded once the bid is closed. */
-function SignUpsDialog({ title, intro, signUps, closed, opened, onClose }: {
+const AWARDED_WHEN_CLOSED = 'Pending sign-ups are decided when the bid closes.'
+
+/** Sign-ups in the List Organizer's order with rank and status: Awarded, Pending (not decided yet) or none (not awarded). */
+function SignUpsDialog({ title, intro, signUps, footnote, opened, onClose }: {
   title: string
   intro?: string
   signUps: SignUp[]
-  closed: boolean
+  footnote?: string
   opened: boolean
   onClose: () => void
 }) {
@@ -144,7 +146,7 @@ function SignUpsDialog({ title, intro, signUps, closed, opened, onClose }: {
               <Table.Tr key={signUp.name} data-you={signUp.you || undefined}>
                 <Table.Td>{signUp.name}{signUp.you && <Text span c="dimmed" inherit> (you)</Text>}</Table.Td>
                 <Table.Td>{signUp.rank}</Table.Td>
-                <Table.Td>{signUp.awarded && <RequestStatusBadge stateKey="awarded" size="lg" />}</Table.Td>
+                <Table.Td>{signUp.awarded ? <RequestStatusBadge stateKey="awarded" size="lg" /> : signUp.awarded === undefined && <RequestStatusBadge stateKey="pending" size="lg" />}</Table.Td>
               </Table.Tr>
             ))}
           </Table.Tbody>
@@ -152,7 +154,7 @@ function SignUpsDialog({ title, intro, signUps, closed, opened, onClose }: {
       ) : (
         <Text c="dimmed" mt="xl">Nobody has signed up yet.</Text>
       )}
-      {!closed && <Text size="sm" c="dimmed" mt="md">Awarded shows here once the bid closes.</Text>}
+      {footnote && <Text size="sm" c="dimmed" mt="md">{footnote}</Text>}
       <Group justify="flex-end" mt="xl">
         <Button variant="outline" className={classes.confirm} onClick={onClose} data-autofocus>Close</Button>
       </Group>
@@ -165,7 +167,7 @@ function SignUpsDialog({ title, intro, signUps, closed, opened, onClose }: {
  * until the bid closes, so Status stays empty until then.
  */
 export function ViewSignUpsModal({ bid, opened, onClose }: { bid: Bid; opened: boolean; onClose: () => void }) {
-  return <SignUpsDialog title="View Sign-Ups" signUps={signUpsFor(bid)} closed={bid.state === 'closed'} opened={opened} onClose={onClose} />
+  return <SignUpsDialog title="View Sign-Ups" signUps={signUpsFor(bid)} footnote={bid.state === 'closed' ? undefined : AWARDED_WHEN_CLOSED} opened={opened} onClose={onClose} />
 }
 
 /** Shift bids: who signed up for one shift, opened from its “N Sign-Ups” link. */
@@ -179,7 +181,7 @@ export function ShiftSignUpsModal({ bid, shift, onClose }: { bid: Bid; shift: Of
       title="View Sign-Ups"
       intro={shown ? `${shown.title} · ${formatSpan(shown.start, shown.end)}` : undefined}
       signUps={shown ? shiftSignUpsFor(bid, shown) : []}
-      closed={bid.state === 'closed'}
+      footnote={bid.state === 'closed' ? undefined : bid.mode === 'turn-based' ? 'Awarded places were taken by employees who bid before you. Pending sign-ups are decided as the bid goes on.' : AWARDED_WHEN_CLOSED}
       opened={!!shift}
       onClose={onClose}
     />

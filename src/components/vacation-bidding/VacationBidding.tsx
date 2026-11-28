@@ -249,7 +249,7 @@ export function RequestList({ state, ranking, editable, deletable = true, onEdit
   state: VacationBiddingState
   ranking: boolean
   editable: boolean
-  /** Shows Delete. All at once hides it on a submitted bid until Edit */
+  /** Shows Delete. A submitted bid hides it until Edit */
   deletable?: boolean
   onEdit: (request: BidRequest) => void
   onDelete: (request: BidRequest) => void
@@ -592,7 +592,8 @@ function ShiftNote({ shiftId, state, readOnly }: { shiftId: string; state: Vacat
 
 /**
  * The shifts the agency offers. Select Shift adds one as your next choice; selected ones say which choice they are.
- * `selectable` hides Select Shift (turn-based shift bids after submitting). `readOnly` (a closed shift bid) also hides
+ * `selectable` hides Select Shift (turn-based shift bids after submitting). Places filled and Full show in turn-based
+ * bids and once closed; an open all-at-once bid fills nothing until it closes. `readOnly` (a closed shift bid) also hides
  * Select Shift and note editing, so the shifts and their sign-ups stay visible. Shift bids add availability, places
  * filled and sign-ups, and hide Select Shift on full shifts.
  */
@@ -611,7 +612,9 @@ export function OfferedShifts({ state, selectable = true, readOnly = false }: { 
           const open = expanded.includes(shift.id)
           const note = state.shiftNotes[shift.id]
           const times = requestTimes(shift)
-          const full = isFull(shift)
+          /* All at once: places only fill when the bid closes, so open bids show no places filled and nothing is Full */
+          const showFilled = bid?.mode === 'turn-based' || readOnly
+          const full = showFilled && isFull(shift)
           const signUpCount = bid ? shiftSignUpsFor(bid, shift).length : 0
           const chevron = (
             <Tooltip label={open ? 'Hide details' : 'Show details'}>
@@ -644,7 +647,7 @@ export function OfferedShifts({ state, selectable = true, readOnly = false }: { 
                   </div>
                   <div className={classes.offerMeta}>
                     <Text inherit className={`${classes.offerDates} tabular`}>{formatSpan(shift.start, shift.end)}</Text>
-                    <Text inherit className="tabular">{shift.filled ?? 0}/{shift.slots} Filled</Text>
+                    {showFilled ? <Text inherit className="tabular">{shift.filled ?? 0}/{shift.slots} Filled</Text> : <span />}
                   </div>
                   <Anchor component="button" type="button" className={`${classes.signUpsLink} tabular`} onClick={() => setSignUpsShift(shift)} aria-label={`${plural(signUpCount, 'sign-up')} for ${shift.title}. Show who`}>
                     {signUpCount} Sign-Ups
@@ -823,7 +826,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
                 state={state}
                 ranking={ranking && bid.state !== 'closed'}
                 editable={yourTurn && !shiftBid}
-                deletable={!allAtOnce || ranking}
+                deletable={ranking}
                 onEdit={(request) => setForm({ opened: true, request })}
                 onDelete={setRemoving}
               />

@@ -46,7 +46,7 @@ export const bidStates: { key: BidState; badge: string; modes: BidMode[]; when: 
   },
   {
     key: 'pending', badge: 'pending', modes: ['turn-based', 'all-at-once'], when: 'You submitted your requests',
-    panel: 'Turn-based: the selection is locked in; you can change the ranking (Edit) or remove a request, but not add one. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
+    panel: 'Turn-based: the selection is locked in and the rows are read-only; Edit changes the ranking and removes requests, but you can’t add one. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
     list: 'Pending badge and “Signed up for: N”.', status: 'confirmed',
   },
   {
@@ -85,7 +85,7 @@ export const shiftBidStates: typeof bidStates = [
   },
   {
     key: 'pending', badge: 'pending', modes: ['turn-based', 'all-at-once'], when: 'You submitted your shifts',
-    panel: 'Turn-based: the selection is locked in; Edit changes the ranking and you can remove a shift, but Select Shift is gone. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
+    panel: 'Turn-based: the selection is locked in and the rows are read-only; Edit changes the ranking and removes shifts, but Select Shift is gone. All at once: you can still select more shifts, and Edit changes the ranking or removes shifts until the window closes. “Submitted on” at the bottom.',
     list: 'Pending badge and “Signed up for: N”.', status: 'confirmed',
   },
   {

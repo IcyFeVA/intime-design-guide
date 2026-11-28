@@ -96,9 +96,14 @@ const shiftOffersFor = (bid: Bid): OfferedShift[] =>
     const end = Math.min(bid.period[1], start + length - 1)
     const days = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter((day) => weekdays.includes(weekdayIndex(day)))
     if (start > bid.period[1] || !days.length) return []
-    /* Once closed, the contested shifts went to people with more seniority, so they are full */
-    const taken = bid.state === 'closed' && contested ? slots : filled
-    return [{ id: `${bid.id}-offer-${index}`, title, start: days[0], end: days[days.length - 1], startTime: times[0], endTime: times[1], days, slots, filled: taken, signUps, contested }]
+    /*
+     * Once closed, everyone who signed up got a place, up to the places there are. Contested shifts went to people
+     * with more seniority, so they are full. Your awarded place counts too.
+     */
+    const id = `${bid.id}-offer-${index}`
+    const youAwarded = bid.requests.some((request) => request.shiftId === id && request.outcome === 'awarded')
+    const taken = bid.state !== 'closed' ? filled : contested ? slots : Math.min(slots, signUps + (youAwarded ? 1 : 0))
+    return [{ id, title, start: days[0], end: days[days.length - 1], startTime: times[0], endTime: times[1], days, slots, filled: taken, signUps, contested }]
   })
 
 /** Title, first day (days after the bid period starts), length, times, contested. */
@@ -265,7 +270,7 @@ export const teamBidsFor = (bid: Bid): TeamBid[] =>
 export interface SignUp {
   name: string
   rank: 'Lieutenant' | 'Sergeant' | 'Police Officer'
-  /** Set only after the bid closes */
+  /** True when awarded, false when not (closed); not set while still pending */
   awarded?: boolean
   you?: boolean
 }
@@ -296,7 +301,8 @@ export function signUpsFor(bid: Bid): SignUp[] {
 
 /**
  * Shift bids: who signed up for one shift, in the List Organizer's order. You appear once your bid is submitted
- * with the shift in it. Awarded only shows after the bid closes.
+ * with the shift in it. Awarded matches the places filled: turn-based, the employees who bid before you took them;
+ * all at once, nobody is awarded until the bid closes.
  */
 export function shiftSignUpsFor(bid: Bid, shift: OfferedShift): SignUp[] {
   const index = Number(shift.id.split('-').pop()) || 0
@@ -306,9 +312,12 @@ export function shiftSignUpsFor(bid: Bid, shift: OfferedShift): SignUp[] {
   /* Your awarded place counts toward the places filled */
   const othersAwarded = (shift.filled ?? 0) - (mine?.outcome === 'awarded' ? 1 : 0)
   const others = Array.from({ length: count }, (_, i) => otherSignUps[(index * 3 + i) % otherSignUps.length])
-  const list: SignUp[] = others.map(([name, rank], i) => ({ name, rank, awarded: closed ? i < othersAwarded : undefined }))
+  const known = closed || bid.mode === 'turn-based'
+  /* Not awarded yet while the bid is live: undefined, shown as Pending */
+  const list: SignUp[] = others.map(([name, rank], i) => ({ name, rank, awarded: known && i < othersAwarded ? true : closed ? false : undefined }))
   if (mine) {
-    list.splice(Math.min(YOUR_PLACE, list.length), 0, { name: 'John B. McLane', rank: 'Sergeant', you: true, awarded: closed ? mine.outcome === 'awarded' : undefined })
+    /* Right after the employees who were awarded a place, once that is known */
+    list.splice(Math.min(known ? othersAwarded : YOUR_PLACE, list.length), 0, { name: 'John B. McLane', rank: 'Sergeant', you: true, awarded: closed ? mine.outcome === 'awarded' : undefined })
   }
   return list
 }

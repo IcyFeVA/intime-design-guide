@@ -10,6 +10,31 @@ export interface ChangelogEntry {
 /** Newest first. Add an entry whenever a Figma frame updates a page or token. */
 export const changelog: ChangelogEntry[] = [
   {
+    date: '2026-11-28',
+    page: null,
+    summary: 'Shift and Vacation Bidding: View Sign-Ups shows Pending for everyone not decided yet, instead of an empty status.',
+  },
+  {
+    date: '2026-11-28',
+    page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding: View Sign-Ups now matches the places filled. Turn-based bids show who already took a place as Awarded; closed bids give a place to everyone who signed up, up to the places there are.',
+  },
+  {
+    date: '2026-11-28',
+    page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding: open all-at-once bids no longer show places filled or Full, because places only fill when the bid closes. Turn-based and closed bids still show them.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/vacation-bidding',
+    summary: 'Vacation Bidding: a submitted turn-based bid’s rows are read-only until Edit, as in all-at-once bids. Delete shows with the arrows while editing.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding: a submitted turn-based bid’s rows are read-only until Edit, as in all-at-once bids. Delete shows with the arrows while editing.',
+  },
+  {
     date: '2026-11-27',
     page: '/patterns/shift-bidding',
     summary: 'Shift Bidding approved. Both modes, the shift bid states (including Missed) and the shifts on offer are confirmed.',
