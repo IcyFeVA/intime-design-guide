@@ -90,7 +90,7 @@ export const shiftBidStates: typeof bidStates = [
   },
   {
     key: 'closed', badge: 'closed', modes: ['turn-based', 'all-at-once'], when: 'The window closed after you submitted',
-    panel: 'How many shifts you were awarded, and each ranked shift with Awarded or Denied.',
+    panel: 'How many shifts you were awarded, each ranked shift with Awarded or Denied, and the shifts that were on offer, read-only, with their sign-ups.',
     list: 'Closed badge and “Awarded: N”.', status: 'review',
   },
   {

@@ -12,6 +12,11 @@ export const changelog: ChangelogEntry[] = [
   {
     date: '2026-11-27',
     page: '/patterns/shift-bidding',
+    summary: 'Shift Bidding: closed bids still list the shifts that were on offer, read-only, so their sign-ups show who was awarded.',
+  },
+  {
+    date: '2026-11-27',
+    page: '/patterns/shift-bidding',
     summary: 'New page: Shift Bidding. Employees select shifts on offer, rank them and submit, turn-based or all at once.',
     changes: [
       'Built on the vacation bidding components: the same bid list, ranking, Submit, Edit, Withdraw and warning dialogs.',

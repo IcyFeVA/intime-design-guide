@@ -560,10 +560,11 @@ export function DeleteRequestModal({ request, noun = 'request', onClose, onConfi
 /* ------------------------------------------------------------------ */
 
 /** Shift bids: a shift's note. Add a note opens a field; once saved it reads as a quote with Edit. Saved on blur. */
-function ShiftNote({ shiftId, state }: { shiftId: string; state: VacationBiddingState }) {
+function ShiftNote({ shiftId, state, readOnly }: { shiftId: string; state: VacationBiddingState; readOnly?: boolean }) {
   const note = state.shiftNotes[shiftId]
   const [editing, setEditing] = useState(false)
-  if (editing || note === '') {
+  if (readOnly && !note) return null
+  if (!readOnly && (editing || note === '')) {
     return (
       <Textarea
         label="Note"
@@ -584,17 +585,18 @@ function ShiftNote({ shiftId, state }: { shiftId: string; state: VacationBidding
   return (
     <Group gap={10} wrap="nowrap" align="flex-start">
       <StickyNote size={18} strokeWidth={1.75} aria-hidden="true" className={classes.dimIcon} />
-      <Text fs="italic">“{note}” <Anchor component="button" type="button" onClick={() => setEditing(true)} className={classes.inlineLink}>Edit</Anchor></Text>
+      <Text fs="italic">“{note}”{!readOnly && <> <Anchor component="button" type="button" onClick={() => setEditing(true)} className={classes.inlineLink}>Edit</Anchor></>}</Text>
     </Group>
   )
 }
 
 /**
  * The shifts the agency offers. Select Shift adds one as your next choice; selected ones say which choice they are.
- * `selectable` hides Select Shift (turn-based shift bids after submitting). Shift bids add availability, places
+ * `selectable` hides Select Shift (turn-based shift bids after submitting). `readOnly` (a closed shift bid) also hides
+ * Select Shift and note editing, so the shifts and their sign-ups stay visible. Shift bids add availability, places
  * filled and sign-ups, and hide Select Shift on full shifts.
  */
-export function OfferedShifts({ state, selectable = true }: { state: VacationBiddingState; selectable?: boolean }) {
+export function OfferedShifts({ state, selectable = true, readOnly = false }: { state: VacationBiddingState; selectable?: boolean; readOnly?: boolean }) {
   const [expanded, setExpanded] = useState<string[]>([])
   const [signUpsShift, setSignUpsShift] = useState<OfferedShift | null>(null)
   const ranks = new Map(state.requests.map((request, index) => [request.shiftId, index + 1]))
@@ -622,7 +624,7 @@ export function OfferedShifts({ state, selectable = true }: { state: VacationBid
             <div className={classes.offerAction}>
               {rank ? (
                 <Text className={classes.choice}>{ordinal(rank)} Choice</Text>
-              ) : selectable && !full && (
+              ) : selectable && !readOnly && !full && (
                 <Button variant="subtle" fw={600} className={classes.teamBids} rightSection={<MousePointer2 size={18} aria-hidden="true" />} aria-label={`Select ${shift.title}`} onClick={() => state.select(shift)}>
                   Select Shift
                 </Button>
@@ -633,7 +635,7 @@ export function OfferedShifts({ state, selectable = true }: { state: VacationBid
             <li key={shift.id} className={classes.offer}>
               {shiftBid ? (
                 <div className={`${classes.offerMain} ${classes.shiftOfferMain}`}>
-                  <div className={classes.offerBadge}><RequestStatusBadge stateKey={full ? 'full' : 'available'} size="sm" /></div>
+                  <div className={classes.offerBadge}><RequestStatusBadge stateKey={full ? 'full' : readOnly ? 'closed' : 'available'} size="sm" /></div>
                   <div className={classes.offerName}>
                     <Text fw={600} className={classes.offerTitle}>{shift.title}</Text>
                     {note && (
@@ -660,7 +662,7 @@ export function OfferedShifts({ state, selectable = true }: { state: VacationBid
               )}
               <Collapse expanded={open} transitionDuration={220} transitionTimingFunction="cubic-bezier(0.2, 0, 0, 1)">
                 <div className={classes.offerDetails}>
-                  {shiftBid ? <ShiftNote shiftId={shift.id} state={state} /> : note === undefined ? (
+                  {shiftBid ? <ShiftNote shiftId={shift.id} state={state} readOnly={readOnly} /> : note === undefined ? (
                     <Button variant="subtle" fw={600} leftSection={<Plus size={18} aria-hidden="true" />} onClick={() => state.setShiftNote(shift.id, '')} className={classes.addNoteLink}>Add a note</Button>
                   ) : (
                     <Textarea label="Note" autosize minRows={2} maxLength={300} value={note} onChange={(event) => state.setShiftNote(shift.id, event.currentTarget.value)} placeholder="Anything the scheduler should know" autoFocus={note === ''} />
@@ -844,6 +846,7 @@ export function BidDetail({ state }: { state: VacationBiddingState }) {
           ))}
         </Card>
         {offersShifts && (draft || pending) && <OfferedShifts state={state} selectable={draft || allAtOnce} />}
+        {shiftBid && bid.state === 'closed' && <OfferedShifts state={state} readOnly />}
       </div>
       {draft && (
         <div className={classes.footer}>

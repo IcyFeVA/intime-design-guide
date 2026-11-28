@@ -163,7 +163,7 @@ export default function ShiftBidding() {
       <Section id="sign-ups" title="Sign-ups" description="“N Sign-Ups” on a shift lists everyone who signed up for it, so employees can judge their chances.">
         <Stack gap="xs">
           <Text size="sm">The list is in the List Organizer’s order, with each person’s rank. You appear once your submitted bid includes the shift.</Text>
-          <Text size="sm">Nobody knows who is awarded until the bid closes, so Awarded only shows after that.</Text>
+          <Text size="sm">Nobody knows who is awarded until the bid closes, so Awarded only shows after that. A closed bid still lists its shifts, without Select Shift, so the sign-ups and who was awarded stay visible. Shifts with places left show Closed instead of Available.</Text>
         </Stack>
       </Section>
 

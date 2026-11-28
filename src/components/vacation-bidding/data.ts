@@ -96,7 +96,9 @@ const shiftOffersFor = (bid: Bid): OfferedShift[] =>
     const end = Math.min(bid.period[1], start + length - 1)
     const days = Array.from({ length: end - start + 1 }, (_, i) => start + i).filter((day) => weekdays.includes(weekdayIndex(day)))
     if (start > bid.period[1] || !days.length) return []
-    return [{ id: `${bid.id}-offer-${index}`, title, start: days[0], end: days[days.length - 1], startTime: times[0], endTime: times[1], days, slots, filled, signUps, contested }]
+    /* Once closed, the contested shifts went to people with more seniority, so they are full */
+    const taken = bid.state === 'closed' && contested ? slots : filled
+    return [{ id: `${bid.id}-offer-${index}`, title, start: days[0], end: days[days.length - 1], startTime: times[0], endTime: times[1], days, slots, filled: taken, signUps, contested }]
   })
 
 /** Title, first day (days after the bid period starts), length, times, contested. */
@@ -300,10 +302,12 @@ export function shiftSignUpsFor(bid: Bid, shift: OfferedShift): SignUp[] {
   const index = Number(shift.id.split('-').pop()) || 0
   const count = shift.signUps ?? 0
   const closed = bid.state === 'closed'
+  const mine = bid.submittedOn !== undefined && bid.state !== 'expired' ? bid.requests.find((request) => request.shiftId === shift.id) : undefined
+  /* Your awarded place counts toward the places filled */
+  const othersAwarded = (shift.filled ?? 0) - (mine?.outcome === 'awarded' ? 1 : 0)
   const others = Array.from({ length: count }, (_, i) => otherSignUps[(index * 3 + i) % otherSignUps.length])
-  const list: SignUp[] = others.map(([name, rank], i) => ({ name, rank, awarded: closed ? i < (shift.filled ?? 0) : undefined }))
-  const mine = bid.requests.find((request) => request.shiftId === shift.id)
-  if (mine && bid.submittedOn !== undefined && bid.state !== 'expired') {
+  const list: SignUp[] = others.map(([name, rank], i) => ({ name, rank, awarded: closed ? i < othersAwarded : undefined }))
+  if (mine) {
     list.splice(Math.min(YOUR_PLACE, list.length), 0, { name: 'John B. McLane', rank: 'Sergeant', you: true, awarded: closed ? mine.outcome === 'awarded' : undefined })
   }
   return list
