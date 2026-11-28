@@ -63,7 +63,7 @@ function DesktopDemo() {
 const differences: [string, string, string][] = [
   ['What you bid for', 'Your own leave requests: dates, times and a leave type.', 'Shifts the agency offers, with set days and hours.'],
   ['Turn-based', 'Add Request opens the leave request form.', 'Select Shift on the shifts that are still open. Full ones can’t be selected.'],
-  ['All at once', 'Select Shift on blocks of leave on offer.', 'The same, plus how many places are filled and who signed up for each shift.'],
+  ['All at once', 'Select Shift on blocks of leave on offer.', 'Select Shift on every shift: places only fill when the bid closes. Each shift shows who signed up.'],
   ['Who else bid', 'View Team Bids: a calendar of everyone’s leave (turn-based) or the sign-ups for the bid (all at once).', '“N Sign-Ups” on each shift lists who signed up for that shift.'],
   ['Closed before you submitted', 'Expired', 'Missed'],
 ]
@@ -136,19 +136,19 @@ export default function ShiftBidding() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Submit</strong> stays disabled until you select a shift, and asks for confirmation first.</Text>
-          <Text size="sm"><strong>Turn-based, Pending</strong>: the selection is locked in. Select Shift is gone, so the last shift can’t be removed. Edit changes the ranking.</Text>
+          <Text size="sm"><strong>Turn-based, Pending</strong>: the selection is locked in and the rows are read-only. Edit shows the arrows and Delete, then Save ranking or Cancel. Select Shift is gone, so the last shift can’t be removed.</Text>
           <Text size="sm"><strong>All at once, Pending</strong>: you can still select shifts. Edit changes the ranking and removes shifts until the window closes.</Text>
           <Text size="sm"><strong>Missed</strong> means the window closed before you submitted. Shift bids use it where vacation bids say Expired.</Text>
         </Stack>
       </Section>
 
-      <Section id="selecting" title="Selecting shifts" description="Every shift on offer shows whether it is still open, when it is, how many places are filled and how many people signed up.">
+      <Section id="selecting" title="Selecting shifts" description="Every shift on offer shows whether it is still open, when it is and how many people signed up. Turn-based bids also show how many places are filled.">
         <Stack gap="xs">
-          <Text size="sm"><strong>Available</strong> shifts have places left and show Select Shift. <strong>Full</strong> ones show no action: every place is taken.</Text>
+          <Text size="sm"><strong>Turn-based</strong>: “1/6 Filled” counts the places taken by the employees who bid before you. <strong>Available</strong> shifts have places left and show Select Shift; <strong>Full</strong> ones show no action.</Text>
           <Text size="sm"><strong>Select Shift</strong> adds the shift to your ranked list as the next choice. Selected shifts say which choice they are, e.g. “2nd Choice”, and follow the ranking as you reorder.</Text>
           <Text size="sm"><strong>The chevron</strong> opens a shift: its note, and the weeks it covers with the shift’s hours on each day it is worked. Days off inside the range stay empty.</Text>
           <Text size="sm"><strong>Add a note</strong> opens a field. The note saves when you leave the field, then reads as a quote with Edit. A note icon after the shift name says it has one, here and in the ranked list.</Text>
-          <Text size="sm">The places filled don’t change when you select a shift. Nothing is awarded until the bid closes.</Text>
+          <Text size="sm"><strong>All at once</strong>: nothing is filled until the bid closes, so every shift is Available and shows no places filled. A closed bid shows how many places were filled and which shifts are Full.</Text>
         </Stack>
       </Section>
 
@@ -163,7 +163,7 @@ export default function ShiftBidding() {
       <Section id="sign-ups" title="Sign-ups" description="“N Sign-Ups” on a shift lists everyone who signed up for it, so employees can judge their chances.">
         <Stack gap="xs">
           <Text size="sm">The list is in the List Organizer’s order, with each person’s rank. You appear once your submitted bid includes the shift.</Text>
-          <Text size="sm">Nobody knows who is awarded until the bid closes, so Awarded only shows after that. A closed bid still lists its shifts, without Select Shift, so the sign-ups and who was awarded stay visible. Shifts with places left show Closed instead of Available.</Text>
+          <Text size="sm">Awarded matches the places filled. Turn-based, it shows the employees who bid before you and took a place. All at once, nobody is awarded until the bid closes. Everyone not decided yet shows Pending. A closed bid still lists its shifts, without Select Shift, so the sign-ups and who was awarded stay visible. Shifts with places left show Closed instead of Available.</Text>
         </Stack>
       </Section>
 
@@ -171,7 +171,7 @@ export default function ShiftBidding() {
         <PropsTable rows={[
           { prop: "useVacationBidding({ kind: 'shift' })", type: "kind?: 'vacation' | 'shift'", default: "'vacation'", description: 'Loads the shift bids (initialBids(mode, kind)) and opens Winter Coverage 2026. state.kind and state.noun (“shift”) change the copy.' },
           { prop: 'SignUpTabs', type: "{ active?: 'Shift Bids' | 'Vacation Bids', onOther }", description: 'Pass active="Shift Bids".' },
-          { prop: 'OfferedShifts', type: '{ state, selectable? }', description: 'Shift bids add the Available/Full badge, places filled and the sign-ups link, and hide Select Shift on full shifts. selectable={false} hides it everywhere (turn-based, Pending).' },
+          { prop: 'OfferedShifts', type: '{ state, selectable? }', description: 'Shift bids add the Available/Full badge, places filled (turn-based, or once closed) and the sign-ups link, and hide Select Shift on full shifts. selectable={false} hides it everywhere (turn-based, Pending).' },
           { prop: 'ShiftSignUpsModal', type: '{ bid, shift, onClose }', description: 'Who signed up for one shift (shiftSignUpsFor in data.ts). Open while shift is set.' },
           { prop: 'RequestCalendar', type: '{ request }', description: 'A request or shift with days marks only those days, one bar per run of days in a row.' },
         ]} />
@@ -182,13 +182,14 @@ export default function ShiftBidding() {
         <DoDont
           doItems={[
             'Show the time left in the bid wherever the bid appears.',
-            'Show whether each shift is Available or Full, with its places filled, before people select it.',
+            'In turn-based bids, show whether each shift is Available or Full, with its places filled, before people select it.',
             'Show the shift’s hours on the calendar, and only the days it is worked.',
             'Let people see who else signed up for a shift.',
             'Offer arrows next to drag and drop, so ranking works without a mouse.',
           ]}
           dontItems={[
             'Offer Select Shift on a full shift.',
+            'Show places filled in an open all-at-once bid. Nothing is filled until it closes.',
             'Let people add shifts after submitting a turn-based bid. They can only re-rank or remove them.',
             'Show selected shifts as awarded. Keep them dashed until the bid closes.',
             'Offer an Add Request form. Shift bids only have the shifts on offer.',

@@ -113,7 +113,7 @@ export default function VacationBidding() {
         </Table.ScrollContainer>
         <Stack gap="xs" mt="md">
           <Text size="sm"><strong>Submit</strong> stays disabled until there is at least one request. It asks for confirmation first, because no requests can be added afterwards. After submitting, the bid is Pending and the selection is locked in.</Text>
-          <Text size="sm"><strong>Pending</strong> bids can be re-ranked with Edit (then Save ranking or Cancel) and requests can be deleted. New requests can’t be added, so the last request can’t be deleted.</Text>
+          <Text size="sm"><strong>Pending</strong> bids are read-only until Edit, which shows the arrows and Delete (then Save ranking or Cancel). New requests can’t be added, so the last request can’t be deleted.</Text>
           <Text size="sm"><strong>Withdraw</strong>, on the left of a Pending bid’s footer, asks first, then starts the bid over: back to Your Turn (Open when all at once) with every request removed.</Text>
           <Text size="sm">After the window closes each ranked request is <strong>Awarded</strong> or <strong>Denied</strong>. Who wins depends on the agency’s rules; usually seniority.</Text>
           <Text size="sm">The <strong>Live</strong> badge says the bid window is open. The time left counts down to when the window closes.</Text>
@@ -172,7 +172,7 @@ export default function VacationBidding() {
         <Stack gap="xs" mt="md">
           <Text size="sm">It opens on the first month of the bid. Month shows up to three names a day; “+N” lists everyone on that day. Week shows all of them.</Text>
           <Text size="sm">Awarded names come first, then pending, each in alphabetical order.</Text>
-          <Text size="sm">All-at-once bids open <strong>View Sign-Ups</strong> instead: everyone who signed up, in the List Organizer’s order, with their rank. Nobody knows who is awarded until the bid closes, so Awarded only shows after that. The button shows how many signed up: “View Team Bids (12)”.</Text>
+          <Text size="sm">All-at-once bids open <strong>View Sign-Ups</strong> instead: everyone who signed up, in the List Organizer’s order, with their rank. Nobody knows who is awarded until the bid closes, so everyone shows Pending until then, and Awarded after. The button shows how many signed up: “View Team Bids (12)”.</Text>
         </Stack>
       </Section>
 
